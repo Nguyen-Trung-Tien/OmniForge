@@ -79,7 +79,10 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     public partial string DryRunSummaryText { get; set; } = "Enter folder hierarchy to preview.";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPreviewEmpty))]
     public partial bool HasPreviewItems { get; set; }
+
+    public bool IsPreviewEmpty => !HasPreviewItems;
 
     [ObservableProperty]
     public partial string ExecutionResultSummary { get; set; } = string.Empty;

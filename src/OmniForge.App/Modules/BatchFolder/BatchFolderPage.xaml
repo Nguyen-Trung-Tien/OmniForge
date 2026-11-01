@@ -540,7 +540,7 @@
                                 IconGlyph="&#xE8F4;"
                                 Title="No folder structure to preview"
                                 Subtitle="Use 'Quick add', 'Series...', or type folder names on the left to preview the directory tree."
-                                IsEmpty="{x:Bind ViewModel.HasPreviewItems, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}" />
+                                IsEmpty="{x:Bind ViewModel.IsPreviewEmpty, Mode=OneWay}" />
                         </Grid>
                     </Border>
                 </Grid>

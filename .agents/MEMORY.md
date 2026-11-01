@@ -14,3 +14,4 @@ Whenever a bug is resolved, a WinUI 3 quirk is discovered, or a convention is re
 - **[2026-11-01]** (Root CLI Workflow): Always execute builds, tests, scaffolding, and verification from the solution root using `.\forge <command>` (`verify`, `build`, `run`, `test`, `arch`, `new-module`, `new-test`, `learn`, `logs`, `doctor`) to avoid directory hopping and reduce agent token consumption.
 
 - **[2026-11-01 11:49]** (Localization): Always use string.Create(CultureInfo.InvariantCulture, ...) when formatting numeric metrics (bytes, durations, percentages) so tests and UI remain deterministic on non-US locales like vi-VN.
+- **[2026-11-01 17:19]** (WinUI3): EmptyStateControl.IsEmpty is a bool DependencyProperty and converts to Visibility internally; never attach BoolToVisibilityConverter to EmptyStateControl.IsEmpty or it will throw InvalidCastException (Visibility to Boolean) at runtime.
