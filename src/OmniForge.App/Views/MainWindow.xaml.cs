@@ -121,15 +121,84 @@ public sealed partial class MainWindow : Window
         if (args.IsSettingsInvoked)
         {
             ViewModel.NavigateSettingsCommand.Execute(null);
+            return;
         }
-        else if (args.InvokedItemContainer?.DataContext is NavigationItemViewModel navItem)
+
+        NavigationItemViewModel? targetItem = null;
+
+        if (args.InvokedItem is NavigationItemViewModel navItem)
         {
-            ViewModel.NavigateItemCommand.Execute(navItem);
+            targetItem = navItem;
+        }
+        else if (args.InvokedItemContainer?.Tag is NavigationItemViewModel tagItem)
+        {
+            targetItem = tagItem;
+        }
+        else if (args.InvokedItemContainer?.DataContext is NavigationItemViewModel dcItem)
+        {
+            targetItem = dcItem;
+        }
+        else if (args.InvokedItemContainer?.Content is NavigationItemViewModel contentItem)
+        {
+            targetItem = contentItem;
+        }
+        else if (args.InvokedItem is string titleOrId)
+        {
+            targetItem = ViewModel.NavigationItems.FirstOrDefault(i =>
+                string.Equals(i.Title, titleOrId, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(i.Id, titleOrId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (targetItem is not null)
+        {
+            ViewModel.NavigateItemCommand.Execute(targetItem);
+        }
+    }
+
+    private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        if (args.IsSettingsSelected)
+        {
+            ViewModel.NavigateSettingsCommand.Execute(null);
+            return;
+        }
+
+        NavigationItemViewModel? targetItem = null;
+
+        if (args.SelectedItem is NavigationItemViewModel navItem)
+        {
+            targetItem = navItem;
+        }
+        else if (args.SelectedItemContainer?.Tag is NavigationItemViewModel tagItem)
+        {
+            targetItem = tagItem;
+        }
+        else if (args.SelectedItemContainer?.DataContext is NavigationItemViewModel dcItem)
+        {
+            targetItem = dcItem;
+        }
+        else if (args.SelectedItemContainer?.Content is NavigationItemViewModel contentItem)
+        {
+            targetItem = contentItem;
+        }
+
+        if (targetItem is not null)
+        {
+            ViewModel.NavigateItemCommand.Execute(targetItem);
         }
     }
 
     private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        ViewModel.AutoSuggestQuerySubmittedCommand.Execute(args.QueryText);
+        var query = args.ChosenSuggestion?.ToString() ?? args.QueryText;
+        ViewModel.AutoSuggestQuerySubmittedCommand.Execute(query);
+    }
+
+    private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        if (args.SelectedItem is string selectedText)
+        {
+            ViewModel.AutoSuggestQuerySubmittedCommand.Execute(selectedText);
+        }
     }
 }

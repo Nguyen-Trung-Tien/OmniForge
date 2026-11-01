@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Navigation Shell & Feature Accessibility**:
+  - Fixed issue where clicking navigation items in the left `NavigationView` pane failed to navigate to tool modules due to invalid `args.InvokedItemContainer?.DataContext` check. Added support for `args.InvokedItem`, `args.InvokedItemContainer?.Tag`, `DataContext`, `Content`, and fallback title matching.
+  - Added two-way binding on `SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=TwoWay}"` and hooked up `SelectionChanged="NavView_SelectionChanged"` for keyboard navigation and selection synchronization.
+  - Fixed Dashboard quick-launch "Launch" button failure caused by cross-template `Binding ElementName=RootPage` evaluation. Implemented strongly typed `DashboardToolItemViewModel` with direct compiled `{x:Bind LaunchCommand}`.
+  - Enhanced AutoSuggestBox query submission to accept dropdown clicks via `SuggestionChosen` and search matching by `DisplayName`, `Title`, and `Id`.
+- **UI Layout & Alignment Symmetry**:
+  - Removed redundant external `<NavigationView.Header>` and set `AlwaysShowHeader="False"`, eliminating duplicate section titles and resolving horizontal alignment mismatch between the 12px header and 36px page cards (`OmniPagePadding`).
+  - Re-aligned shell `InfoBar` margins (`36,12,36,0`) to symmetrically align with content cards and `OmniPagePadding`.
+  - Optimized `NavigationView.PaneHeader` logo dimensions (`24x24`) and margins (`12,12,12,10`) to prevent text cropping and achieve centered icon alignment in compact pane mode (`CompactPaneLength="48"`).
+
 ### Changed
 - **Central Package Management (Directory.Packages.props) Dependency Upgrades**:
   - Upgraded `Microsoft.Extensions.DependencyInjection`, `Logging`, `Logging.Abstractions`, `Logging.Debug` from `9.0.2` to `10.0.14`.

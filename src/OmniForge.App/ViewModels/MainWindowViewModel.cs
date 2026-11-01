@@ -108,6 +108,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         var match = _toolRegistry.Modules.FirstOrDefault(m =>
             m.DisplayName.Equals(query, StringComparison.OrdinalIgnoreCase) ||
+            m.Title.Equals(query, StringComparison.OrdinalIgnoreCase) ||
             m.Id.Equals(query, StringComparison.OrdinalIgnoreCase));
 
         if (match is not null)

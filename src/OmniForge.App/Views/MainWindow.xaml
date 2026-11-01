@@ -39,39 +39,28 @@
                         IsBackEnabled="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
                         BackRequested="NavView_BackRequested"
                         ItemInvoked="NavView_ItemInvoked"
+                        SelectionChanged="NavView_SelectionChanged"
                         MenuItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
-                        SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=OneWay}"
+                        SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=TwoWay}"
                         IsSettingsVisible="True"
-                        AlwaysShowHeader="True">
+                        AlwaysShowHeader="False">
 
             <!-- Branded Pane Header with Vector SVG Logo -->
             <NavigationView.PaneHeader>
-                <StackPanel Orientation="Horizontal" Spacing="10" Margin="16,14,16,10" VerticalAlignment="Center">
-                    <Image Width="28" Height="28">
-                        <Image.Source>
-                            <SvgImageSource UriSource="ms-appx:///Assets/logo.svg" RasterizePixelWidth="56" RasterizePixelHeight="56" />
-                        </Image.Source>
-                    </Image>
-                    <TextBlock Text="OmniForge"
-                               Style="{ThemeResource SubtitleTextBlockStyle}"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center" />
-                </StackPanel>
+                <Grid Margin="12,12,12,10" Height="36">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Image Width="24" Height="24" VerticalAlignment="Center">
+                            <Image.Source>
+                                <SvgImageSource UriSource="ms-appx:///Assets/logo.svg" RasterizePixelWidth="48" RasterizePixelHeight="48" />
+                            </Image.Source>
+                        </Image>
+                        <TextBlock Text="OmniForge"
+                                   Style="{ThemeResource SubtitleTextBlockStyle}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
             </NavigationView.PaneHeader>
-
-            <!-- Custom Content Header with Vector SVG Logo and Section Title -->
-            <NavigationView.Header>
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center" Margin="12,0,0,0">
-                    <Image Width="32" Height="32">
-                        <Image.Source>
-                            <SvgImageSource UriSource="ms-appx:///Assets/logo.svg" RasterizePixelWidth="64" RasterizePixelHeight="64" />
-                        </Image.Source>
-                    </Image>
-                    <TextBlock Text="{x:Bind ViewModel.CurrentSectionTitle, Mode=OneWay}"
-                               Style="{ThemeResource TitleTextBlockStyle}"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-            </NavigationView.Header>
 
             <!-- Real-time Tool Search and Auto-Suggest Box -->
             <NavigationView.AutoSuggestBox>
@@ -80,12 +69,14 @@
                                 QueryIcon="Find"
                                 Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 ItemsSource="{x:Bind ViewModel.SearchSuggestions, Mode=OneWay}"
-                                QuerySubmitted="SearchBox_QuerySubmitted" />
+                                QuerySubmitted="SearchBox_QuerySubmitted"
+                                SuggestionChosen="SearchBox_SuggestionChosen" />
             </NavigationView.AutoSuggestBox>
 
             <NavigationView.MenuItemTemplate>
                 <DataTemplate x:DataType="vm:NavigationItemViewModel">
                     <NavigationViewItem Content="{x:Bind Title}"
+                                        Tag="{x:Bind}"
                                         ToolTipService.ToolTip="{x:Bind Description}">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="{x:Bind IconGlyph}" />
@@ -102,7 +93,7 @@
 
                 <!-- Module Fault Isolation Banner -->
                 <InfoBar Grid.Row="0"
-                         Margin="24,12,24,0"
+                         Margin="36,12,36,0"
                          Severity="Error"
                          Title="Module Activation Error"
                          IsOpen="{x:Bind ViewModel.HasShellError, Mode=OneWay}"

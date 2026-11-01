@@ -132,6 +132,29 @@ public sealed class ServicesIntegrationTests : IDisposable
         Assert.Contains(SettingsService.LastOpenedModuleKey, changedKeys);
     }
 
+    [Fact]
+    public void NavigationService_ConfigureAndNavigate_Uninitialized_ShouldThrowOrReturnFalse()
+    {
+        var navService = new OmniForge.Services.Navigation.NavigationService();
+        navService.Configure("Dashboard", typeof(object));
+
+        // When unmapped key is provided, NavigateTo should return false
+        var unmappedResult = navService.NavigateTo("NonExistentPageKey");
+        Assert.False(unmappedResult);
+
+        // When mapped key is provided but Frame is uninitialized, NavigateTo should throw InvalidOperationException
+        Assert.Throws<InvalidOperationException>(() => navService.NavigateTo("Dashboard"));
+    }
+
+    [Fact]
+    public void NavigationService_Configure_InvalidArgs_ShouldThrowArgumentException()
+    {
+        var navService = new OmniForge.Services.Navigation.NavigationService();
+
+        Assert.Throws<ArgumentException>(() => navService.Configure(string.Empty, typeof(object)));
+        Assert.Throws<ArgumentNullException>(() => navService.Configure("ValidKey", null!));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempDirectory))
