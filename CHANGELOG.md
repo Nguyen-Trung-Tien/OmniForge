@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Batch Folder Preview Panel Layout**:
+  - Restructured `BatchFolderPage.xaml` PreviewCard header layout. Separated title/view toggles, status metric badges (`Total`, `New`, `Exists`, `Errors`), and search filter into dedicated rows. Resolved severe vertical word-wrap and character squishing ("📁 Xe / Phân / cấp / thư / mục...") caused by competing `Auto` and `*` columns.
+- **Dashboard Quick Launch Card Layout & Category Badge**:
+  - Restructured `DashboardPage.xaml` utility cards by elevating the category badge to an eyebrow tag above the tool title. Increased `ItemsWrapGrid` `ItemWidth` from 360px to 370px and tightened layout spacing. Eliminated category tag truncation and clipping (`[D]`, `[Devel]`, `[File Syst]`, `[File S]`, `[Se]`) while granting 100% full width to Vietnamese and English module titles.
+
 ### Added
 - **Desktop Window Startup Centering & Responsive Layout Overhaul**:
   - Implemented desktop window startup centering in `MainWindow.xaml.cs` using `Microsoft.UI.Windowing.DisplayArea.GetFromWindowId` and `DisplayAreaFallback.Primary`. Accurately aligns the window in the center of the display work area while accounting for multi-monitor arrangements, DPI scaling, and Windows taskbars.
