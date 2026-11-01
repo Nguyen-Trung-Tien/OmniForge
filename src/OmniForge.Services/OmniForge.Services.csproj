@@ -5,6 +5,7 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <UseWinUI>true</UseWinUI>
     <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <EnableDefaultXamlItems>false</EnableDefaultXamlItems>
   </PropertyGroup>
 
   <ItemGroup>

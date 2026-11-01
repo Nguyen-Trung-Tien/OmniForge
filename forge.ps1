@@ -53,12 +53,14 @@ function Write-Header([string]$Title) {
 switch ($Command) {
     "build" {
         Write-Header "Build Solution ($Config | $Platform)"
+        Get-Process -Name "OmniForge.App" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
         dotnet build $SlnPath -c $Config -p:Platform=$Platform --nologo
         exit $LASTEXITCODE
     }
 
     "run" {
         Write-Header "Run OmniForge.App ($Config | $Platform)"
+        Get-Process -Name "OmniForge.App" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
         dotnet run --project $AppProj -c $Config -p:Platform=$Platform
         exit $LASTEXITCODE
     }

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **UI Layout & Alignment Symmetry Across All Pages**:
+  - Removed restrictive `MaxWidth="1040"` from `PageRootStackPanelStyle` in [SharedStyles.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Styles/SharedStyles.xaml) and `MaxWidth="1280"` from [LuckyWheelPage.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/LuckyWheel/LuckyWheelPage.xaml). This eliminates the asymmetrical layout issue where pages were constrained to 1040px and left-aligned with a massive dead void on the right, allowing all pages to symmetrically stretch with uniform `OmniPagePadding` (`36,24,36,24`).
+  - Added `HorizontalScrollBarVisibility="Disabled"` to `PageScrollViewerStyle` to prevent unbounded horizontal measurement and enforce responsive horizontal stretching across all display resolutions.
+  - Removed hardcoded solid `Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"` in [LuckyWheelPage.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/LuckyWheel/LuckyWheelPage.xaml) to preserve seamless MicaAlt backdrop consistency with the rest of the application.
+- **Build Warnings & Process Lock Prevention**:
+  - Added `<EnableDefaultXamlItems>false</EnableDefaultXamlItems>` to [OmniForge.Services.csproj](file:///d:/Tools/OmniForge/src/OmniForge.Services/OmniForge.Services.csproj) to eliminate unnecessary XAML compilation steps for the non-XAML service assembly.
+  - Enhanced [forge.ps1](file:///d:/Tools/OmniForge/forge.ps1) `build` and `run` commands to terminate lingering `OmniForge.App` processes prior to execution, preventing `MSB3026` / `MSB3027` file lock warnings caused by active binaries during recompilation.
 - **Navigation Shell & Feature Accessibility**:
   - Fixed issue where clicking navigation items in the left `NavigationView` pane failed to navigate to tool modules due to invalid `args.InvokedItemContainer?.DataContext` check. Added support for `args.InvokedItem`, `args.InvokedItemContainer?.Tag`, `DataContext`, `Content`, and fallback title matching.
   - Added two-way binding on `SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=TwoWay}"` and hooked up `SelectionChanged="NavView_SelectionChanged"` for keyboard navigation and selection synchronization.

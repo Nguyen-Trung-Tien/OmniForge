@@ -7,10 +7,10 @@
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     xmlns:lucky="using:OmniForge.App.Modules.LuckyWheel">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid>
         <!-- Main Scrollable Content -->
         <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
-            <StackPanel Style="{StaticResource PageRootStackPanelStyle}" MaxWidth="1280">
+            <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
                 <!-- Header Control -->
                 <controls:ToolHeaderControl
                     Title="Lucky Wheel"
