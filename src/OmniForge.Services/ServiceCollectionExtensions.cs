@@ -5,6 +5,7 @@ using OmniForge.Services.Localization;
 using OmniForge.Services.Logging;
 using OmniForge.Services.Navigation;
 using OmniForge.Services.Settings;
+using OmniForge.Services.Updates;
 
 namespace OmniForge.Services;
 
@@ -34,6 +35,9 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<NavigationService>();
         services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<NavigationService>());
+
+        services.AddSingleton<UpdateService>();
+        services.AddSingleton<IUpdateService>(sp => sp.GetRequiredService<UpdateService>());
 
         return services;
     }

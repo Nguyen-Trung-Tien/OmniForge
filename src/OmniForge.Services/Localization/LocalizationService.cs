@@ -222,6 +222,36 @@ public sealed class LocalizationService : ILocalizationService
         _enStrings[LocalizationKeys.Settings_SavedSuccess] = "Preferences saved successfully.";
         _enStrings[LocalizationKeys.Settings_ThemeUpdatedLive] = "Theme updated to '{0}' (applied live).";
 
+        // Application Updates
+        _enStrings[LocalizationKeys.Settings_Updates_Title] = "Application Updates";
+        _enStrings[LocalizationKeys.Settings_Updates_Subtitle] = "Manage application updates, preview releases, and deployment channels.";
+        _enStrings[LocalizationKeys.Settings_Updates_CurrentVersion] = "Installed Version";
+        _enStrings[LocalizationKeys.Settings_Updates_CheckNow] = "Check for updates";
+        _enStrings[LocalizationKeys.Settings_Updates_Checking] = "Checking for updates...";
+        _enStrings[LocalizationKeys.Settings_Updates_UpToDate] = "OmniForge is up to date";
+        _enStrings[LocalizationKeys.Settings_Updates_Available] = "Version {0} is available";
+        _enStrings[LocalizationKeys.Settings_Updates_AvailableDesc] = "A new release is ready to download and install.";
+        _enStrings[LocalizationKeys.Settings_Updates_Channel] = "Update Channel";
+        _enStrings[LocalizationKeys.Settings_Updates_Channel_Stable] = "Stable (Recommended)";
+        _enStrings[LocalizationKeys.Settings_Updates_Channel_Preview] = "Preview / Beta";
+        _enStrings[LocalizationKeys.Settings_Updates_AutoCheck] = "Check for updates automatically on startup";
+        _enStrings[LocalizationKeys.Settings_Updates_AutoCheckDesc] = "Silently notify when a new version is released without slowing down app startup.";
+        _enStrings[LocalizationKeys.Settings_Updates_LastChecked] = "Last checked: {0}";
+        _enStrings[LocalizationKeys.Settings_Updates_LastCheckedNever] = "Last checked: Never";
+        _enStrings[LocalizationKeys.Settings_Updates_Download] = "Download Update";
+        _enStrings[LocalizationKeys.Settings_Updates_Downloading] = "Downloading update: {0}% ({1} / {2})";
+        _enStrings[LocalizationKeys.Settings_Updates_CancelDownload] = "Cancel Download";
+        _enStrings[LocalizationKeys.Settings_Updates_DownloadCancelled] = "Update download was cancelled.";
+        _enStrings[LocalizationKeys.Settings_Updates_Verifying] = "Verifying cryptographic checksum (SHA-256)...";
+        _enStrings[LocalizationKeys.Settings_Updates_ReadyToInstall] = "Update ready to install";
+        _enStrings[LocalizationKeys.Settings_Updates_ReadyToInstallDesc] = "The update file has been downloaded and verified. Click below to proceed with installation.";
+        _enStrings[LocalizationKeys.Settings_Updates_InstallAndRestart] = "Install & Relaunch";
+        _enStrings[LocalizationKeys.Settings_Updates_ReleaseNotes] = "Release Notes & Changelog";
+        _enStrings[LocalizationKeys.Settings_Updates_ErrorGeneric] = "Unable to complete update check: {0}";
+        _enStrings[LocalizationKeys.Settings_Updates_ErrorHashMismatch] = "Security alert: Package SHA-256 hash does not match expected checksum. The file was discarded.";
+        _enStrings[LocalizationKeys.Settings_Updates_ErrorNetwork] = "Network connection failed. Please verify your internet connection and try again.";
+        _enStrings[LocalizationKeys.Settings_Updates_Retry] = "Retry";
+
         // Dashboard
         _enStrings[LocalizationKeys.Dashboard_Title] = "OmniForge Dashboard";
         _enStrings[LocalizationKeys.Dashboard_Subtitle] = "Centralized workspace & modular utility hub";
@@ -506,6 +536,36 @@ public sealed class LocalizationService : ILocalizationService
         _viStrings[LocalizationKeys.Settings_SavePreferences] = "Lưu thiết lập";
         _viStrings[LocalizationKeys.Settings_SavedSuccess] = "Thiết lập đã được lưu thành công.";
         _viStrings[LocalizationKeys.Settings_ThemeUpdatedLive] = "Chủ đề đã được cập nhật thành '{0}' (áp dụng ngay).";
+
+        // Application Updates
+        _viStrings[LocalizationKeys.Settings_Updates_Title] = "Cập nhật ứng dụng";
+        _viStrings[LocalizationKeys.Settings_Updates_Subtitle] = "Quản lý phiên bản, kiểm tra cập nhật và chọn kênh phát hành.";
+        _viStrings[LocalizationKeys.Settings_Updates_CurrentVersion] = "Phiên bản hiện tại";
+        _viStrings[LocalizationKeys.Settings_Updates_CheckNow] = "Kiểm tra cập nhật";
+        _viStrings[LocalizationKeys.Settings_Updates_Checking] = "Đang kiểm tra cập nhật...";
+        _viStrings[LocalizationKeys.Settings_Updates_UpToDate] = "OmniForge đang ở phiên bản mới nhất";
+        _viStrings[LocalizationKeys.Settings_Updates_Available] = "Đã có phiên bản mới {0}";
+        _viStrings[LocalizationKeys.Settings_Updates_AvailableDesc] = "Bản phát hành mới đã sẵn sàng để tải xuống và cài đặt.";
+        _viStrings[LocalizationKeys.Settings_Updates_Channel] = "Kênh cập nhật";
+        _viStrings[LocalizationKeys.Settings_Updates_Channel_Stable] = "Chính thức (Khuyên dùng)";
+        _viStrings[LocalizationKeys.Settings_Updates_Channel_Preview] = "Bản thử nghiệm (Preview / Beta)";
+        _viStrings[LocalizationKeys.Settings_Updates_AutoCheck] = "Tự động kiểm tra cập nhật khi khởi động";
+        _viStrings[LocalizationKeys.Settings_Updates_AutoCheckDesc] = "Tự động thông báo khi có phiên bản mới mà không ảnh hưởng tốc độ khởi động.";
+        _viStrings[LocalizationKeys.Settings_Updates_LastChecked] = "Kiểm tra lần cuối: {0}";
+        _viStrings[LocalizationKeys.Settings_Updates_LastCheckedNever] = "Kiểm tra lần cuối: Chưa từng";
+        _viStrings[LocalizationKeys.Settings_Updates_Download] = "Tải bản cập nhật";
+        _viStrings[LocalizationKeys.Settings_Updates_Downloading] = "Đang tải bản cập nhật: {0}% ({1} / {2})";
+        _viStrings[LocalizationKeys.Settings_Updates_CancelDownload] = "Hủy tải";
+        _viStrings[LocalizationKeys.Settings_Updates_DownloadCancelled] = "Đã hủy tải bản cập nhật.";
+        _viStrings[LocalizationKeys.Settings_Updates_Verifying] = "Đang kiểm tra mã băm SHA-256...";
+        _viStrings[LocalizationKeys.Settings_Updates_ReadyToInstall] = "Bản cập nhật đã sẵn sàng để cài đặt";
+        _viStrings[LocalizationKeys.Settings_Updates_ReadyToInstallDesc] = "Gói cài đặt đã được tải và xác minh bảo mật thành công. Nhấn nút bên dưới để tiến hành cài đặt.";
+        _viStrings[LocalizationKeys.Settings_Updates_InstallAndRestart] = "Cài đặt & Khởi động lại";
+        _viStrings[LocalizationKeys.Settings_Updates_ReleaseNotes] = "Thông tin bản phát hành & Nhật ký thay đổi";
+        _viStrings[LocalizationKeys.Settings_Updates_ErrorGeneric] = "Không thể kiểm tra cập nhật: {0}";
+        _viStrings[LocalizationKeys.Settings_Updates_ErrorHashMismatch] = "Cảnh báo bảo mật: Mã băm SHA-256 không khớp với bản phát hành gốc. Tệp đã bị hủy an toàn.";
+        _viStrings[LocalizationKeys.Settings_Updates_ErrorNetwork] = "Lỗi kết nối mạng. Vui lòng kiểm tra lại kết nối internet của bạn và thử lại.";
+        _viStrings[LocalizationKeys.Settings_Updates_Retry] = "Thử lại";
 
         // Dashboard
         _viStrings[LocalizationKeys.Dashboard_Title] = "Bảng điều khiển OmniForge";

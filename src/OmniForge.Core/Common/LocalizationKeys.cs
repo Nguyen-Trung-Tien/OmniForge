@@ -261,5 +261,35 @@ public static class LocalizationKeys
     public const string FileTools_Subtitle = "FileTools_Subtitle";
     public const string TextInspector_Title = "TextInspector_Title";
     public const string TextInspector_Subtitle = "TextInspector_Subtitle";
+
+    // Application Updates Section
+    public const string Settings_Updates_Title = "Settings_Updates_Title";
+    public const string Settings_Updates_Subtitle = "Settings_Updates_Subtitle";
+    public const string Settings_Updates_CurrentVersion = "Settings_Updates_CurrentVersion";
+    public const string Settings_Updates_CheckNow = "Settings_Updates_CheckNow";
+    public const string Settings_Updates_Checking = "Settings_Updates_Checking";
+    public const string Settings_Updates_UpToDate = "Settings_Updates_UpToDate";
+    public const string Settings_Updates_Available = "Settings_Updates_Available";
+    public const string Settings_Updates_AvailableDesc = "Settings_Updates_AvailableDesc";
+    public const string Settings_Updates_Channel = "Settings_Updates_Channel";
+    public const string Settings_Updates_Channel_Stable = "Settings_Updates_Channel_Stable";
+    public const string Settings_Updates_Channel_Preview = "Settings_Updates_Channel_Preview";
+    public const string Settings_Updates_AutoCheck = "Settings_Updates_AutoCheck";
+    public const string Settings_Updates_AutoCheckDesc = "Settings_Updates_AutoCheckDesc";
+    public const string Settings_Updates_LastChecked = "Settings_Updates_LastChecked";
+    public const string Settings_Updates_LastCheckedNever = "Settings_Updates_LastCheckedNever";
+    public const string Settings_Updates_Download = "Settings_Updates_Download";
+    public const string Settings_Updates_Downloading = "Settings_Updates_Downloading";
+    public const string Settings_Updates_CancelDownload = "Settings_Updates_CancelDownload";
+    public const string Settings_Updates_DownloadCancelled = "Settings_Updates_DownloadCancelled";
+    public const string Settings_Updates_Verifying = "Settings_Updates_Verifying";
+    public const string Settings_Updates_ReadyToInstall = "Settings_Updates_ReadyToInstall";
+    public const string Settings_Updates_ReadyToInstallDesc = "Settings_Updates_ReadyToInstallDesc";
+    public const string Settings_Updates_InstallAndRestart = "Settings_Updates_InstallAndRestart";
+    public const string Settings_Updates_ReleaseNotes = "Settings_Updates_ReleaseNotes";
+    public const string Settings_Updates_ErrorGeneric = "Settings_Updates_ErrorGeneric";
+    public const string Settings_Updates_ErrorHashMismatch = "Settings_Updates_ErrorHashMismatch";
+    public const string Settings_Updates_ErrorNetwork = "Settings_Updates_ErrorNetwork";
+    public const string Settings_Updates_Retry = "Settings_Updates_Retry";
 }
 

@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Production-Grade Application Update Architecture & Settings Integration**:
+  - Implemented decoupled contract `IUpdateService` in `OmniForge.Core.Contracts` with support for SemVer version checks, streaming downloads, SHA-256 cryptographic verification, and safe process launching.
+  - Built immutable SemVer 2.0.0 parser and comparer `SemanticVersion` handling pre-release tags, numeric/lexical sorting, and build metadata.
+  - Implemented resilient `UpdateService` in `OmniForge.Services` featuring:
+    - Zero-allocation streaming downloads using `ArrayPool<byte>.Shared` and on-the-fly `IncrementalHash` (SHA-256).
+    - HTTPS enforcement, path traversal defense via `SecurityGuard.ValidateSafePath`, and isolated temp workspace storage (`%TEMP%\OmniForge\Updates`).
+    - Robust GitHub release manifest parsing supporting both `Stable` and `Preview` release channels.
+    - Safe installer handoff (`.msix`, `.msixbundle`, `.appinstaller`, `.exe`) with extension verification and non-blocking asynchronous execution.
+    - User preferences persistence for release channels (`Stable`/`Preview`) and auto-check on startup.
+  - Overhauled `SettingsViewModel` and `SettingsPage.xaml` with a rich WinUI 3 Fluent Design card (`&#xE895;`):
+    - Real-time update checking with in-button `ProgressRing`, last-checked timestamp, and up-to-date confirmation indicator.
+    - Dynamic update-available banner with release title, download size pill, and expandable release notes preview.
+    - Non-blocking download progress with throttled UI dispatch, byte throughput/speed indicators, and instant cancellation.
+    - Verified ready-to-install card with single-click "Install & Relaunch".
+    - Resilient error handling via dismissible and retryable `InfoBar`.
+  - Added full bilingual localization (English & Tiếng Việt) for all 27 new update keys.
+  - Added comprehensive unit test suites (`SemanticVersionTests` and `UpdateServiceTests`), increasing verified test count to 139 passing tests.
 - **Batch Folder Creator UX & Architecture Overhaul**:
   - Smart Import Modal dialog with support for Excel (`.xlsx`), CSV, TSV, and Text (`.txt`) files or direct raw paste.
   - Multi-item Bulk Quick-Add support for comma-, semicolon-, or newline-separated folder names.

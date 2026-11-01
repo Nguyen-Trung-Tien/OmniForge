@@ -34,6 +34,230 @@
                 Title="{x:Bind ViewModel.TitleText, Mode=OneWay}"
                 Subtitle="{x:Bind ViewModel.SubtitleText, Mode=OneWay}" />
 
+            <!-- Application Updates Section Card -->
+            <controls:SectionCardControl
+                Title="{x:Bind ViewModel.UpdatesTitle, Mode=OneWay}"
+                Subtitle="{x:Bind ViewModel.UpdatesSubtitle, Mode=OneWay}"
+                IconGlyph="&#xE895;">
+                <StackPanel Spacing="16">
+                    <!-- Current Version & Action Row -->
+                    <Grid ColumnSpacing="16" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.UpdatesCurrentVersionLabel, Mode=OneWay}"
+                                           Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                                <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                    <TextBlock Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}"
+                                               Style="{ThemeResource CaptionTextBlockStyle}"
+                                               FontWeight="SemiBold" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.LastCheckedText, Mode=OneWay}"
+                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+
+                        <!-- Check for Updates Button with embedded ProgressRing -->
+                        <Button Grid.Column="1"
+                                Command="{x:Bind ViewModel.CheckForUpdatesCommand}"
+                                IsEnabled="{x:Bind ViewModel.CanCheckUpdates, Mode=OneWay}"
+                                VerticalAlignment="Center"
+                                Padding="16,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ProgressRing IsActive="{x:Bind ViewModel.IsCheckingUpdates, Mode=OneWay}"
+                                              Width="16" Height="16"
+                                              Visibility="{x:Bind ViewModel.IsCheckingUpdates, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <TextBlock Text="{x:Bind ViewModel.UpdatesCheckingText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsCheckingUpdates, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <TextBlock Text="{x:Bind ViewModel.UpdatesCheckNowButtonText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsCheckingUpdates, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Up-to-date Confirmation Indicator -->
+                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12,10"
+                            Visibility="{x:Bind ViewModel.IsUpToDate, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="16"
+                                      Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.UpdatesUpToDateText, Mode=OneWay}"
+                                       Style="{ThemeResource BodyTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Error Alert InfoBar -->
+                    <InfoBar IsOpen="{x:Bind ViewModel.HasUpdateError, Mode=OneWay}"
+                             Severity="Error"
+                             IsClosable="True"
+                             Message="{x:Bind ViewModel.UpdateErrorMessage, Mode=OneWay}"
+                             CloseButtonCommand="{x:Bind ViewModel.DismissUpdateErrorCommand}">
+                        <InfoBar.ActionButton>
+                            <Button Content="{x:Bind ViewModel.UpdatesRetryButtonText, Mode=OneWay}"
+                                    Command="{x:Bind ViewModel.CheckForUpdatesCommand}"
+                                    Style="{ThemeResource SubtleButtonStyle}" />
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+
+                    <!-- Update Available Notification Card -->
+                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16"
+                            Visibility="{x:Bind ViewModel.IsUpdateAvailable, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{x:Bind ViewModel.UpdatesAvailableText, Mode=OneWay}"
+                                                   Style="{ThemeResource SubtitleTextBlockStyle}" />
+                                        <Border Style="{StaticResource StatusBadgeBorderStyle}"
+                                                Visibility="{x:Bind ViewModel.DownloadSizeText, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <TextBlock Text="{x:Bind ViewModel.DownloadSizeText, Mode=OneWay}"
+                                                       Style="{ThemeResource CaptionTextBlockStyle}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="{x:Bind ViewModel.UpdatesAvailableDesc, Mode=OneWay}"
+                                               Style="{ThemeResource BodyTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+
+                                <Button Grid.Column="1"
+                                        Content="{x:Bind ViewModel.UpdatesDownloadButtonText, Mode=OneWay}"
+                                        Command="{x:Bind ViewModel.DownloadUpdateCommand}"
+                                        Style="{ThemeResource AccentButtonStyle}"
+                                        VerticalAlignment="Center"
+                                        Padding="16,8" />
+                            </Grid>
+
+                            <!-- Release Notes Expander -->
+                            <Expander Header="{x:Bind ViewModel.UpdatesReleaseNotesLabel, Mode=OneWay}"
+                                      HorizontalAlignment="Stretch"
+                                      Visibility="{x:Bind ViewModel.HasReleaseNotes, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
+                                    <TextBox Text="{x:Bind ViewModel.ReleaseNotesText, Mode=OneWay}"
+                                             IsReadOnly="True"
+                                             TextWrapping="Wrap"
+                                             Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                             BorderThickness="0"
+                                             Background="Transparent" />
+                                </ScrollViewer>
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Downloading Progress Card -->
+                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16"
+                            Visibility="{x:Bind ViewModel.IsDownloadingUpdate, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{x:Bind ViewModel.DownloadProgressText, Mode=OneWay}"
+                                               Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.DownloadSpeedText, Mode=OneWay}"
+                                               Style="{ThemeResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+
+                                <Button Grid.Column="1"
+                                        Content="{x:Bind ViewModel.UpdatesCancelDownloadButtonText, Mode=OneWay}"
+                                        Command="{x:Bind ViewModel.CancelDownloadCommand}"
+                                        VerticalAlignment="Center" />
+                            </Grid>
+
+                            <ProgressBar Value="{x:Bind ViewModel.DownloadProgressPercentage, Mode=OneWay}"
+                                         Maximum="100"
+                                         Height="6"
+                                         HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Ready to Install Action Card -->
+                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16"
+                            Visibility="{x:Bind ViewModel.IsReadyToInstall, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <FontIcon Grid.Column="0"
+                                      Glyph="&#xE73E;"
+                                      FontSize="24"
+                                      Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                      VerticalAlignment="Center" />
+
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.UpdatesReadyToInstallText, Mode=OneWay}"
+                                           Style="{ThemeResource SubtitleTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.UpdatesReadyToInstallDesc, Mode=OneWay}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
+                            <Button Grid.Column="2"
+                                    Content="{x:Bind ViewModel.UpdatesInstallButtonText, Mode=OneWay}"
+                                    Command="{x:Bind ViewModel.InstallUpdateCommand}"
+                                    Style="{ThemeResource AccentButtonStyle}"
+                                    VerticalAlignment="Center"
+                                    Padding="16,8" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Update Preferences: Channel & Auto-Check -->
+                    <Grid ColumnSpacing="24" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0"
+                                  Header="{x:Bind ViewModel.UpdatesChannelLabel, Mode=OneWay}"
+                                  ItemsSource="{x:Bind ViewModel.ChannelOptions, Mode=OneWay}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedChannel, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.CanCheckUpdates, Mode=OneWay}"
+                                  HorizontalAlignment="Stretch" />
+
+                        <ToggleSwitch Grid.Column="1"
+                                      Header="{x:Bind ViewModel.UpdatesAutoCheckLabel, Mode=OneWay}"
+                                      IsOn="{x:Bind ViewModel.AutoCheckOnStartup, Mode=TwoWay}"
+                                      IsEnabled="{x:Bind ViewModel.CanCheckUpdates, Mode=OneWay}"
+                                      HorizontalAlignment="Stretch" />
+                    </Grid>
+                </StackPanel>
+            </controls:SectionCardControl>
+
             <!-- Language & Regional Preferences Section Card -->
             <controls:SectionCardControl
                 Title="{x:Bind ViewModel.LanguageTitle, Mode=OneWay}"
@@ -65,12 +289,6 @@
 
                     <ToggleSwitch Header="{x:Bind ViewModel.BackdropLabel, Mode=OneWay}"
                                   IsOn="{x:Bind ViewModel.EnableMicaAlt, Mode=TwoWay}" />
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="{x:Bind ViewModel.VersionLabel, Mode=OneWay}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                        <TextBlock Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
 
                     <Button Content="{x:Bind ViewModel.SavePreferencesLabel, Mode=OneWay}"
                             Command="{x:Bind ViewModel.SaveSettingsCommand}"

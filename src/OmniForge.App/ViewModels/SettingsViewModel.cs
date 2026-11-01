@@ -1,3 +1,4 @@
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OmniForge.Core.Common;
@@ -6,13 +7,20 @@ using OmniForge.Core.Models;
 
 namespace OmniForge.App.ViewModels;
 
-public partial class SettingsViewModel : ObservableObject
+public partial class SettingsViewModel : ObservableObject, IDisposable
 {
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _localizationService;
     private readonly IDispatcherService _dispatcherService;
+    private readonly IUpdateService _updateService;
+
     private bool _isInitialLoading = true;
     private bool _isUpdatingSelection;
+    private bool _disposed;
+    private CancellationTokenSource? _downloadCts;
+    private UpdateInfo? _latestUpdateInfo;
+
+    // --- Appearance & System Preferences ---
 
     [ObservableProperty]
     public partial string AppVersion { get; set; } = "0.1.0-alpha";
@@ -36,51 +44,121 @@ public partial class SettingsViewModel : ObservableObject
 
     public bool HasStatusNotice => !string.IsNullOrEmpty(StatusNotice);
 
-    [ObservableProperty]
-    public partial string TitleText { get; set; } = string.Empty;
+    // --- Application Updates Observables ---
 
     [ObservableProperty]
-    public partial string SubtitleText { get; set; } = string.Empty;
+    public partial UpdateState CurrentUpdateState { get; set; } = UpdateState.Idle;
 
     [ObservableProperty]
-    public partial string LanguageTitle { get; set; } = string.Empty;
+    [NotifyPropertyChangedFor(nameof(CanCheckUpdates))]
+    public partial bool IsCheckingUpdates { get; set; }
 
     [ObservableProperty]
-    public partial string LanguageSubtitle { get; set; } = string.Empty;
+    [NotifyPropertyChangedFor(nameof(CanCheckUpdates))]
+    public partial bool IsDownloadingUpdate { get; set; }
+
+    public bool CanCheckUpdates => !IsCheckingUpdates && !IsDownloadingUpdate;
 
     [ObservableProperty]
-    public partial string LanguageLabel { get; set; } = string.Empty;
+    public partial bool IsUpdateAvailable { get; set; }
 
     [ObservableProperty]
-    public partial string LanguageNote { get; set; } = string.Empty;
+    public partial bool IsUpToDate { get; set; }
 
     [ObservableProperty]
-    public partial string AppearanceTitle { get; set; } = string.Empty;
+    public partial bool IsReadyToInstall { get; set; }
 
     [ObservableProperty]
-    public partial string AppearanceSubtitle { get; set; } = string.Empty;
+    [NotifyPropertyChangedFor(nameof(HasUpdateError))]
+    public partial string UpdateErrorMessage { get; set; } = string.Empty;
+
+    public bool HasUpdateError => !string.IsNullOrWhiteSpace(UpdateErrorMessage);
 
     [ObservableProperty]
-    public partial string ThemeLabel { get; set; } = string.Empty;
+    public partial string LatestVersionText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string BackdropLabel { get; set; } = string.Empty;
+    public partial string LatestReleaseTitle { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string VersionLabel { get; set; } = string.Empty;
+    [NotifyPropertyChangedFor(nameof(HasReleaseNotes))]
+    public partial string ReleaseNotesText { get; set; } = string.Empty;
+
+    public bool HasReleaseNotes => !string.IsNullOrWhiteSpace(ReleaseNotesText);
 
     [ObservableProperty]
-    public partial string SavePreferencesLabel { get; set; } = string.Empty;
+    public partial string DownloadSizeText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial double DownloadProgressPercentage { get; set; }
+
+    [ObservableProperty]
+    public partial string DownloadProgressText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string DownloadSpeedText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string LastCheckedText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial UpdateChannel SelectedChannel { get; set; } = UpdateChannel.Stable;
+
+    public IReadOnlyList<UpdateChannel> ChannelOptions { get; } = [UpdateChannel.Stable, UpdateChannel.Preview];
+
+    [ObservableProperty]
+    public partial bool AutoCheckOnStartup { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string DownloadedInstallerPath { get; set; } = string.Empty;
+
+    // --- Localized Labels ---
+
+    [ObservableProperty] public partial string TitleText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string SubtitleText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string LanguageTitle { get; set; } = string.Empty;
+    [ObservableProperty] public partial string LanguageSubtitle { get; set; } = string.Empty;
+    [ObservableProperty] public partial string LanguageLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string LanguageNote { get; set; } = string.Empty;
+    [ObservableProperty] public partial string AppearanceTitle { get; set; } = string.Empty;
+    [ObservableProperty] public partial string AppearanceSubtitle { get; set; } = string.Empty;
+    [ObservableProperty] public partial string ThemeLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string BackdropLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string VersionLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string SavePreferencesLabel { get; set; } = string.Empty;
+
+    // Localized Update Section Labels
+    [ObservableProperty] public partial string UpdatesTitle { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesSubtitle { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesCurrentVersionLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesCheckNowButtonText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesCheckingText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesUpToDateText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesAvailableText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesAvailableDesc { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesChannelLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesAutoCheckLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesAutoCheckDesc { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesDownloadButtonText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesCancelDownloadButtonText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesReadyToInstallText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesReadyToInstallDesc { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesInstallButtonText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesReleaseNotesLabel { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesRetryButtonText { get; set; } = string.Empty;
 
     public SettingsViewModel(
         ISettingsService settingsService,
         ILocalizationService localizationService,
-        IDispatcherService dispatcherService)
+        IDispatcherService dispatcherService,
+        IUpdateService updateService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
         _dispatcherService = dispatcherService ?? throw new ArgumentNullException(nameof(dispatcherService));
+        _updateService = updateService ?? throw new ArgumentNullException(nameof(updateService));
 
+        AppVersion = _updateService.CurrentAppVersion;
         _localizationService.LanguageChanged += OnLanguageChanged;
         UpdateLocalizedStrings();
 
@@ -101,6 +179,47 @@ public partial class SettingsViewModel : ObservableObject
         BackdropLabel = _localizationService.GetString(LocalizationKeys.Settings_MicaBackdrop);
         VersionLabel = _localizationService.GetString(LocalizationKeys.Common_Version);
         SavePreferencesLabel = _localizationService.GetString(LocalizationKeys.Settings_SavePreferences);
+
+        // Update Section Strings
+        UpdatesTitle = _localizationService.GetString(LocalizationKeys.Settings_Updates_Title);
+        UpdatesSubtitle = _localizationService.GetString(LocalizationKeys.Settings_Updates_Subtitle);
+        UpdatesCurrentVersionLabel = _localizationService.GetString(LocalizationKeys.Settings_Updates_CurrentVersion);
+        UpdatesCheckNowButtonText = _localizationService.GetString(LocalizationKeys.Settings_Updates_CheckNow);
+        UpdatesCheckingText = _localizationService.GetString(LocalizationKeys.Settings_Updates_Checking);
+        UpdatesUpToDateText = _localizationService.GetString(LocalizationKeys.Settings_Updates_UpToDate);
+        UpdatesAvailableDesc = _localizationService.GetString(LocalizationKeys.Settings_Updates_AvailableDesc);
+        UpdatesChannelLabel = _localizationService.GetString(LocalizationKeys.Settings_Updates_Channel);
+        UpdatesAutoCheckLabel = _localizationService.GetString(LocalizationKeys.Settings_Updates_AutoCheck);
+        UpdatesAutoCheckDesc = _localizationService.GetString(LocalizationKeys.Settings_Updates_AutoCheckDesc);
+        UpdatesDownloadButtonText = _localizationService.GetString(LocalizationKeys.Settings_Updates_Download);
+        UpdatesCancelDownloadButtonText = _localizationService.GetString(LocalizationKeys.Settings_Updates_CancelDownload);
+        UpdatesReadyToInstallText = _localizationService.GetString(LocalizationKeys.Settings_Updates_ReadyToInstall);
+        UpdatesReadyToInstallDesc = _localizationService.GetString(LocalizationKeys.Settings_Updates_ReadyToInstallDesc);
+        UpdatesInstallButtonText = _localizationService.GetString(LocalizationKeys.Settings_Updates_InstallAndRestart);
+        UpdatesReleaseNotesLabel = _localizationService.GetString(LocalizationKeys.Settings_Updates_ReleaseNotes);
+        UpdatesRetryButtonText = _localizationService.GetString(LocalizationKeys.Settings_Updates_Retry);
+
+        if (!string.IsNullOrEmpty(LatestVersionText))
+        {
+            UpdatesAvailableText = _localizationService.GetFormattedString(LocalizationKeys.Settings_Updates_Available, LatestVersionText);
+        }
+
+        UpdateLastCheckedDisplay();
+    }
+
+    private void UpdateLastCheckedDisplay()
+    {
+        if (_updateService.LastCheckedTime is { } time)
+        {
+            var localTime = time.ToLocalTime();
+            LastCheckedText = _localizationService.GetFormattedString(
+                LocalizationKeys.Settings_Updates_LastChecked,
+                localTime.ToString("g", CultureInfo.CurrentCulture));
+        }
+        else
+        {
+            LastCheckedText = _localizationService.GetString(LocalizationKeys.Settings_Updates_LastCheckedNever);
+        }
     }
 
     async partial void OnSelectedThemeChanged(string value)
@@ -126,6 +245,22 @@ public partial class SettingsViewModel : ObservableObject
         {
             await _localizationService.SetLanguageAsync(value.Language);
             StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_SavedSuccess);
+        }
+    }
+
+    async partial void OnSelectedChannelChanged(UpdateChannel value)
+    {
+        if (!_isInitialLoading)
+        {
+            await _updateService.SetChannelAsync(value);
+        }
+    }
+
+    async partial void OnAutoCheckOnStartupChanged(bool value)
+    {
+        if (!_isInitialLoading)
+        {
+            await _updateService.SetAutoCheckOnStartupAsync(value);
         }
     }
 
@@ -156,6 +291,14 @@ public partial class SettingsViewModel : ObservableObject
             EnableMicaAlt = await _settingsService.GetSettingAsync("General.EnableMicaAlt", true, cancellationToken);
             SelectedTheme = await _settingsService.GetThemeAsync(cancellationToken);
             SelectedLanguage = _localizationService.SupportedLanguages.FirstOrDefault(l => l.Language == _localizationService.CurrentLanguage);
+
+            var channelResult = await _updateService.GetChannelAsync(cancellationToken);
+            SelectedChannel = channelResult.IsSuccess ? channelResult.Value : UpdateChannel.Stable;
+
+            var autoCheckResult = await _updateService.GetAutoCheckOnStartupAsync(cancellationToken);
+            AutoCheckOnStartup = !autoCheckResult.IsSuccess || autoCheckResult.Value;
+
+            UpdateLastCheckedDisplay();
         }
         finally
         {
@@ -172,6 +315,209 @@ public partial class SettingsViewModel : ObservableObject
         {
             await _localizationService.SetLanguageAsync(SelectedLanguage.Language, cancellationToken);
         }
+
+        await _updateService.SetChannelAsync(SelectedChannel, cancellationToken);
+        await _updateService.SetAutoCheckOnStartupAsync(AutoCheckOnStartup, cancellationToken);
+
         StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_SavedSuccess);
+    }
+
+    // --- Update Commands ---
+
+    [RelayCommand]
+    public async Task CheckForUpdatesAsync(CancellationToken cancellationToken)
+    {
+        if (IsCheckingUpdates || IsDownloadingUpdate) return;
+
+        try
+        {
+            IsCheckingUpdates = true;
+            UpdateErrorMessage = string.Empty;
+            CurrentUpdateState = UpdateState.Checking;
+
+            var result = await _updateService.CheckForUpdatesAsync(SelectedChannel, cancellationToken);
+            UpdateLastCheckedDisplay();
+
+            if (!result.IsSuccess)
+            {
+                CurrentUpdateState = UpdateState.Error;
+                UpdateErrorMessage = result.Error.Code == "Update.NetworkError"
+                    ? _localizationService.GetString(LocalizationKeys.Settings_Updates_ErrorNetwork)
+                    : _localizationService.GetFormattedString(LocalizationKeys.Settings_Updates_ErrorGeneric, result.Error.Message);
+                return;
+            }
+
+            var checkResult = result.Value;
+            if (checkResult.IsUpdateAvailable && checkResult.LatestRelease is not null)
+            {
+                _latestUpdateInfo = checkResult.LatestRelease;
+                LatestVersionText = _latestUpdateInfo.Version;
+                LatestReleaseTitle = _latestUpdateInfo.DisplayName;
+                ReleaseNotesText = _latestUpdateInfo.ReleaseNotes;
+                DownloadSizeText = _latestUpdateInfo.FileSizeBytes > 0
+                    ? ByteSizeFormatter.FormatBytes(_latestUpdateInfo.FileSizeBytes)
+                    : string.Empty;
+
+                UpdatesAvailableText = _localizationService.GetFormattedString(LocalizationKeys.Settings_Updates_Available, LatestVersionText);
+
+                IsUpdateAvailable = true;
+                IsUpToDate = false;
+                CurrentUpdateState = UpdateState.UpdateAvailable;
+            }
+            else
+            {
+                _latestUpdateInfo = null;
+                IsUpdateAvailable = false;
+                IsUpToDate = true;
+                CurrentUpdateState = UpdateState.UpToDate;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            CurrentUpdateState = UpdateState.Idle;
+        }
+        catch (Exception ex)
+        {
+            CurrentUpdateState = UpdateState.Error;
+            UpdateErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsCheckingUpdates = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task DownloadUpdateAsync()
+    {
+        if (_latestUpdateInfo is null || IsDownloadingUpdate) return;
+
+        _downloadCts = new CancellationTokenSource();
+        IsDownloadingUpdate = true;
+        CurrentUpdateState = UpdateState.Downloading;
+        UpdateErrorMessage = string.Empty;
+        DownloadProgressPercentage = 0;
+        DownloadProgressText = string.Empty;
+        DownloadSpeedText = string.Empty;
+
+        var progress = new Progress<UpdateProgressInfo>(info =>
+        {
+            _dispatcherService.TryEnqueue(() =>
+            {
+                DownloadProgressPercentage = info.Percentage;
+                var rec = ByteSizeFormatter.FormatBytes(info.BytesReceived);
+                var tot = info.TotalBytesToReceive > 0 ? ByteSizeFormatter.FormatBytes(info.TotalBytesToReceive) : "?";
+                DownloadProgressText = $"{info.Percentage:0.#}% ({rec} / {tot})";
+
+                if (info.BytesPerSecond > 0)
+                {
+                    DownloadSpeedText = $"{ByteSizeFormatter.FormatBytes((long)info.BytesPerSecond)}/s";
+                }
+            });
+        });
+
+        try
+        {
+            var result = await _updateService.DownloadUpdateAsync(_latestUpdateInfo, progress, _downloadCts.Token);
+
+            if (!result.IsSuccess)
+            {
+                if (result.Error.Code == "Common.Cancelled")
+                {
+                    CurrentUpdateState = UpdateState.UpdateAvailable;
+                    StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_Updates_DownloadCancelled);
+                }
+                else if (result.Error.Code == "Security.HashMismatch")
+                {
+                    CurrentUpdateState = UpdateState.Error;
+                    UpdateErrorMessage = _localizationService.GetString(LocalizationKeys.Settings_Updates_ErrorHashMismatch);
+                }
+                else
+                {
+                    CurrentUpdateState = UpdateState.Error;
+                    UpdateErrorMessage = _localizationService.GetFormattedString(LocalizationKeys.Settings_Updates_ErrorGeneric, result.Error.Message);
+                }
+                return;
+            }
+
+            DownloadedInstallerPath = result.Value;
+            IsReadyToInstall = true;
+            IsUpdateAvailable = false;
+            CurrentUpdateState = UpdateState.ReadyToInstall;
+        }
+        catch (OperationCanceledException)
+        {
+            CurrentUpdateState = UpdateState.UpdateAvailable;
+            StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_Updates_DownloadCancelled);
+        }
+        catch (Exception ex)
+        {
+            CurrentUpdateState = UpdateState.Error;
+            UpdateErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsDownloadingUpdate = false;
+            _downloadCts?.Dispose();
+            _downloadCts = null;
+        }
+    }
+
+    [RelayCommand]
+    public void CancelDownload()
+    {
+        _downloadCts?.Cancel();
+    }
+
+    [RelayCommand]
+    public async Task InstallUpdateAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(DownloadedInstallerPath)) return;
+
+        try
+        {
+            var result = await _updateService.LaunchInstallerAsync(DownloadedInstallerPath, cancellationToken);
+            if (!result.IsSuccess)
+            {
+                UpdateErrorMessage = result.Error.Message;
+                CurrentUpdateState = UpdateState.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            UpdateErrorMessage = ex.Message;
+            CurrentUpdateState = UpdateState.Error;
+        }
+    }
+
+    [RelayCommand]
+    public void DismissUpdateError()
+    {
+        UpdateErrorMessage = string.Empty;
+        if (CurrentUpdateState == UpdateState.Error)
+        {
+            CurrentUpdateState = _latestUpdateInfo is not null ? UpdateState.UpdateAvailable : UpdateState.Idle;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _localizationService.LanguageChanged -= OnLanguageChanged;
+                _downloadCts?.Cancel();
+                _downloadCts?.Dispose();
+                _downloadCts = null;
+            }
+            _disposed = true;
+        }
     }
 }
