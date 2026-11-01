@@ -140,13 +140,19 @@ public sealed partial class MainWindow : Window
             }
         };
 
-        // 4. Restore persisted window dimensions
+        // 4. Configure minimum window dimensions and restore persisted window dimensions
+        if (AppWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.PreferredMinimumWidth = 680;
+            presenter.PreferredMinimumHeight = 500;
+        }
+
         _ = _settingsService.GetWindowSizeAsync().ContinueWith(t =>
         {
             if (t.IsCompletedSuccessfully)
             {
                 var (width, height) = t.Result;
-                if (width >= 600 && height >= 400)
+                if (width >= 680 && height >= 500)
                 {
                     DispatcherQueue?.TryEnqueue(() =>
                     {
@@ -164,7 +170,7 @@ public sealed partial class MainWindow : Window
         Closed += (sender, args) =>
         {
             var size = AppWindow.Size;
-            if (size.Width >= 600 && size.Height >= 400)
+            if (size.Width >= 680 && size.Height >= 500)
             {
                 _ = _settingsService.SetWindowSizeAsync(size.Width, size.Height).ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
             }
@@ -226,45 +232,6 @@ public sealed partial class MainWindow : Window
     private void NavView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
     {
         ViewModel.GoBackCommand.Execute(null);
-    }
-
-    private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
-    {
-        if (args.IsSettingsInvoked)
-        {
-            ViewModel.NavigateSettingsCommand.Execute(null);
-            return;
-        }
-
-        NavigationItemViewModel? targetItem = null;
-
-        if (args.InvokedItem is NavigationItemViewModel navItem)
-        {
-            targetItem = navItem;
-        }
-        else if (args.InvokedItemContainer?.Tag is NavigationItemViewModel tagItem)
-        {
-            targetItem = tagItem;
-        }
-        else if (args.InvokedItemContainer?.DataContext is NavigationItemViewModel dcItem)
-        {
-            targetItem = dcItem;
-        }
-        else if (args.InvokedItemContainer?.Content is NavigationItemViewModel contentItem)
-        {
-            targetItem = contentItem;
-        }
-        else if (args.InvokedItem is string titleOrId)
-        {
-            targetItem = ViewModel.NavigationItems.FirstOrDefault(i =>
-                string.Equals(i.Title, titleOrId, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(i.Id, titleOrId, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (targetItem is not null)
-        {
-            ViewModel.NavigateItemCommand.Execute(targetItem);
-        }
     }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

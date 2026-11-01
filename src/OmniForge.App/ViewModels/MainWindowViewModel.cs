@@ -16,6 +16,8 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _localizationService;
     private readonly IDispatcherService _dispatcherService;
+    private bool _hasRestoredInitialSelection;
+    private string? _activeModuleId;
 
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "OmniForge Utility Suite";
@@ -183,9 +185,21 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
 
-        // Navigate to the restored module or first available module
-        if (SelectedItem is null && NavigationItems.Count > 0)
+        // Restore selection if current active module is still in filtered list
+        if (!string.IsNullOrEmpty(_activeModuleId))
         {
+            var currentMatch = NavigationItems.FirstOrDefault(i =>
+                i.Id.Equals(_activeModuleId, StringComparison.OrdinalIgnoreCase));
+            if (currentMatch is not null)
+            {
+                SelectedItem = currentMatch;
+            }
+        }
+
+        // Navigate to the restored module or first available module only once on startup
+        if (!_hasRestoredInitialSelection && NavigationItems.Count > 0)
+        {
+            _hasRestoredInitialSelection = true;
             _ = RestoreInitialSelectionAsync();
         }
     }
@@ -237,13 +251,15 @@ public partial class MainWindowViewModel : ObservableObject
         var matchingItem = NavigationItems.FirstOrDefault(i => i.ViewType == pageType);
         if (matchingItem is not null)
         {
+            _activeModuleId = matchingItem.Id;
             SelectedItem = matchingItem;
             CurrentSectionTitle = matchingItem.Title;
             _ = _settingsService.SetLastOpenedModuleAsync(matchingItem.Id);
         }
         else if (pageType.Name.Contains("Settings", StringComparison.OrdinalIgnoreCase))
         {
-            CurrentSectionTitle = "Settings";
+            _activeModuleId = "Settings";
+            CurrentSectionTitle = _localizationService.GetString(LocalizationKeys.Nav_Settings);
             _ = _settingsService.SetLastOpenedModuleAsync("Settings");
         }
     }

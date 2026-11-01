@@ -43,12 +43,16 @@ public partial class ChecksumViewModel : ToolViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasComparison))]
+    [NotifyPropertyChangedFor(nameof(IsHashMismatch))]
     public partial string ComparisonStatusText { get; set; } = string.Empty;
 
     public bool HasComparison => !string.IsNullOrEmpty(ComparisonStatusText);
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsHashMismatch))]
     public partial bool IsHashMatch { get; set; }
+
+    public bool IsHashMismatch => HasComparison && !IsHashMatch;
 
     public bool CanCompute => !string.IsNullOrWhiteSpace(TargetFilePath) && IsNotBusy;
 
@@ -148,6 +152,22 @@ public partial class ChecksumViewModel : ToolViewModelBase
     }
 
     [RelayCommand]
+    private async Task PasteExpectedHashAsync()
+    {
+        if (_clipboardService is null) return;
+
+        var res = await _clipboardService.GetTextAsync();
+        if (res.IsSuccess && !string.IsNullOrWhiteSpace(res.Value))
+        {
+            ExpectedHash = res.Value.Trim();
+            if (!string.IsNullOrWhiteSpace(ComputedHash))
+            {
+                VerifyHashComparison();
+            }
+        }
+    }
+
+    [RelayCommand]
     private void ClearAll()
     {
         TargetFilePath = string.Empty;
@@ -156,12 +176,36 @@ public partial class ChecksumViewModel : ToolViewModelBase
         ComparisonStatusText = string.Empty;
         FormattedFileSize = "—";
         IsHashMatch = false;
+        ClearError();
         StatusMessage = "Cleared.";
     }
 
     partial void OnTargetFilePathChanged(string value)
     {
         OnPropertyChanged(nameof(CanCompute));
+    }
+
+    partial void OnSelectedAlgorithmChanged(SupportedHashAlgorithm value)
+    {
+        if (!string.IsNullOrWhiteSpace(TargetFilePath) && File.Exists(TargetFilePath) && IsNotBusy)
+        {
+            _ = ComputeHashAsync(CancellationToken.None);
+        }
+    }
+
+    partial void OnExpectedHashChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ComparisonStatusText = string.Empty;
+            IsHashMatch = false;
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(ComputedHash))
+        {
+            VerifyHashComparison();
+        }
     }
 }
 

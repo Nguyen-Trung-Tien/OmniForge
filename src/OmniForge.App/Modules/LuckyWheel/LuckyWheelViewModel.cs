@@ -79,6 +79,9 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
 
     public string TotalWeightText => $"Weight: {TotalWeight:F1}";
 
+    public bool IsOptionsEmpty => Items.Count == 0;
+    public bool HasOptions => Items.Count > 0;
+
     [ObservableProperty]
     public partial string SelectedPreset { get; set; } = "Decision Maker";
 
@@ -145,6 +148,8 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         }
 
         StartSpinCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(IsOptionsEmpty));
+        OnPropertyChanged(nameof(HasOptions));
         WheelAngleUpdated?.Invoke(CurrentAngle);
     }
 
@@ -268,6 +273,26 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
     {
         if (item is null) return;
         Items.Remove(item);
+    }
+
+    [RelayCommand]
+    public void ClearItems()
+    {
+        if (IsSpinning) return;
+        Items.Clear();
+        StatusMessage = "Cleared all wheel options.";
+    }
+
+    [RelayCommand]
+    public void EqualizeWeights()
+    {
+        if (IsSpinning || Items.Count == 0) return;
+        foreach (var item in Items)
+        {
+            item.Weight = 1.0;
+        }
+        RecalculateSlices();
+        StatusMessage = "Reset all option weights to equal (1.0).";
     }
 
     [RelayCommand]

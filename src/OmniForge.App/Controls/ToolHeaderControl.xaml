@@ -16,9 +16,9 @@
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
 
-        <InfoBar IsOpen="{x:Bind HasError, Mode=OneWay}"
+        <InfoBar IsOpen="{x:Bind HasError, Mode=TwoWay}"
                  Severity="Error"
-                 Title="Operation Error"
+                 IsClosable="True"
                  Message="{x:Bind ErrorMessage, Mode=OneWay}" />
     </StackPanel>
 </UserControl>

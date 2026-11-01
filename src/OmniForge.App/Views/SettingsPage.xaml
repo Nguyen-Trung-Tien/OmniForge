@@ -10,7 +10,25 @@
     xmlns:vm="using:OmniForge.App.ViewModels"
     mc:Ignorable="d">
 
-    <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
+    <ScrollViewer x:Name="RootScrollViewer" Style="{StaticResource PageScrollViewerStyle}">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ResponsiveStates">
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="980" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="RootScrollViewer.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
             <controls:ToolHeaderControl
                 Title="{x:Bind ViewModel.TitleText, Mode=OneWay}"

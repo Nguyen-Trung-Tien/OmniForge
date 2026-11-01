@@ -21,6 +21,10 @@ public sealed class FolderPreviewNode : TreeViewNode
 
     public string? ErrorMessage { get; set; }
 
+    public bool IsNewStatus => Status == FolderItemStatus.PlannedNew || Status == FolderItemStatus.Success;
+
+    public bool IsWarningStatus => Status == FolderItemStatus.SkippedExisting || Status == FolderItemStatus.WillOverwrite || Status == FolderItemStatus.SuffixAppended;
+
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage) || Status == FolderItemStatus.Invalid || Status == FolderItemStatus.Failed;
 
     public static FolderPreviewNode FromModel(FolderItemNode model)

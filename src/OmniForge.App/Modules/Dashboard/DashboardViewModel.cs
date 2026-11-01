@@ -84,6 +84,12 @@ public partial class DashboardViewModel : ToolViewModelBase
     [ObservableProperty]
     public partial int RegisteredModuleCount { get; set; }
 
+    [ObservableProperty]
+    public partial string FilterQuery { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string FilterPlaceholder { get; set; } = "Filter tools by name or category...";
+
     public ObservableCollection<DashboardToolItemViewModel> AvailableTools { get; } = [];
 
     public IReadOnlyList<IToolModule> Modules => _toolRegistry.Modules;
@@ -132,14 +138,29 @@ public partial class DashboardViewModel : ToolViewModelBase
         Highlight3 = _localizationService.GetString(LocalizationKeys.Dashboard_Highlight3);
         AvailableUtilitiesTitle = _localizationService.GetString(LocalizationKeys.Dashboard_Available_Title);
         AvailableUtilitiesSubtitle = _localizationService.GetString(LocalizationKeys.Dashboard_Available_Subtitle);
+        FilterPlaceholder = _localizationService.GetString(LocalizationKeys.Common_SearchPlaceholder);
+    }
+
+    partial void OnFilterQueryChanged(string value)
+    {
+        PopulateAvailableTools();
     }
 
     private void PopulateAvailableTools()
     {
         AvailableTools.Clear();
-        foreach (var module in _toolRegistry.Modules.Where(m => m.IsEnabled))
+        var query = FilterQuery?.Trim() ?? string.Empty;
+
+        foreach (var module in _toolRegistry.Modules.Where(m => m.IsEnabled && !m.Id.EndsWith("dashboard", StringComparison.OrdinalIgnoreCase)))
         {
-            AvailableTools.Add(new DashboardToolItemViewModel(module, LaunchModule, _localizationService));
+            var itemVm = new DashboardToolItemViewModel(module, LaunchModule, _localizationService);
+            if (string.IsNullOrEmpty(query) ||
+                itemVm.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                itemVm.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                itemVm.Category.Contains(query, StringComparison.OrdinalIgnoreCase))
+            {
+                AvailableTools.Add(itemVm);
+            }
         }
     }
 

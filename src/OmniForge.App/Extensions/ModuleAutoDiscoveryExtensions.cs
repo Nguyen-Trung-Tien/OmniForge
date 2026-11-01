@@ -38,7 +38,7 @@ public static class ModuleAutoDiscoveryExtensions
             }
 
             services.AddSingleton<IToolModule>(moduleInstance);
-            services.AddTransient(moduleInstance.ViewModelType);
+            services.AddSingleton(moduleInstance.ViewModelType);
             services.AddTransient(moduleInstance.ViewType);
 
             // Auto-discover co-located module services in the same namespace (e.g. ITextDiffService -> TextDiffService)

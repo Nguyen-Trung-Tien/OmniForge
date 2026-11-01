@@ -34,6 +34,21 @@ public sealed record RenamePreviewItem(
     /// Culture-invariant human-readable formatted file size (e.g. "1.5 MB").
     /// </summary>
     public string FormattedSize => ByteSizeFormatter.FormatBytes(SizeBytes);
+
+    /// <summary>
+    /// True when the file name is unchanged and has no validation conflicts.
+    /// </summary>
+    public bool IsUnchanged => !HasChange && !HasConflict;
+
+    /// <summary>
+    /// True when the item has a diagnostic validation or collision error message.
+    /// </summary>
+    public bool HasValidationError => !string.IsNullOrWhiteSpace(ValidationError);
+
+    /// <summary>
+    /// Parent directory path for quick context inspection.
+    /// </summary>
+    public string DirectoryPath => Path.GetDirectoryName(SourceFullPath) ?? string.Empty;
 }
 
 /// <summary>

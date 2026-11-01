@@ -39,5 +39,13 @@ public sealed partial class BatchRenamePage : Page
             ViewModel.ErrorMessage = $"Error importing dropped items: {ex.Message}";
         }
     }
+
+    private void RemoveFileButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: OmniForge.Modules.BatchOps.RenamePreviewItem item })
+        {
+            ViewModel.RemoveFileCommand.Execute(item);
+        }
+    }
 }
 

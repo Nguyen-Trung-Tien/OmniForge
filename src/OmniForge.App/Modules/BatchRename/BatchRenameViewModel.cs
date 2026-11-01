@@ -53,6 +53,12 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
     [NotifyPropertyChangedFor(nameof(CanUndo))]
     public partial string UndoStatusText { get; set; } = "Undo";
 
+    [ObservableProperty]
+    public partial bool IncludeSubfolders { get; set; }
+
+    public bool HasRules => Rules.Count > 0;
+    public bool HasNoRules => Rules.Count == 0;
+
     public bool CanRun => ChangedFilesCount > 0 && !HasConflicts && IsNotBusy;
 
     public bool CanUndo => _lastJournal is not null && _lastJournal.CompletedOperations.Count > 0 && IsNotBusy;
@@ -71,6 +77,11 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         _dispatcherService = dispatcherService;
 
         // Default with one sensible Prefix/Suffix rule
+        Rules.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasRules));
+            OnPropertyChanged(nameof(HasNoRules));
+        };
         Rules.Add(CreateRule(RenameRuleType.PrefixSuffix));
     }
 
@@ -203,8 +214,24 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         ConflictCount = 0;
         IsEmpty = true;
         HasFiles = false;
+        ClearError();
         StatusMessage = "Cleared all imported files.";
         OnPropertyChanged(nameof(CanRun));
+    }
+
+    [RelayCommand]
+    public void RemoveFile(RenamePreviewItem? item)
+    {
+        if (item is null) return;
+
+        int removed = _loadedFiles.RemoveAll(f =>
+            string.Equals(f.FullPath, item.SourceFullPath, StringComparison.OrdinalIgnoreCase));
+
+        if (removed > 0)
+        {
+            StatusMessage = $"Removed '{item.OriginalFileName}'. Remaining: {_loadedFiles.Count}.";
+            TriggerDebouncePreview();
+        }
     }
 
     /// <summary>
@@ -224,7 +251,8 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
 
             if (Directory.Exists(path))
             {
-                await foreach (var file in _fileSystemService.EnumerateFilesAsync(path, "*.*", SearchOption.TopDirectoryOnly, cancellationToken))
+                var searchOption = IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                await foreach (var file in _fileSystemService.EnumerateFilesAsync(path, "*.*", searchOption, cancellationToken))
                 {
                     if (existingPaths.Add(file))
                     {
@@ -269,6 +297,14 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         {
             TriggerDebouncePreview();
         }
+    }
+
+    [RelayCommand]
+    private void ClearRules()
+    {
+        Rules.Clear();
+        StatusMessage = "Cleared all rename rules.";
+        TriggerDebouncePreview();
     }
 
     [RelayCommand]

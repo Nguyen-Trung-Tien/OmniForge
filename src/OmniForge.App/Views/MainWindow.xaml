@@ -28,17 +28,17 @@
             </TitleBar.IconSource>
         </TitleBar>
 
-        <!-- Main Shell Navigation with Left-expanded Pane, AutoSuggestBox, and Fluent Design -->
+        <!-- Main Shell Navigation with Adaptive Responsive Thresholds, AutoSuggestBox, and Fluent Design -->
         <NavigationView x:Name="NavView"
                         Grid.Row="1"
-                        PaneDisplayMode="Left"
-                        IsPaneOpen="True"
-                        OpenPaneLength="260"
+                        PaneDisplayMode="Auto"
+                        ExpandedModeThresholdWidth="960"
+                        CompactModeThresholdWidth="640"
+                        OpenPaneLength="250"
                         CompactPaneLength="48"
                         IsBackButtonVisible="Auto"
                         IsBackEnabled="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
                         BackRequested="NavView_BackRequested"
-                        ItemInvoked="NavView_ItemInvoked"
                         SelectionChanged="NavView_SelectionChanged"
                         MenuItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
                         SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=TwoWay}"

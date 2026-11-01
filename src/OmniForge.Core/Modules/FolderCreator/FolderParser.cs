@@ -90,6 +90,105 @@ public static class FolderParser
     }
 
     /// <summary>
+    /// Generates a multiline series of folder names from a pattern (e.g. "Lesson_{seq:2}"), count, and start sequence.
+    /// </summary>
+    public static string GenerateSeriesText(string? pattern, int count, int startSequence = 1, bool appendToExisting = false, string? existingText = null)
+    {
+        string rawPattern = string.IsNullOrWhiteSpace(pattern) ? "Folder_{seq:2}" : pattern.Trim();
+        if (!TokenEvaluator.HasSequenceToken(rawPattern))
+        {
+            rawPattern = $"{rawPattern}_{{seq:2}}";
+        }
+
+        int safeCount = Math.Clamp(count, 1, 500);
+        var sb = new StringBuilder();
+
+        if (appendToExisting && !string.IsNullOrWhiteSpace(existingText))
+        {
+            sb.AppendLine(existingText.TrimEnd('\r', '\n'));
+        }
+
+        for (int i = 0; i < safeCount; i++)
+        {
+            int seq = startSequence + i;
+            string line = TokenEvaluator.Evaluate(rawPattern, seq);
+            if (i < safeCount - 1)
+            {
+                sb.AppendLine(line);
+            }
+            else
+            {
+                sb.Append(line);
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Adjusts the indentation of all non-empty lines by <paramref name="deltaSpaces"/> (positive to indent, negative to outdent).
+    /// </summary>
+    public static string AdjustIndentation(string? rawInput, int deltaSpaces)
+    {
+        if (string.IsNullOrWhiteSpace(rawInput) || deltaSpaces == 0)
+        {
+            return rawInput ?? string.Empty;
+        }
+
+        var lines = rawInput.Replace("\r\n", "\n").Split('\n');
+        var sb = new StringBuilder(rawInput.Length + Math.Abs(deltaSpaces) * lines.Length);
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                if (i < lines.Length - 1) sb.AppendLine();
+                continue;
+            }
+
+            int currentSpaces = CalculateIndentColumn(line);
+            int targetSpaces = Math.Max(0, currentSpaces + deltaSpaces);
+            string trimmed = line.TrimStart(' ', '\t');
+            string resultLine = new string(' ', targetSpaces) + trimmed;
+
+            if (i < lines.Length - 1)
+            {
+                sb.AppendLine(resultLine);
+            }
+            else
+            {
+                sb.Append(resultLine);
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Cleans, trims trailing whitespace, removes blank lines, and optionally sorts lines alphabetically.
+    /// </summary>
+    public static string NormalizeLines(string? rawInput, bool sortAlphabetically = false)
+    {
+        if (string.IsNullOrWhiteSpace(rawInput))
+        {
+            return string.Empty;
+        }
+
+        var lines = rawInput
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .Select(l => l.TrimEnd());
+
+        if (sortAlphabetically)
+        {
+            lines = lines.OrderBy(l => l.TrimStart(), StringComparer.OrdinalIgnoreCase);
+        }
+
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>
     /// Mode B: Parses indented hierarchy where 2 spaces, 4 spaces, or Tabs define parent-child relationships.
     /// </summary>
     private static Result<IReadOnlyList<FolderItemNode>> ParseTreeHierarchy(

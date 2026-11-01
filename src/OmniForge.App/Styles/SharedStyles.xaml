@@ -7,9 +7,10 @@
     <!-- OmniForge Standardized Fluent UI Design Tokens & Reusable Control Styles -->
     <!-- ======================================================================= -->
 
-    <Thickness x:Key="OmniPagePadding">36,24,36,24</Thickness>
+    <Thickness x:Key="OmniPagePadding">28,20,28,20</Thickness>
+    <Thickness x:Key="OmniCompactPagePadding">16,12,16,12</Thickness>
     <CornerRadius x:Key="OmniCardCornerRadius">8</CornerRadius>
-    <Thickness x:Key="OmniCardPadding">20</Thickness>
+    <Thickness x:Key="OmniCardPadding">18</Thickness>
 
     <!-- Standard ScrollViewer for all Tool Pages -->
     <Style x:Key="PageScrollViewerStyle" TargetType="ScrollViewer">
@@ -20,7 +21,7 @@
 
     <!-- Standard Root StackPanel for all Tool Pages -->
     <Style x:Key="PageRootStackPanelStyle" TargetType="StackPanel">
-        <Setter Property="Spacing" Value="20" />
+        <Setter Property="Spacing" Value="18" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
 

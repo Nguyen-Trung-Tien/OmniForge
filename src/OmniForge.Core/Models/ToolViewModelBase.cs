@@ -32,7 +32,17 @@ public abstract partial class ToolViewModelBase : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasError))]
     public partial string? ErrorMessage { get; set; }
 
-    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    public bool HasError
+    {
+        get => !string.IsNullOrEmpty(ErrorMessage);
+        set
+        {
+            if (!value && !string.IsNullOrEmpty(ErrorMessage))
+            {
+                ErrorMessage = null;
+            }
+        }
+    }
 
     /// <summary>
     /// Clears any active error banner message.

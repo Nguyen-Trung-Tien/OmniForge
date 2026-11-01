@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 
 namespace OmniForge.App.Modules.BatchFolder;
 
@@ -14,6 +15,15 @@ public sealed partial class BatchFolderPage : Page
     {
         DataContext = ViewModel;
         InitializeComponent();
+    }
+
+    private void QuickAddTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+        {
+            ViewModel.QuickAddFolderCommand.Execute(null);
+            e.Handled = true;
+        }
     }
 }
 

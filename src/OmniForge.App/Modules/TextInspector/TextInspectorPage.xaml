@@ -9,221 +9,296 @@
     xmlns:models="using:OmniForge.Core.Modules.TextInspector"
     mc:Ignorable="d">
 
-    <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
-        <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
-            <controls:ToolHeaderControl
-                Title="Text &amp; Payload Inspector"
-                Subtitle="JSON/XML formatting and minification, Base64 &amp; URL codecs, JWT payload decoder, and visual line diff"
-                HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
-                ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+    <Grid x:Name="RootGrid" RowSpacing="12" Padding="{StaticResource OmniPagePadding}">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ResponsiveStates">
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="980" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="RootGrid.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                        <Setter Target="SplitCol0.Width" Value="*" />
+                        <Setter Target="SplitCol1.Width" Value="0" />
+                        <Setter Target="SplitRow0.Height" Value="*" />
+                        <Setter Target="SplitRow1.Height" Value="*" />
+                        <Setter Target="OutputCard.(Grid.Row)" Value="1" />
+                        <Setter Target="OutputCard.(Grid.Column)" Value="0" />
+                        <Setter Target="OutputCard.Margin" Value="0,12,0,0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
 
-            <!-- Mode Selector -->
-            <controls:SectionCardControl
-                Title="Utility Tool Mode"
-                Subtitle="Select a payload transformation or inspection workflow"
-                IconGlyph="&#xE71E;">
-                <ComboBox SelectedIndex="{x:Bind ViewModel.SelectedModeIndex, Mode=TwoWay}" MinWidth="260">
-                    <ComboBoxItem Content="JSON Format &amp; Minify" />
-                    <ComboBoxItem Content="XML Format" />
-                    <ComboBoxItem Content="Base64 Codec" />
-                    <ComboBoxItem Content="URL Codec" />
-                    <ComboBoxItem Content="JWT Inspector" />
-                    <ComboBoxItem Content="Line Diff" />
-                </ComboBox>
-            </controls:SectionCardControl>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-            <controls:StatusFooterControl
-                IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
-                IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
-                ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
-                StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
+        <controls:ToolHeaderControl
+            Grid.Row="0"
+            Title="Text &amp; Payload Inspector"
+            Subtitle="Side-by-side JSON/XML formatting, Base64 &amp; URL codecs, JWT decoder, and line-by-line diff"
+            HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
+            ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
 
-            <!-- JSON Actions Bar (when Mode == 0) -->
-            <Border Style="{StaticResource FluentCardBorderStyle}"
-                    Padding="12,8"
-                    Visibility="{x:Bind ViewModel.IsJsonMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Format Indented"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            Command="{x:Bind ViewModel.FormatJsonCommand}"
-                            CommandParameter="indented" />
-                    <Button Content="Minify Compact"
-                            Command="{x:Bind ViewModel.FormatJsonCommand}"
-                            CommandParameter="minify" />
+        <!-- Unified Toolbar: Mode Selector + Context Actions + Quick Utilities -->
+        <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14,10">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Mode Selector -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE943;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="Mode:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <ComboBox SelectedIndex="{x:Bind ViewModel.SelectedModeIndex, Mode=TwoWay}" MinWidth="195" VerticalAlignment="Center">
+                        <ComboBoxItem Content="JSON Format &amp; Minify" />
+                        <ComboBoxItem Content="XML Format" />
+                        <ComboBoxItem Content="Base64 Codec" />
+                        <ComboBoxItem Content="URL Codec" />
+                        <ComboBoxItem Content="JWT Inspector" />
+                        <ComboBoxItem Content="Line Diff Compare" />
+                    </ComboBox>
                 </StackPanel>
-            </Border>
 
-            <!-- XML Actions Bar (when Mode == 1) -->
-            <Border Style="{StaticResource FluentCardBorderStyle}"
-                    Padding="12,8"
-                    Visibility="{x:Bind ViewModel.IsXmlMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Format XML"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            Command="{x:Bind ViewModel.FormatXmlCommand}" />
-                </StackPanel>
-            </Border>
-
-            <!-- Base64 Actions Bar (when Mode == 2) -->
-            <Border Style="{StaticResource FluentCardBorderStyle}"
-                    Padding="12,8"
-                    Visibility="{x:Bind ViewModel.IsBase64Mode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Encode to Base64"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            Command="{x:Bind ViewModel.EncodeBase64Command}" />
-                    <Button Content="Decode from Base64"
-                            Command="{x:Bind ViewModel.DecodeBase64Command}" />
-                </StackPanel>
-            </Border>
-
-            <!-- URL Actions Bar (when Mode == 3) -->
-            <Border Style="{StaticResource FluentCardBorderStyle}"
-                    Padding="12,8"
-                    Visibility="{x:Bind ViewModel.IsUrlMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="URL Encode"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            Command="{x:Bind ViewModel.EncodeUrlCommand}" />
-                    <Button Content="URL Decode"
-                            Command="{x:Bind ViewModel.DecodeUrlCommand}" />
-                </StackPanel>
-            </Border>
-
-            <!-- JWT Actions Bar (when Mode == 4) -->
-            <Border Style="{StaticResource FluentCardBorderStyle}"
-                    Padding="12,8"
-                    Visibility="{x:Bind ViewModel.IsJwtMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Inspect JWT Payload"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            Command="{x:Bind ViewModel.InspectJwtCommand}" />
-                </StackPanel>
-            </Border>
-
-            <!-- Text & Payload Input Card (Non-diff modes) -->
-            <controls:SectionCardControl
-                Title="Input Payload"
-                Subtitle="Paste or type raw text"
-                IconGlyph="&#xE8C8;"
-                Visibility="{x:Bind ViewModel.IsNotDiffMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <Grid RowSpacing="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                        <Button Content="Paste" Command="{x:Bind ViewModel.PasteInputCommand}" />
-                        <Button Content="Clear" Command="{x:Bind ViewModel.ClearAllCommand}" />
+                <!-- Primary Mode Actions -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- JSON Actions -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsJsonMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button Content="Format JSON"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.FormatJsonCommand}"
+                                CommandParameter="indented" />
+                        <Button Content="Minify"
+                                Command="{x:Bind ViewModel.FormatJsonCommand}"
+                                CommandParameter="minify" />
                     </StackPanel>
 
-                    <TextBox Grid.Row="1"
-                             Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True"
-                             MinHeight="180"
-                             MaxHeight="360"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             FontFamily="Consolas, Cascadia Code, Courier New"
-                             PlaceholderText="Paste JSON, XML, Base64, URL, or JWT string here..." />
-                </Grid>
-            </controls:SectionCardControl>
-
-            <!-- Output Payload Card (Non-diff modes) -->
-            <controls:SectionCardControl
-                Title="Transformed Output"
-                Subtitle="Result of formatting, codec, or decoding"
-                IconGlyph="&#xE8D7;"
-                Visibility="{x:Bind ViewModel.IsNotDiffMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <Grid RowSpacing="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                        <Button ToolTipService.ToolTip="Copy Output" Command="{x:Bind ViewModel.CopyOutputCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <FontIcon Glyph="&#xE8C8;" FontSize="13" />
-                                <TextBlock Text="Copy" />
-                            </StackPanel>
-                        </Button>
+                    <!-- XML Actions -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsXmlMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button Content="Format XML"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.FormatXmlCommand}" />
                     </StackPanel>
 
-                    <TextBox Grid.Row="1"
-                             Text="{x:Bind ViewModel.OutputText, Mode=OneWay}"
-                             IsReadOnly="True"
-                             AcceptsReturn="True"
-                             MinHeight="200"
-                             MaxHeight="400"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             FontFamily="Consolas, Cascadia Code, Courier New"
-                             PlaceholderText="Output appears here..." />
-                </Grid>
-            </controls:SectionCardControl>
+                    <!-- Base64 Actions -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsBase64Mode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button Content="Encode Base64"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.EncodeBase64Command}" />
+                        <Button Content="Decode Base64"
+                                Command="{x:Bind ViewModel.DecodeBase64Command}" />
+                    </StackPanel>
 
-            <!-- Diff Mode Workspace (when Mode == 5) -->
-            <controls:SectionCardControl
-                Title="Text Diff Comparison"
-                Subtitle="Compare original vs modified text line-by-line"
-                IconGlyph="&#xE8AB;"
-                Visibility="{x:Bind ViewModel.IsDiffMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <Grid RowSpacing="12">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                    <!-- URL Actions -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsUrlMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button Content="URL Encode"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.EncodeUrlCommand}" />
+                        <Button Content="URL Decode"
+                                Command="{x:Bind ViewModel.DecodeUrlCommand}" />
+                    </StackPanel>
 
-                    <Grid Grid.Row="0" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                    <!-- JWT Actions -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsJwtMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button Content="Decode JWT"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.InspectJwtCommand}" />
+                    </StackPanel>
 
-                        <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="Original (Left / -)" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                            <TextBox Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     AcceptsReturn="True"
-                                     MinHeight="140"
-                                     MaxHeight="220"
-                                     FontFamily="Consolas, Cascadia Code, Courier New"
-                                     PlaceholderText="Original source text..." />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="1" Spacing="4">
-                            <TextBlock Text="Modified (Right / +)" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                            <TextBox Text="{x:Bind ViewModel.SecondaryInputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     AcceptsReturn="True"
-                                     MinHeight="140"
-                                     MaxHeight="220"
-                                     FontFamily="Consolas, Cascadia Code, Courier New"
-                                     PlaceholderText="Modified comparison text..." />
-                        </StackPanel>
-                    </Grid>
-
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                    <!-- Diff Actions -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsDiffMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button Content="Compute Diff"
                                 Style="{ThemeResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.ComputeDiffCommand}" />
-                        <Button Content="Clear" Command="{x:Bind ViewModel.ClearAllCommand}" />
                     </StackPanel>
+                </StackPanel>
 
-                    <!-- Diff Result Lines List -->
-                    <Border Grid.Row="2"
-                            Style="{StaticResource FluentCardBorderStyle}"
-                            MinHeight="200"
-                            Padding="8">
+                <!-- Right Common Actions -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Content="Sample"
+                            ToolTipService.ToolTip="Load sample payload for current mode"
+                            Command="{x:Bind ViewModel.LoadSampleCommand}" />
+                    <Button Content="Swap ⇄"
+                            ToolTipService.ToolTip="Move Output into Input"
+                            Command="{x:Bind ViewModel.SwapInputOutputCommand}"
+                            IsEnabled="{x:Bind ViewModel.HasOutput, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.IsNotDiffMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <Button Content="Clear"
+                            Command="{x:Bind ViewModel.ClearAllCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Workspace (Grid.Row="2") -->
+        <Grid Grid.Row="2">
+            <!-- Standard Side-by-Side Split View (Input Left, Output Right) -->
+            <Grid ColumnSpacing="16"
+                  Visibility="{x:Bind ViewModel.IsNotDiffMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="SplitRow0" Height="*" />
+                    <RowDefinition x:Name="SplitRow1" Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="SplitCol0" Width="*" />
+                    <ColumnDefinition x:Name="SplitCol1" Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Input Card -->
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <TextBlock Text="Input Payload" FontWeight="SemiBold" FontSize="15" />
+                                <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                    <TextBlock Text="{x:Bind ViewModel.InputStatsText, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Paste" Command="{x:Bind ViewModel.PasteInputCommand}" />
+                        </Grid>
+
+                        <TextBox Grid.Row="1"
+                                 Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                 VerticalAlignment="Stretch"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 PlaceholderText="Paste JSON, XML, Base64, URL, or JWT string here..." />
+                    </Grid>
+                </Border>
+
+                <!-- Right: Output Card -->
+                <Border x:Name="OutputCard" Grid.Row="0" Grid.Column="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <TextBlock Text="Transformed Output" FontWeight="SemiBold" FontSize="15" />
+                                <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                    <TextBlock Text="{x:Bind ViewModel.OutputStatsText, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    ToolTipService.ToolTip="Copy Output"
+                                    Command="{x:Bind ViewModel.CopyOutputCommand}"
+                                    IsEnabled="{x:Bind ViewModel.HasOutput, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                    <TextBlock Text="Copy" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <TextBox Grid.Row="1"
+                                 Text="{x:Bind ViewModel.OutputText, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                 VerticalAlignment="Stretch"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 PlaceholderText="Transformed output will appear here..." />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Diff Mode Workspace -->
+            <Grid RowSpacing="14"
+                  Visibility="{x:Bind ViewModel.IsDiffMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="180" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource FluentCardBorderStyle}" Padding="12">
+                        <Grid RowSpacing="6">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Original (Left / -)" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                            <TextBox Grid.Row="1"
+                                     Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     PlaceholderText="Original source text..." />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource FluentCardBorderStyle}" Padding="12">
+                        <Grid RowSpacing="6">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Modified (Right / +)" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                            <TextBox Grid.Row="1"
+                                     Text="{x:Bind ViewModel.SecondaryInputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     PlaceholderText="Modified comparison text..." />
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- Diff Result Lines List -->
+                <Border Grid.Row="1"
+                        Style="{StaticResource FluentCardBorderStyle}"
+                        Padding="12">
+                    <Grid>
+                        <controls:EmptyStateControl
+                            IconGlyph="&#xE8E2;"
+                            Title="No diff results yet"
+                            Subtitle="Enter Original and Modified text above and click 'Compute Diff' or 'Sample' to inspect line differences."
+                            IsEmpty="{x:Bind ViewModel.IsDiffEmpty, Mode=OneWay}" />
+
                         <ListView ItemsSource="{x:Bind ViewModel.DiffResults, Mode=OneWay}"
-                                  MaxHeight="360"
-                                  SelectionMode="None">
+                                  SelectionMode="None"
+                                  Visibility="{x:Bind ViewModel.HasDiffResults, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:DiffLine">
-                                    <Grid ColumnSpacing="8" Padding="4,2">
+                                    <Grid ColumnSpacing="8" Padding="6,3">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="40" />
-                                            <ColumnDefinition Width="20" />
+                                            <ColumnDefinition Width="24" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
@@ -233,22 +308,43 @@
                                                    FontFamily="Consolas, Cascadia Code, Courier New"
                                                    HorizontalAlignment="Right" />
 
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{x:Bind Prefix}"
-                                                   FontWeight="Bold"
-                                                   FontFamily="Consolas, Cascadia Code, Courier New"
-                                                   Foreground="{ThemeResource AccentAAFillColorDefaultBrush}" />
+                                        <!-- Semantic Diff Indicator (+ Green, - Red, Space Neutral) -->
+                                        <Grid Grid.Column="1">
+                                            <TextBlock Text="+"
+                                                       FontWeight="Bold"
+                                                       FontFamily="Consolas, Cascadia Code, Courier New"
+                                                       Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                       Visibility="{x:Bind IsAdded, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <TextBlock Text="-"
+                                                       FontWeight="Bold"
+                                                       FontFamily="Consolas, Cascadia Code, Courier New"
+                                                       Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                       Visibility="{x:Bind IsRemoved, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <TextBlock Text=" "
+                                                       FontFamily="Consolas, Cascadia Code, Courier New"
+                                                       Visibility="{x:Bind IsUnchanged, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </Grid>
 
                                         <TextBlock Grid.Column="2"
                                                    Text="{x:Bind Content}"
-                                                   FontFamily="Consolas, Cascadia Code, Courier New" />
+                                                   FontFamily="Consolas, Cascadia Code, Courier New"
+                                                   TextWrapping="Wrap" />
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
-                    </Border>
-                </Grid>
-            </controls:SectionCardControl>
-        </StackPanel>
-    </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Bottom Status Footer -->
+        <controls:StatusFooterControl
+            Grid.Row="3"
+            IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+            IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
+            ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+            StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+            DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
+    </Grid>
 </Page>

@@ -10,7 +10,32 @@
     xmlns:batchops="using:OmniForge.Modules.BatchOps"
     mc:Ignorable="d">
 
-    <Grid RowSpacing="12" Padding="{StaticResource OmniPagePadding}">
+    <Grid x:Name="RootGrid" RowSpacing="12" Padding="{StaticResource OmniPagePadding}">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ResponsiveStates">
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="980" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="RootGrid.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                        <Setter Target="RuleCol.Width" Value="*" />
+                        <Setter Target="PreviewCol.Width" Value="0" />
+                        <Setter Target="WorkspaceRow0.Height" Value="240" />
+                        <Setter Target="WorkspaceRow1.Height" Value="*" />
+                        <Setter Target="PreviewCard.(Grid.Row)" Value="1" />
+                        <Setter Target="PreviewCard.(Grid.Column)" Value="0" />
+                        <Setter Target="PreviewCard.Margin" Value="0,12,0,0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -23,47 +48,96 @@
             Grid.Row="0"
             Title="Batch File &amp; Path Renamer"
             Subtitle="Chained transformation rules, live collision detection, and non-blocking batch renaming"
-            HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
-            ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+            HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
+            ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
 
-        <!-- Top CommandBar -->
-        <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="8,4">
-            <CommandBar DefaultLabelPosition="Right" Background="Transparent" IsOpen="False">
-                <AppBarButton Icon="OpenFile" Label="Add Files" Command="{x:Bind ViewModel.AddFilesCommand}" />
-                <AppBarButton Icon="Folder" Label="Add Folder" Command="{x:Bind ViewModel.AddFolderCommand}" />
-                <AppBarSeparator />
-                <AppBarButton Icon="Clear" Label="Clear" Command="{x:Bind ViewModel.ClearFilesCommand}" />
-                <AppBarSeparator />
-                <AppBarButton
-                    Icon="Play"
-                    Label="Run Rename"
-                    Style="{ThemeResource AccentButtonStyle}"
-                    Command="{x:Bind ViewModel.RunRenameCommand}"
-                    IsEnabled="{x:Bind ViewModel.CanRun, Mode=OneWay}" />
-                <AppBarButton
-                    Icon="Undo"
-                    Label="{x:Bind ViewModel.UndoStatusText, Mode=OneWay}"
-                    Command="{x:Bind ViewModel.UndoRenameCommand}"
-                    IsEnabled="{x:Bind ViewModel.CanUndo, Mode=OneWay}" />
-            </CommandBar>
+        <!-- Top Action Toolbar -->
+        <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14,10">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- File Ingestion Controls -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Command="{x:Bind ViewModel.AddFilesCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE8E5;" FontSize="14" />
+                            <TextBlock Text="Add Files" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{x:Bind ViewModel.AddFolderCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE8B7;" FontSize="14" />
+                            <TextBlock Text="Add Folder" />
+                        </StackPanel>
+                    </Button>
+                    <CheckBox Content="Subfolders"
+                              MinWidth="0"
+                              IsChecked="{x:Bind ViewModel.IncludeSubfolders, Mode=TwoWay}"
+                              ToolTipService.ToolTip="Include files in nested subdirectories when adding folders"
+                              VerticalAlignment="Center"
+                              Margin="4,0,0,0" />
+                </StackPanel>
+
+                <!-- Clear Staged Files -->
+                <Button Grid.Column="1"
+                        Command="{x:Bind ViewModel.ClearFilesCommand}"
+                        ToolTipService.ToolTip="Clear all staged files">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                        <TextBlock Text="Clear List" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Execute & Undo Primary Actions -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button
+                        Command="{x:Bind ViewModel.UndoRenameCommand}"
+                        IsEnabled="{x:Bind ViewModel.CanUndo, Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE7A7;" FontSize="14" />
+                            <TextBlock Text="{x:Bind ViewModel.UndoStatusText, Mode=OneWay}" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Style="{ThemeResource AccentButtonStyle}"
+                        Command="{x:Bind ViewModel.RunRenameCommand}"
+                        IsEnabled="{x:Bind ViewModel.CanRun, Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE768;" FontSize="14" />
+                            <TextBlock Text="Run Rename" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Main Content Area: Split into Left (Rule Builder) and Right (Files Preview) -->
         <Grid Grid.Row="2" ColumnSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="WorkspaceRow0" Height="*" />
+                <RowDefinition x:Name="WorkspaceRow1" Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="380" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="RuleCol" Width="370" />
+                <ColumnDefinition x:Name="PreviewCol" Width="*" />
             </Grid.ColumnDefinitions>
 
             <!-- Left: Rule Builder Panel -->
-            <Border Grid.Column="0" Style="{StaticResource FluentCardBorderStyle}" Padding="16">
-                <Grid RowSpacing="12">
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
+                <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- Rule Builder Header with Add Rule DropDown -->
+                    <!-- Rule Builder Header -->
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -71,122 +145,199 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="Rename Rules" FontWeight="SemiBold" FontSize="15" />
+                            <TextBlock Text="Rename Rules Pipeline" FontWeight="SemiBold" FontSize="15" />
                             <TextBlock Text="Applied in top-down sequence" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
-                        <DropDownButton Grid.Column="1" Content="Add Rule">
-                            <DropDownButton.Flyout>
-                                <MenuFlyout Placement="BottomEdgeAlignedRight">
-                                    <MenuFlyoutItem Text="Prefix / Suffix" Icon="Add" Command="{x:Bind ViewModel.AddRuleCommand}" CommandParameter="PrefixSuffix" />
-                                    <MenuFlyoutItem Text="Search &amp; Replace" Icon="Find" Command="{x:Bind ViewModel.AddRuleCommand}" CommandParameter="Replace" />
-                                    <MenuFlyoutItem Text="Change Case" Icon="Font" Command="{x:Bind ViewModel.AddRuleCommand}" CommandParameter="ChangeCase" />
-                                    <MenuFlyoutItem Text="Numbering" Icon="List" Command="{x:Bind ViewModel.AddRuleCommand}" CommandParameter="Numbering" />
-                                </MenuFlyout>
-                            </DropDownButton.Flyout>
-                        </DropDownButton>
+                        <Button Grid.Column="1"
+                                Content="Clear Rules"
+                                Style="{ThemeResource SubtleButtonStyle}"
+                                FontSize="12"
+                                Padding="8,4"
+                                Command="{x:Bind ViewModel.ClearRulesCommand}"
+                                Visibility="{x:Bind ViewModel.HasRules, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </Grid>
 
+                    <!-- 1-Click Quick Add Rule Chips -->
+                    <Border Grid.Row="1"
+                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                            CornerRadius="6"
+                            Padding="8,6">
+                        <Grid ColumnSpacing="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0"
+                                    HorizontalAlignment="Stretch"
+                                    Padding="4,5"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Add Prefix / Suffix Rule"
+                                    Command="{x:Bind ViewModel.AddRuleCommand}"
+                                    CommandParameter="PrefixSuffix">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="Prefix" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="1"
+                                    HorizontalAlignment="Stretch"
+                                    Padding="4,5"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Add Search &amp; Replace / Regex Rule"
+                                    Command="{x:Bind ViewModel.AddRuleCommand}"
+                                    CommandParameter="Replace">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="Replace" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="2"
+                                    HorizontalAlignment="Stretch"
+                                    Padding="4,5"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Add Change Case Rule"
+                                    Command="{x:Bind ViewModel.AddRuleCommand}"
+                                    CommandParameter="ChangeCase">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="Case" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="3"
+                                    HorizontalAlignment="Stretch"
+                                    Padding="4,5"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Add Sequential Numbering Rule"
+                                    Command="{x:Bind ViewModel.AddRuleCommand}"
+                                    CommandParameter="Numbering">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="Number" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
                     <!-- Scrollable Rules List -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{x:Bind ViewModel.Rules, Mode=OneWay}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="local:RuleItemViewModel">
-                                    <Border
-                                        Margin="0,0,0,12"
-                                        Padding="14"
-                                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="6">
-                                        <StackPanel Spacing="10">
-                                            <!-- Rule Card Header -->
-                                            <Grid ColumnSpacing="6">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
+                    <Grid Grid.Row="2">
+                        <controls:EmptyStateControl
+                            IconGlyph="&#xE8D3;"
+                            Title="No active rules"
+                            Subtitle="Click '+ Prefix', '+ Replace', '+ Case', or '+ Number' above to build your rename pipeline."
+                            IsEmpty="{x:Bind ViewModel.HasNoRules, Mode=OneWay}" />
 
-                                                <FontIcon Grid.Column="0" Glyph="{x:Bind IconGlyph}" FontSize="14" VerticalAlignment="Center" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                                <TextBlock Grid.Column="1" Text="{x:Bind Title}" FontWeight="Medium" VerticalAlignment="Center" Margin="6,0,0,0" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      Visibility="{x:Bind ViewModel.HasRules, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.Rules, Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="local:RuleItemViewModel">
+                                        <Border
+                                            Margin="0,0,0,10"
+                                            Padding="12"
+                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6">
+                                            <StackPanel Spacing="10">
+                                                <!-- Rule Card Header -->
+                                                <Grid ColumnSpacing="4">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
 
-                                                <ToggleSwitch Grid.Column="2" IsOn="{x:Bind IsActive, Mode=TwoWay}" MinWidth="0" ToolTipService.ToolTip="Enable/Disable Rule" VerticalAlignment="Center" />
-                                                <Button Grid.Column="3" Padding="6,4" ToolTipService.ToolTip="Move Up" Command="{x:Bind MoveUpCommand}">
-                                                    <FontIcon Glyph="&#xE74A;" FontSize="11" />
-                                                </Button>
-                                                <Button Grid.Column="4" Padding="6,4" ToolTipService.ToolTip="Move Down" Command="{x:Bind MoveDownCommand}">
-                                                    <FontIcon Glyph="&#xE74B;" FontSize="11" />
-                                                </Button>
-                                                <Button Grid.Column="5" Padding="6,4" ToolTipService.ToolTip="Delete Rule" Command="{x:Bind RemoveCommand}">
-                                                    <FontIcon Glyph="&#xE74D;" FontSize="11" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
-                                                </Button>
-                                            </Grid>
+                                                    <FontIcon Grid.Column="0" Glyph="{x:Bind IconGlyph}" FontSize="14" VerticalAlignment="Center" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                                    <TextBlock Grid.Column="1" Text="{x:Bind Title}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0" />
 
-                                            <!-- Prefix / Suffix Editor -->
-                                            <StackPanel Spacing="8" Visibility="{x:Bind IsPrefixSuffix, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                <TextBox Header="Prefix" Text="{x:Bind Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. IMG_" />
-                                                <TextBox Header="Suffix" Text="{x:Bind Suffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. _v1" />
-                                            </StackPanel>
+                                                    <ToggleSwitch Grid.Column="2" IsOn="{x:Bind IsActive, Mode=TwoWay}" OnContent="" OffContent="" MinWidth="0" ToolTipService.ToolTip="Enable/Disable Rule" VerticalAlignment="Center" />
+                                                    <Button Grid.Column="3" Padding="6,4" ToolTipService.ToolTip="Move Up" Command="{x:Bind MoveUpCommand}">
+                                                        <FontIcon Glyph="&#xE74A;" FontSize="11" />
+                                                    </Button>
+                                                    <Button Grid.Column="4" Padding="6,4" ToolTipService.ToolTip="Move Down" Command="{x:Bind MoveDownCommand}">
+                                                        <FontIcon Glyph="&#xE74B;" FontSize="11" />
+                                                    </Button>
+                                                    <Button Grid.Column="5" Padding="6,4" ToolTipService.ToolTip="Delete Rule" Command="{x:Bind RemoveCommand}">
+                                                        <FontIcon Glyph="&#xE74D;" FontSize="11" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                                    </Button>
+                                                </Grid>
 
-                                            <!-- Search & Replace Editor -->
-                                            <StackPanel Spacing="8" Visibility="{x:Bind IsReplace, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                <TextBox Header="Search For" Text="{x:Bind SearchPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. IMG or \d+" />
-                                                <TextBox Header="Replace With" Text="{x:Bind Replacement, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. Photo_{date}" />
-                                                <StackPanel Orientation="Horizontal" Spacing="16">
-                                                    <CheckBox Content="Match Case" IsChecked="{x:Bind MatchCase, Mode=TwoWay}" />
-                                                    <CheckBox Content="Regex" IsChecked="{x:Bind UseRegex, Mode=TwoWay}" />
+                                                <!-- Prefix / Suffix Editor -->
+                                                <Grid ColumnSpacing="8" Visibility="{x:Bind IsPrefixSuffix, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBox Grid.Column="0" Header="Prefix" Text="{x:Bind Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. IMG_" />
+                                                    <TextBox Grid.Column="1" Header="Suffix" Text="{x:Bind Suffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. _v1" />
+                                                </Grid>
+
+                                                <!-- Search & Replace Editor -->
+                                                <StackPanel Spacing="8" Visibility="{x:Bind IsReplace, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <TextBox Header="Search For" Text="{x:Bind SearchPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. IMG or \d+" />
+                                                    <TextBox Header="Replace With" Text="{x:Bind Replacement, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="e.g. Photo_{date}" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="16">
+                                                        <CheckBox Content="Match Case" MinWidth="0" IsChecked="{x:Bind MatchCase, Mode=TwoWay}" />
+                                                        <CheckBox Content="Regex" MinWidth="0" IsChecked="{x:Bind UseRegex, Mode=TwoWay}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <!-- Change Case Editor -->
+                                                <StackPanel Spacing="8" Visibility="{x:Bind IsChangeCase, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <ComboBox Header="Case Style" SelectedIndex="{x:Bind SelectedCaseIndex, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                                                        <ComboBoxItem Content="lowercase" />
+                                                        <ComboBoxItem Content="UPPERCASE" />
+                                                        <ComboBoxItem Content="Title Case" />
+                                                    </ComboBox>
+                                                </StackPanel>
+
+                                                <!-- Numbering Editor -->
+                                                <StackPanel Spacing="8" Visibility="{x:Bind IsNumbering, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <Grid ColumnSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <NumberBox Grid.Column="0" Header="Start" Value="{x:Bind StartNumber, Mode=TwoWay}" Minimum="0" Maximum="999999" SpinButtonPlacementMode="Compact" />
+                                                        <NumberBox Grid.Column="1" Header="Step" Value="{x:Bind Step, Mode=TwoWay}" Minimum="1" Maximum="1000" SpinButtonPlacementMode="Compact" />
+                                                        <TextBox Grid.Column="2" Header="Padding" Text="{x:Bind PaddingFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="001" />
+                                                    </Grid>
+                                                    <Grid ColumnSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <ComboBox Grid.Column="0" Header="Position" SelectedIndex="{x:Bind SelectedPositionIndex, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                                                            <ComboBoxItem Content="Suffix" />
+                                                            <ComboBoxItem Content="Prefix" />
+                                                        </ComboBox>
+                                                        <TextBox Grid.Column="1" Header="Separator" Text="{x:Bind Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </Grid>
                                                 </StackPanel>
                                             </StackPanel>
-
-                                            <!-- Change Case Editor -->
-                                            <StackPanel Spacing="8" Visibility="{x:Bind IsChangeCase, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                <ComboBox Header="Case Style" SelectedIndex="{x:Bind SelectedCaseIndex, Mode=TwoWay}" HorizontalAlignment="Stretch">
-                                                    <ComboBoxItem Content="lowercase" />
-                                                    <ComboBoxItem Content="UPPERCASE" />
-                                                    <ComboBoxItem Content="Title Case" />
-                                                </ComboBox>
-                                            </StackPanel>
-
-                                            <!-- Numbering Editor -->
-                                            <StackPanel Spacing="8" Visibility="{x:Bind IsNumbering, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                <Grid ColumnSpacing="8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBox Grid.Column="0" Header="Start" Text="{x:Bind StartNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                    <TextBox Grid.Column="1" Header="Step" Text="{x:Bind Step, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                    <TextBox Grid.Column="2" Header="Padding" Text="{x:Bind PaddingFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="001" />
-                                                </Grid>
-                                                <Grid ColumnSpacing="8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <ComboBox Grid.Column="0" Header="Position" SelectedIndex="{x:Bind SelectedPositionIndex, Mode=TwoWay}" HorizontalAlignment="Stretch">
-                                                        <ComboBoxItem Content="Suffix" />
-                                                        <ComboBoxItem Content="Prefix" />
-                                                    </ComboBox>
-                                                    <TextBox Grid.Column="1" Header="Separator" Text="{x:Bind Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                </Grid>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
                 </Grid>
             </Border>
 
             <!-- Right: Files Preview & Collision Detection Panel -->
-            <Border Grid.Column="1" Style="{StaticResource FluentCardBorderStyle}" Padding="16">
-                <Grid RowSpacing="12">
+            <Border x:Name="PreviewCard" Grid.Row="0" Grid.Column="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
+                <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -200,18 +351,21 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <TextBlock Text="Staged Files &amp; Preview" FontWeight="SemiBold" FontSize="15" />
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Staged Files &amp; Live Preview" FontWeight="SemiBold" FontSize="15" />
 
                             <Border Style="{StaticResource StatusBadgeBorderStyle}">
-                                <TextBlock Text="{x:Bind ViewModel.TotalFilesCount, Mode=OneWay}" FontSize="12" />
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="Total:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" />
+                                    <TextBlock Text="{x:Bind ViewModel.TotalFilesCount, Mode=OneWay}" FontWeight="SemiBold" FontSize="12" />
+                                </StackPanel>
                             </Border>
 
                             <Border Style="{StaticResource StatusBadgeBorderStyle}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="LightSeaGreen" />
-                                    <TextBlock Text="{x:Bind ViewModel.ChangedFilesCount, Mode=OneWay}" FontSize="12" />
-                                    <TextBlock Text="to rename" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.ChangedFilesCount, Mode=OneWay}" FontWeight="SemiBold" FontSize="12" />
+                                    <TextBlock Text="will change" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -222,9 +376,9 @@
                             Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
                             Visibility="{x:Bind ViewModel.HasConflicts, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <FontIcon Glyph="&#xE783;" FontSize="12" Foreground="OrangeRed" />
-                                <TextBlock Text="{x:Bind ViewModel.ConflictCount, Mode=OneWay}" FontWeight="SemiBold" FontSize="12" Foreground="OrangeRed" />
-                                <TextBlock Text="collision(s)" FontSize="12" Foreground="OrangeRed" />
+                                <FontIcon Glyph="&#xE783;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.ConflictCount, Mode=OneWay}" FontWeight="SemiBold" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                <TextBlock Text="collision(s)" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -236,7 +390,7 @@
                         Severity="Warning"
                         IsClosable="False"
                         Title="Collision or Validation Error Detected"
-                        Message="Resolve all filename collisions or invalid characters before running the rename batch." />
+                        Message="Resolve all filename collisions or invalid characters highlighted below before running the rename batch." />
 
                     <!-- Drag & Drop Container with Table / Fast ListView -->
                     <Grid
@@ -271,18 +425,20 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="32" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="28" />
+                                    <ColumnDefinition Width="24" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="60" />
-                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="75" />
+                                    <ColumnDefinition Width="34" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="Status" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="0" Text="State" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
                                 <TextBlock Grid.Column="1" Text="Original Name" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
                                 <TextBlock Grid.Column="2" Text="" />
                                 <TextBlock Grid.Column="3" Text="Proposed New Name" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
                                 <TextBlock Grid.Column="4" Text="Type" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
                                 <TextBlock Grid.Column="5" Text="Size" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" TextAlignment="Right" />
+                                <TextBlock Grid.Column="6" Text="" />
                             </Grid>
 
                             <!-- Virtualized Fast Items List -->
@@ -292,29 +448,35 @@
                                 SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="batchops:RenamePreviewItem">
-                                        <Grid Padding="0,6" ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind ValidationError, Mode=OneTime}">
+                                        <Grid Padding="0,6" ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind SourceFullPath, Mode=OneTime}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="32" />
                                                 <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="24" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="60" />
-                                                <ColumnDefinition Width="80" />
+                                                <ColumnDefinition Width="75" />
+                                                <ColumnDefinition Width="34" />
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Status Icon -->
-                                            <FontIcon
-                                                Grid.Column="0"
-                                                Glyph="&#xE783;"
-                                                FontSize="14"
-                                                Foreground="OrangeRed"
-                                                Visibility="{x:Bind HasConflict, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                            <FontIcon
-                                                Grid.Column="0"
-                                                Glyph="&#xE73E;"
-                                                FontSize="14"
-                                                Foreground="LightSeaGreen"
-                                                Visibility="{x:Bind HasChange, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <!-- Status Icon (Conflict, Changed, or Unchanged) -->
+                                            <Grid Grid.Column="0" VerticalAlignment="Center">
+                                                <FontIcon
+                                                    Glyph="&#xE783;"
+                                                    FontSize="14"
+                                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                    Visibility="{x:Bind HasConflict, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                <FontIcon
+                                                    Glyph="&#xE73E;"
+                                                    FontSize="14"
+                                                    Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                    Visibility="{x:Bind HasChange, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                <FontIcon
+                                                    Glyph="&#xE738;"
+                                                    FontSize="13"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Visibility="{x:Bind IsUnchanged, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </Grid>
 
                                             <!-- Original Name -->
                                             <TextBlock
@@ -331,14 +493,20 @@
                                                 VerticalAlignment="Center"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                                            <!-- Proposed New Name -->
-                                            <TextBlock
-                                                Grid.Column="3"
-                                                Text="{x:Bind ProposedFileName, Mode=OneTime}"
-                                                FontWeight="SemiBold"
-                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                TextTrimming="CharacterEllipsis"
-                                                VerticalAlignment="Center" />
+                                            <!-- Proposed New Name & Inline Diagnostic Error -->
+                                            <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock
+                                                    Text="{x:Bind ProposedFileName, Mode=OneTime}"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                                <TextBlock
+                                                    Text="{x:Bind ValidationError, Mode=OneTime}"
+                                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                    TextWrapping="Wrap"
+                                                    Visibility="{x:Bind HasValidationError, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
 
                                             <!-- Extension -->
                                             <TextBlock
@@ -354,6 +522,19 @@
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 TextAlignment="Right"
                                                 VerticalAlignment="Center" />
+
+                                            <!-- Remove Single File Button -->
+                                            <Button
+                                                Grid.Column="6"
+                                                Padding="6,4"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Tag="{x:Bind}"
+                                                Click="RemoveFileButton_Click"
+                                                ToolTipService.ToolTip="Remove file from list"
+                                                VerticalAlignment="Center">
+                                                <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            </Button>
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>

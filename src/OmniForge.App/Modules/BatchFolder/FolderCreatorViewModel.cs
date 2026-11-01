@@ -87,6 +87,21 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     [ObservableProperty]
     public partial bool HasExecutionSummary { get; set; }
 
+    [ObservableProperty]
+    public partial string QuickAddFolderName { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool QuickAddAsSubfolder { get; set; }
+
+    [ObservableProperty]
+    public partial string SeriesPattern { get; set; } = "Lesson_{seq:2}";
+
+    [ObservableProperty]
+    public partial int SeriesCount { get; set; } = 10;
+
+    [ObservableProperty]
+    public partial bool AppendSeriesToExisting { get; set; } = true;
+
     public ObservableCollection<TreeViewNode> PreviewTreeNodes { get; } = [];
 
     public bool CanCreate => !string.IsNullOrWhiteSpace(RootDirectory) &&
@@ -389,6 +404,84 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
         RawInputText = string.Empty;
         HasExecutionSummary = false;
         ExecutionResultSummary = string.Empty;
+    }
+
+    [RelayCommand]
+    private void QuickAddFolder()
+    {
+        if (string.IsNullOrWhiteSpace(QuickAddFolderName))
+        {
+            return;
+        }
+
+        string prefix = QuickAddAsSubfolder ? "  " : string.Empty;
+        string newEntry = prefix + QuickAddFolderName.Trim();
+
+        RawInputText = string.IsNullOrWhiteSpace(RawInputText)
+            ? newEntry
+            : $"{RawInputText.TrimEnd('\r', '\n')}{Environment.NewLine}{newEntry}";
+
+        QuickAddFolderName = string.Empty;
+        StatusMessage = $"Added folder '{newEntry.Trim()}' to list.";
+    }
+
+    [RelayCommand]
+    private void GenerateSeries()
+    {
+        RawInputText = FolderParser.GenerateSeriesText(
+            SeriesPattern,
+            SeriesCount,
+            StartSequence,
+            AppendSeriesToExisting,
+            RawInputText);
+
+        StatusMessage = $"Generated {Math.Clamp(SeriesCount, 1, 500)} folders using pattern '{SeriesPattern}'.";
+    }
+
+    [RelayCommand]
+    private void IndentAll()
+    {
+        RawInputText = FolderParser.AdjustIndentation(RawInputText, 2);
+        StatusMessage = "Indented all lines (+2 spaces).";
+    }
+
+    [RelayCommand]
+    private void OutdentAll()
+    {
+        RawInputText = FolderParser.AdjustIndentation(RawInputText, -2);
+        StatusMessage = "Outdented all lines (-2 spaces).";
+    }
+
+    [RelayCommand]
+    private void CleanAndSortLines(string? mode)
+    {
+        bool sort = string.Equals(mode, "sort", StringComparison.OrdinalIgnoreCase);
+        RawInputText = FolderParser.NormalizeLines(RawInputText, sort);
+        StatusMessage = sort ? "Cleaned and sorted lines alphabetically." : "Removed blank lines and trimmed whitespace.";
+    }
+
+    [RelayCommand]
+    private void ExpandAllPreview()
+    {
+        SetExpansionRecursive(PreviewTreeNodes, true);
+    }
+
+    [RelayCommand]
+    private void CollapseAllPreview()
+    {
+        SetExpansionRecursive(PreviewTreeNodes, false);
+    }
+
+    private static void SetExpansionRecursive(IEnumerable<TreeViewNode> nodes, bool isExpanded)
+    {
+        foreach (var node in nodes)
+        {
+            node.IsExpanded = isExpanded;
+            if (node.Children.Count > 0)
+            {
+                SetExpansionRecursive(node.Children, isExpanded);
+            }
+        }
     }
 
     [RelayCommand]

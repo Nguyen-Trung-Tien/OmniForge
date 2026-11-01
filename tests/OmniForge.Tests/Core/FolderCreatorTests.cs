@@ -339,4 +339,54 @@ public sealed class FolderCreatorTests : IDisposable
         Assert.True(Directory.Exists(Path.Combine(_tempTestDir, "Project", "src")));
         Assert.True(Directory.Exists(Path.Combine(_tempTestDir, "Project", "docs")));
     }
+
+    [Fact]
+    public void FolderParser_GenerateSeriesText_CreatesSequentialFolderRows()
+    {
+        string generated = FolderParser.GenerateSeriesText("Lesson_{seq:2}", count: 3, startSequence: 5);
+        var lines = generated.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+
+        Assert.Equal(3, lines.Length);
+        Assert.Equal("Lesson_05", lines[0]);
+        Assert.Equal("Lesson_06", lines[1]);
+        Assert.Equal("Lesson_07", lines[2]);
+    }
+
+    [Fact]
+    public void FolderParser_GenerateSeriesText_AutoAppendsSequenceTokenWhenMissing()
+    {
+        string generated = FolderParser.GenerateSeriesText("Chapter", count: 2, startSequence: 1, appendToExisting: true, existingText: "Root");
+        var lines = generated.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+
+        Assert.Equal(3, lines.Length);
+        Assert.Equal("Root", lines[0]);
+        Assert.Equal("Chapter_01", lines[1]);
+        Assert.Equal("Chapter_02", lines[2]);
+    }
+
+    [Fact]
+    public void FolderParser_AdjustIndentation_IndentsAndOutdentsSafely()
+    {
+        string raw = "Parent\n  Child";
+        string indented = FolderParser.AdjustIndentation(raw, 2);
+        Assert.Equal("  Parent\n    Child", indented.Replace("\r\n", "\n"));
+
+        string outdented = FolderParser.AdjustIndentation(indented, -2);
+        Assert.Equal("Parent\n  Child", outdented.Replace("\r\n", "\n"));
+
+        // Outdenting past 0 clamps at 0
+        string clamped = FolderParser.AdjustIndentation("Root", -4);
+        Assert.Equal("Root", clamped);
+    }
+
+    [Fact]
+    public void FolderParser_NormalizeLines_CleansAndSortsLines()
+    {
+        string messy = "  Zebra  \n\n  Alpha \r\n\r\n  Beta  ";
+        string cleaned = FolderParser.NormalizeLines(messy, sortAlphabetically: false);
+        Assert.Equal($"  Zebra{Environment.NewLine}  Alpha{Environment.NewLine}  Beta", cleaned);
+
+        string sorted = FolderParser.NormalizeLines(messy, sortAlphabetically: true);
+        Assert.Equal($"  Alpha{Environment.NewLine}  Beta{Environment.NewLine}  Zebra", sorted);
+    }
 }
