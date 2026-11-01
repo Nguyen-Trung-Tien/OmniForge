@@ -26,6 +26,13 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="RootScrollViewer.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                        <Setter Target="AlgorithmBarRow1.Height" Value="Auto" />
+                        <Setter Target="AlgorithmCol1.Width" Value="0" />
+                        <Setter Target="ComputeBtn.(Grid.Row)" Value="1" />
+                        <Setter Target="ComputeBtn.(Grid.Column)" Value="0" />
+                        <Setter Target="ComputeBtn.HorizontalAlignment" Value="Left" />
+                        <Setter Target="FileSizeBadge.(Grid.Row)" Value="1" />
+                        <Setter Target="FileSizeBadge.(Grid.Column)" Value="2" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -69,27 +76,33 @@
                                 Command="{x:Bind ViewModel.ClearAllCommand}" />
                     </Grid>
 
-                    <Grid Grid.Row="1" ColumnSpacing="12">
+                    <Grid x:Name="AlgorithmBarGrid" Grid.Row="1" ColumnSpacing="12" RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition x:Name="AlgorithmBarRow1" Height="0" />
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition x:Name="AlgorithmCol0" Width="Auto" />
+                            <ColumnDefinition x:Name="AlgorithmCol1" Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <ComboBox Grid.Column="0"
+                        <ComboBox Grid.Row="0" Grid.Column="0"
                                   Header="Algorithm"
                                   ItemsSource="{x:Bind ViewModel.AvailableAlgorithms, Mode=OneWay}"
                                   SelectedItem="{x:Bind ViewModel.SelectedAlgorithm, Mode=TwoWay}"
                                   MinWidth="150" />
 
-                        <Button Grid.Column="1"
+                        <Button x:Name="ComputeBtn"
+                                Grid.Row="0" Grid.Column="1"
                                 Content="Compute Checksum"
                                 Command="{x:Bind ViewModel.ComputeHashCommand}"
                                 IsEnabled="{x:Bind ViewModel.CanCompute, Mode=OneWay}"
                                 Style="{ThemeResource AccentButtonStyle}"
                                 VerticalAlignment="Bottom" />
 
-                        <Border Grid.Column="2"
+                        <Border x:Name="FileSizeBadge"
+                                Grid.Row="0" Grid.Column="2"
                                 Style="{StaticResource StatusBadgeBorderStyle}"
                                 VerticalAlignment="Bottom"
                                 HorizontalAlignment="Right">

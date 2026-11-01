@@ -23,6 +23,11 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="RootGrid.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                        <Setter Target="ToolbarRow1.Height" Value="Auto" />
+                        <Setter Target="ToolbarCol1.Width" Value="0" />
+                        <Setter Target="ModeActionsPanel.(Grid.Row)" Value="1" />
+                        <Setter Target="ModeActionsPanel.(Grid.Column)" Value="0" />
+                        <Setter Target="ModeActionsPanel.(Grid.ColumnSpan)" Value="4" />
                         <Setter Target="SplitCol0.Width" Value="*" />
                         <Setter Target="SplitCol1.Width" Value="0" />
                         <Setter Target="SplitRow0.Height" Value="*" />
@@ -51,16 +56,20 @@
 
         <!-- Unified Toolbar: Mode Selector + Context Actions + Quick Utilities -->
         <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14,10">
-            <Grid ColumnSpacing="12">
+            <Grid x:Name="ToolbarGrid" ColumnSpacing="12" RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition x:Name="ToolbarRow1" Height="0" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition x:Name="ToolbarCol0" Width="Auto" />
+                    <ColumnDefinition x:Name="ToolbarCol1" Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition x:Name="ToolbarCol3" Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Mode Selector -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <FontIcon Glyph="&#xE943;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" VerticalAlignment="Center" />
                     <TextBlock Text="Mode:" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <ComboBox SelectedIndex="{x:Bind ViewModel.SelectedModeIndex, Mode=TwoWay}" MinWidth="195" VerticalAlignment="Center">
@@ -74,7 +83,7 @@
                 </StackPanel>
 
                 <!-- Primary Mode Actions -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <StackPanel x:Name="ModeActionsPanel" Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <!-- JSON Actions -->
                     <StackPanel Orientation="Horizontal" Spacing="8"
                                 Visibility="{x:Bind ViewModel.IsJsonMode, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">

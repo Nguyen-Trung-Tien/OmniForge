@@ -25,10 +25,12 @@
 
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                     <TextBlock Text="{x:Bind Title, Mode=OneWay}"
-                               Style="{ThemeResource SubtitleTextBlockStyle}" />
+                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               TextWrapping="Wrap" />
                     <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}"
                                Style="{ThemeResource CaptionTextBlockStyle}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap"
                                Visibility="{x:Bind HasSubtitle, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
 

@@ -23,6 +23,12 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="RootGrid.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                        <Setter Target="TargetButtonsRow.Height" Value="Auto" />
+                        <Setter Target="TargetActionsCol.Width" Value="0" />
+                        <Setter Target="TargetActionsPanel.(Grid.Row)" Value="1" />
+                        <Setter Target="TargetActionsPanel.(Grid.Column)" Value="0" />
+                        <Setter Target="FilterCol0.Width" Value="*" />
+                        <Setter Target="FilterStatusPanel.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -50,54 +56,56 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" ColumnSpacing="8">
+                <Grid x:Name="TargetDirectoryGrid" Grid.Row="0" ColumnSpacing="8" RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition x:Name="TargetButtonsRow" Height="0" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition x:Name="TargetPathCol" Width="*" />
+                        <ColumnDefinition x:Name="TargetActionsCol" Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Grid.Column="0"
+                    <TextBox x:Name="TargetDirectoryBox"
+                             Grid.Row="0" Grid.Column="0"
                              Text="{x:Bind ViewModel.TargetDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              PlaceholderText="Enter folder path to scan..." />
 
-                    <Button Grid.Column="1"
-                            Content="Browse..."
-                            Command="{x:Bind ViewModel.BrowseFolderCommand}" />
+                    <StackPanel x:Name="TargetActionsPanel"
+                                Grid.Row="0" Grid.Column="1"
+                                Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Button Content="Browse..."
+                                Command="{x:Bind ViewModel.BrowseFolderCommand}" />
 
-                    <Button Grid.Column="2"
-                            ToolTipService.ToolTip="Copy path to clipboard"
-                            Command="{x:Bind ViewModel.CopyTargetPathCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8C8;" FontSize="13" />
-                            <TextBlock Text="Copy Path" />
-                        </StackPanel>
-                    </Button>
+                        <Button ToolTipService.ToolTip="Copy path to clipboard"
+                                Command="{x:Bind ViewModel.CopyTargetPathCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                <TextBlock Text="Copy Path" />
+                            </StackPanel>
+                        </Button>
 
-                    <Button Grid.Column="3"
-                            ToolTipService.ToolTip="Open folder in Windows Explorer"
-                            Command="{x:Bind ViewModel.OpenInExplorerCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8DA;" FontSize="13" />
-                            <TextBlock Text="Explorer" />
-                        </StackPanel>
-                    </Button>
+                        <Button ToolTipService.ToolTip="Open folder in Windows Explorer"
+                                Command="{x:Bind ViewModel.OpenInExplorerCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8DA;" FontSize="13" />
+                                <TextBlock Text="Explorer" />
+                            </StackPanel>
+                        </Button>
 
-                    <Button Grid.Column="4"
-                            Command="{x:Bind ViewModel.ScanDirectoryCommand}"
-                            Style="{ThemeResource AccentButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE721;" FontSize="13" />
-                            <TextBlock Text="Scan Files" FontWeight="SemiBold" />
-                        </StackPanel>
-                    </Button>
+                        <Button Command="{x:Bind ViewModel.ScanDirectoryCommand}"
+                                Style="{ThemeResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE721;" FontSize="13" />
+                                <TextBlock Text="Scan Files" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <Grid Grid.Row="1" ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="320" />
+                        <ColumnDefinition x:Name="FilterCol0" Width="320" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -113,7 +121,7 @@
                               IsChecked="{x:Bind ViewModel.IncludeSubfolders, Mode=TwoWay}"
                               VerticalAlignment="Center" />
 
-                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <StackPanel x:Name="FilterStatusPanel" Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Border Style="{StaticResource StatusBadgeBorderStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock Text="Files:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" />

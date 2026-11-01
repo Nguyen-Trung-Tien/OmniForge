@@ -164,12 +164,15 @@ public sealed partial class MainWindow : Window
             }
         };
 
-        // 4. Configure minimum window dimensions and restore persisted window dimensions
+        // 4. Configure minimum window dimensions and center window on active desktop screen
         if (AppWindow.Presenter is OverlappedPresenter presenter)
         {
             presenter.PreferredMinimumWidth = 680;
             presenter.PreferredMinimumHeight = 500;
         }
+
+        // Center on screen immediately with high-DPI default bounds before activation
+        CenterOnScreen();
 
         _ = _settingsService.GetWindowSizeAsync().ContinueWith(t =>
         {
@@ -178,10 +181,7 @@ public sealed partial class MainWindow : Window
                 var (width, height) = t.Result;
                 if (width >= 680 && height >= 500)
                 {
-                    DispatcherQueue?.TryEnqueue(() =>
-                    {
-                        AppWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
-                    });
+                    DispatcherQueue?.TryEnqueue(() => CenterOnScreen(width, height));
                 }
             }
             else
@@ -199,6 +199,43 @@ public sealed partial class MainWindow : Window
                 _ = _settingsService.SetWindowSizeAsync(size.Width, size.Height).ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
             }
         };
+    }
+
+    /// <summary>
+    /// Centers the application window on the current active display monitor's usable work area (excluding taskbar).
+    /// </summary>
+    public void CenterOnScreen(int? preferredWidth = null, int? preferredHeight = null)
+    {
+        try
+        {
+            var displayArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary);
+            if (displayArea is null) return;
+
+            var workArea = displayArea.WorkArea;
+
+            // Compute ideal default dimensions if not specified or out of bounds
+            int targetWidth = preferredWidth is >= 680
+                ? Math.Min(preferredWidth.Value, workArea.Width)
+                : Math.Min(1200, (int)(workArea.Width * 0.82));
+
+            int targetHeight = preferredHeight is >= 500
+                ? Math.Min(preferredHeight.Value, workArea.Height)
+                : Math.Min(780, (int)(workArea.Height * 0.82));
+
+            // Ensure dimensions respect absolute min limits
+            targetWidth = Math.Clamp(targetWidth, 680, workArea.Width);
+            targetHeight = Math.Clamp(targetHeight, 500, workArea.Height);
+
+            // Calculate centered origin coordinates
+            int x = workArea.X + (workArea.Width - targetWidth) / 2;
+            int y = workArea.Y + (workArea.Height - targetHeight) / 2;
+
+            AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(x, y, targetWidth, targetHeight));
+        }
+        catch
+        {
+            // Defensive fault isolation: fallback to OS default if DisplayArea query fails
+        }
     }
 
     private void ApplyTheme(string theme)

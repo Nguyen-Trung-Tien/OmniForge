@@ -24,6 +24,11 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="RootGrid.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                        <Setter Target="TopActionBarRow1.Height" Value="Auto" />
+                        <Setter Target="TopActionCol3.Width" Value="0" />
+                        <Setter Target="ExecutionActionPanel.(Grid.Row)" Value="1" />
+                        <Setter Target="ExecutionActionPanel.(Grid.Column)" Value="0" />
+                        <Setter Target="ExecutionActionPanel.(Grid.ColumnSpan)" Value="4" />
                         <Setter Target="RuleCol.Width" Value="*" />
                         <Setter Target="PreviewCol.Width" Value="0" />
                         <Setter Target="WorkspaceRow0.Height" Value="240" />
@@ -53,16 +58,20 @@
 
         <!-- Top Action Toolbar -->
         <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14,10">
-            <Grid ColumnSpacing="12">
+            <Grid x:Name="TopActionBarGrid" ColumnSpacing="12" RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition x:Name="TopActionBarRow1" Height="0" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition x:Name="TopActionCol0" Width="Auto" />
+                    <ColumnDefinition x:Name="TopActionCol1" Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition x:Name="TopActionCol3" Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <!-- File Ingestion Controls -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button Command="{x:Bind ViewModel.AddFilesCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE8E5;" FontSize="14" />
@@ -84,7 +93,7 @@
                 </StackPanel>
 
                 <!-- Clear Staged Files -->
-                <Button Grid.Column="1"
+                <Button Grid.Row="0" Grid.Column="1"
                         Command="{x:Bind ViewModel.ClearFilesCommand}"
                         ToolTipService.ToolTip="Clear all staged files">
                     <StackPanel Orientation="Horizontal" Spacing="6">
@@ -94,7 +103,7 @@
                 </Button>
 
                 <!-- Execute & Undo Primary Actions -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <StackPanel x:Name="ExecutionActionPanel" Grid.Row="0" Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button
                         Command="{x:Bind ViewModel.UndoRenameCommand}"
                         IsEnabled="{x:Bind ViewModel.CanUndo, Mode=OneWay}">

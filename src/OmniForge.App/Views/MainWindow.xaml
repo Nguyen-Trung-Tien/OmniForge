@@ -32,8 +32,8 @@
         <NavigationView x:Name="NavView"
                         Grid.Row="1"
                         PaneDisplayMode="Auto"
-                        ExpandedModeThresholdWidth="960"
-                        CompactModeThresholdWidth="640"
+                        ExpandedModeThresholdWidth="1008"
+                        CompactModeThresholdWidth="680"
                         OpenPaneLength="250"
                         CompactPaneLength="48"
                         IsBackButtonVisible="Auto"
@@ -93,7 +93,7 @@
 
                 <!-- Module Fault Isolation Banner -->
                 <InfoBar Grid.Row="0"
-                         Margin="36,12,36,0"
+                         Margin="20,10,20,0"
                          Severity="Error"
                          Title="Module Activation Error"
                          IsOpen="{x:Bind ViewModel.HasShellError, Mode=OneWay}"

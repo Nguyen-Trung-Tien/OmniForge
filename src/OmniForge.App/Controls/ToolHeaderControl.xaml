@@ -10,10 +10,12 @@
     <StackPanel Spacing="10">
         <StackPanel Spacing="4">
             <TextBlock Text="{x:Bind Title, Mode=OneWay}"
-                       Style="{ThemeResource TitleTextBlockStyle}" />
+                       Style="{ThemeResource TitleTextBlockStyle}"
+                       TextWrapping="Wrap" />
             <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}"
                        Style="{ThemeResource BodyTextBlockStyle}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextWrapping="Wrap" />
         </StackPanel>
 
         <!-- Action Confirmation Prompt Banner (Before Destructive / Batch Execution) -->

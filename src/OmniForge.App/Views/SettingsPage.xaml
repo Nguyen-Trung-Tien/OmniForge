@@ -24,6 +24,21 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="RootScrollViewer.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                        <Setter Target="CurrentVersionCol1.Width" Value="0" />
+                        <Setter Target="CheckUpdatesBtn.(Grid.Row)" Value="1" />
+                        <Setter Target="CheckUpdatesBtn.(Grid.Column)" Value="0" />
+                        <Setter Target="CheckUpdatesBtn.HorizontalAlignment" Value="Left" />
+                        <Setter Target="UpdateAvailableCol1.Width" Value="0" />
+                        <Setter Target="DownloadUpdateBtn.(Grid.Row)" Value="1" />
+                        <Setter Target="DownloadUpdateBtn.(Grid.Column)" Value="0" />
+                        <Setter Target="DownloadUpdateBtn.HorizontalAlignment" Value="Left" />
+                        <Setter Target="ReadyInstallCol2.Width" Value="0" />
+                        <Setter Target="InstallBtn.(Grid.Row)" Value="1" />
+                        <Setter Target="InstallBtn.(Grid.Column)" Value="1" />
+                        <Setter Target="InstallBtn.HorizontalAlignment" Value="Left" />
+                        <Setter Target="UpdatePrefsCol1.Width" Value="0" />
+                        <Setter Target="AutoCheckSwitch.(Grid.Row)" Value="1" />
+                        <Setter Target="AutoCheckSwitch.(Grid.Column)" Value="0" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -41,13 +56,17 @@
                 IconGlyph="&#xE895;">
                 <StackPanel Spacing="16">
                     <!-- Current Version & Action Row -->
-                    <Grid ColumnSpacing="16" RowSpacing="12">
+                    <Grid x:Name="CurrentVersionRow" ColumnSpacing="16" RowSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition x:Name="CurrentVersionCol0" Width="*" />
+                            <ColumnDefinition x:Name="CurrentVersionCol1" Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind ViewModel.UpdatesCurrentVersionLabel, Mode=OneWay}"
                                            Style="{ThemeResource BodyStrongTextBlockStyle}" />
@@ -63,7 +82,8 @@
                         </StackPanel>
 
                         <!-- Check for Updates Button with embedded ProgressRing -->
-                        <Button Grid.Column="1"
+                        <Button x:Name="CheckUpdatesBtn"
+                                Grid.Row="0" Grid.Column="1"
                                 Command="{x:Bind ViewModel.CheckForUpdatesCommand}"
                                 IsEnabled="{x:Bind ViewModel.CanCheckUpdates, Mode=OneWay}"
                                 VerticalAlignment="Center"
@@ -118,13 +138,17 @@
                             Padding="16"
                             Visibility="{x:Bind ViewModel.IsUpdateAvailable, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                         <StackPanel Spacing="12">
-                            <Grid ColumnSpacing="12">
+                            <Grid x:Name="UpdateAvailableGrid" ColumnSpacing="12" RowSpacing="12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition x:Name="UpdateAvailableCol0" Width="*" />
+                                    <ColumnDefinition x:Name="UpdateAvailableCol1" Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="0" Spacing="4">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="{x:Bind ViewModel.UpdatesAvailableText, Mode=OneWay}"
                                                    Style="{ThemeResource SubtitleTextBlockStyle}" />
@@ -139,7 +163,8 @@
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </StackPanel>
 
-                                <Button Grid.Column="1"
+                                <Button x:Name="DownloadUpdateBtn"
+                                        Grid.Row="0" Grid.Column="1"
                                         Content="{x:Bind ViewModel.UpdatesDownloadButtonText, Mode=OneWay}"
                                         Command="{x:Bind ViewModel.DownloadUpdateCommand}"
                                         Style="{ThemeResource AccentButtonStyle}"
@@ -205,20 +230,24 @@
                             CornerRadius="8"
                             Padding="16"
                             Visibility="{x:Bind ViewModel.IsReadyToInstall, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Grid ColumnSpacing="16">
+                        <Grid x:Name="ReadyInstallGrid" ColumnSpacing="16" RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition x:Name="ReadyInstallCol1" Width="*" />
+                                <ColumnDefinition x:Name="ReadyInstallCol2" Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <FontIcon Grid.Column="0"
+                            <FontIcon Grid.Row="0" Grid.Column="0"
                                       Glyph="&#xE73E;"
                                       FontSize="24"
                                       Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                                       VerticalAlignment="Center" />
 
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind ViewModel.UpdatesReadyToInstallText, Mode=OneWay}"
                                            Style="{ThemeResource SubtitleTextBlockStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.UpdatesReadyToInstallDesc, Mode=OneWay}"
@@ -226,7 +255,8 @@
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
 
-                            <Button Grid.Column="2"
+                            <Button x:Name="InstallBtn"
+                                    Grid.Row="0" Grid.Column="2"
                                     Content="{x:Bind ViewModel.UpdatesInstallButtonText, Mode=OneWay}"
                                     Command="{x:Bind ViewModel.InstallUpdateCommand}"
                                     Style="{ThemeResource AccentButtonStyle}"
@@ -236,20 +266,25 @@
                     </Border>
 
                     <!-- Update Preferences: Channel & Auto-Check -->
-                    <Grid ColumnSpacing="24" RowSpacing="12">
+                    <Grid x:Name="UpdatePrefsGrid" ColumnSpacing="24" RowSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition x:Name="UpdatePrefsCol0" Width="*" />
+                            <ColumnDefinition x:Name="UpdatePrefsCol1" Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <ComboBox Grid.Column="0"
+                        <ComboBox Grid.Row="0" Grid.Column="0"
                                   Header="{x:Bind ViewModel.UpdatesChannelLabel, Mode=OneWay}"
                                   ItemsSource="{x:Bind ViewModel.ChannelOptions, Mode=OneWay}"
                                   SelectedItem="{x:Bind ViewModel.SelectedChannel, Mode=TwoWay}"
                                   IsEnabled="{x:Bind ViewModel.CanCheckUpdates, Mode=OneWay}"
                                   HorizontalAlignment="Stretch" />
 
-                        <ToggleSwitch Grid.Column="1"
+                        <ToggleSwitch x:Name="AutoCheckSwitch"
+                                      Grid.Row="0" Grid.Column="1"
                                       Header="{x:Bind ViewModel.UpdatesAutoCheckLabel, Mode=OneWay}"
                                       IsOn="{x:Bind ViewModel.AutoCheckOnStartup, Mode=TwoWay}"
                                       IsEnabled="{x:Bind ViewModel.CanCheckUpdates, Mode=OneWay}"

@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Desktop Window Startup Centering & Responsive Layout Overhaul**:
+  - Implemented desktop window startup centering in `MainWindow.xaml.cs` using `Microsoft.UI.Windowing.DisplayArea.GetFromWindowId` and `DisplayAreaFallback.Primary`. Accurately aligns the window in the center of the display work area while accounting for multi-monitor arrangements, DPI scaling, and Windows taskbars.
+  - Tuned `NavigationView` adaptive threshold widths (`ExpandedModeThresholdWidth="1008"`, `CompactModeThresholdWidth="680"`) in `MainWindow.xaml` for smooth transitions between expanded sidebar, compact rail, and overlay drawer modes.
+  - Enhanced `ToolHeaderControl` and `SectionCardControl` with responsive `TextWrapping="Wrap"` on titles and subtitles, eliminating text clipping on small displays or high DPI scaling factors.
+  - Added adaptive visual states (`NarrowState` < 720px) to `SettingsPage.xaml` so update preferences, download action buttons, and channel selectors cleanly stack into responsive vertical flows.
+  - Responsive refactoring across modular utility pages (`FileToolsPage`, `TextInspectorPage`, `ChecksumPage`, `BatchRenamePage`), ensuring command toolbars, search/filter inputs, and execution actions wrap or stack gracefully without horizontal scroll or control truncation.
 - **Production-Grade Application Update Architecture & Settings Integration**:
   - Implemented decoupled contract `IUpdateService` in `OmniForge.Core.Contracts` with support for SemVer version checks, streaming downloads, SHA-256 cryptographic verification, and safe process launching.
   - Built immutable SemVer 2.0.0 parser and comparer `SemanticVersion` handling pre-release tags, numeric/lexical sorting, and build metadata.
