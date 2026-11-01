@@ -57,6 +57,7 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         Services = ConfigureServices();
+        Resources["Loc"] = Services.GetRequiredService<OmniForge.App.Helpers.LocalizationManager>();
         _logger = Services.GetRequiredService<ILogger<App>>();
         _logger.LogInformation("OmniForge Utility Suite host initialized.");
     }

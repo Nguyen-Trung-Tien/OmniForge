@@ -41,6 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Verified 100% build compatibility and all 87 automated unit & architecture tests passing with 0 warnings.
 
 ### Added
+- **Enterprise-Grade Bilingual Localization Architecture (Tiếng Việt & English)**:
+  - Implemented decoupled [ILocalizationService](file:///d:/Tools/OmniForge/src/OmniForge.Core/Contracts/ILocalizationService.cs) and domain models ([AppLanguage.cs](file:///d:/Tools/OmniForge/src/OmniForge.Core/Models/AppLanguage.cs)) supporting `en-US` and `vi-VN` in `OmniForge.Core`.
+  - Added thread-safe [LocalizationService](file:///d:/Tools/OmniForge/src/OmniForge.Services/Localization/LocalizationService.cs) with OS culture auto-detection, persistent settings storage, fallback chain (`vi-VN` -> `en-US` -> `[Key]`), and professional software terminology catalogs.
+  - Implemented [LocalizationManager](file:///d:/Tools/OmniForge/src/OmniForge.App/Helpers/LocalizationManager.cs) dynamic XAML bridge with indexer binding and zero-restart hot-reloading across the UI.
+  - Updated [SettingsViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/ViewModels/SettingsViewModel.cs) and [SettingsPage.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Views/SettingsPage.xaml) with dynamic language selector card and live localization.
+  - Enhanced [MainWindowViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/ViewModels/MainWindowViewModel.cs) and [NavigationItemViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/ViewModels/NavigationItemViewModel.cs) to dynamically localize window titles, search placeholders, and navigation module titles upon language switch.
+  - Added full test suite in [LocalizationServiceTests.cs](file:///d:/Tools/OmniForge/tests/OmniForge.Tests/Services/LocalizationServiceTests.cs) verifying bilingual catalog accuracy, fallback logic, argument formatting, and settings persistence.
 - **Standardized Agent Skills Architecture**:
   - Restructured all 15 workspace skills under `.agents/skills/` to strictly comply with the standard 4-component specification: `SKILL.md`, `scripts/`, `examples/`, and `resources/`.
   - Added dedicated utility scripts, reference implementations, and template/schema catalogs across all skills (`cli-task-runner`, `crash-resilience-and-fault-isolation`, `crypto-hash-engine`, `fluent-ui-design-system`, `msix-release-packager`, `performance-and-memory-optimization`, `regex-bulk-renamer`, `reusable-code-and-ui-architecture`, `security-and-input-hardening`, `text-payload-inspector`, `token-efficient-coding`, `unit-test-scaffolder`).

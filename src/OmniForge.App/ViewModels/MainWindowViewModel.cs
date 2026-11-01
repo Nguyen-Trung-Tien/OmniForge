@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OmniForge.Core.Common;
 using OmniForge.Core.Contracts;
 
 namespace OmniForge.App.ViewModels;
@@ -13,6 +14,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private readonly IToolRegistryService _toolRegistry;
     private readonly ISettingsService _settingsService;
+    private readonly ILocalizationService _localizationService;
 
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "OmniForge Utility Suite";
@@ -42,16 +44,35 @@ public partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel(
         INavigationService navigationService,
         IToolRegistryService toolRegistry,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        ILocalizationService localizationService)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
 
         _toolRegistry.ModulesChanged += OnModulesChanged;
         _navigationService.Navigated += OnNavigated;
+        _localizationService.LanguageChanged += OnLanguageChanged;
 
+        AppTitle = _localizationService.GetString(LocalizationKeys.Nav_AppTitle);
         RefreshNavigationItems();
+    }
+
+    private void OnLanguageChanged(object? sender, OmniForge.Core.Models.AppLanguage e)
+    {
+        AppTitle = _localizationService.GetString(LocalizationKeys.Nav_AppTitle);
+        RefreshNavigationItems();
+
+        if (SelectedItem is NavigationItemViewModel currentNav)
+        {
+            CurrentSectionTitle = currentNav.Title;
+        }
+        else if (CurrentSectionTitle == "Settings" || CurrentSectionTitle == "Cài đặt")
+        {
+            CurrentSectionTitle = _localizationService.GetString(LocalizationKeys.Nav_Settings);
+        }
     }
 
     partial void OnSearchQueryChanged(string value)
@@ -131,14 +152,17 @@ public partial class MainWindowViewModel : ObservableObject
 
         foreach (var module in activeModules)
         {
-            SearchSuggestions.Add(module.DisplayName);
+            var navItem = new NavigationItemViewModel(module, _localizationService);
+            SearchSuggestions.Add(navItem.Title);
 
             if (string.IsNullOrWhiteSpace(filter) ||
+                navItem.Title.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                 module.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                navItem.Description.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                 module.Description.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                 module.Category.Contains(filter, StringComparison.OrdinalIgnoreCase))
             {
-                NavigationItems.Add(new NavigationItemViewModel(module));
+                NavigationItems.Add(navItem);
             }
         }
 

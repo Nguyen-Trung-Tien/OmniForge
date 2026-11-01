@@ -6,35 +6,55 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:OmniForge.App.Controls"
+    xmlns:models="using:OmniForge.Core.Models"
     xmlns:vm="using:OmniForge.App.ViewModels"
     mc:Ignorable="d">
 
     <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
         <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
             <controls:ToolHeaderControl
-                Title="Settings"
-                Subtitle="Application preferences and environment configurations" />
+                Title="{Binding Source={StaticResource Loc}, Path=[Settings_Title]}"
+                Subtitle="{Binding Source={StaticResource Loc}, Path=[Settings_Subtitle]}" />
 
+            <!-- Language & Regional Preferences Section Card -->
             <controls:SectionCardControl
-                Title="Appearance &amp; System Backdrop"
-                Subtitle="Customize Fluent MicaAlt window chrome and visual preferences"
+                Title="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Title]}"
+                Subtitle="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Subtitle]}"
+                IconGlyph="&#xE774;">
+                <StackPanel Spacing="12">
+                    <ComboBox Header="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Label]}"
+                              ItemsSource="{x:Bind ViewModel.SupportedLanguages, Mode=OneWay}"
+                              SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
+                              DisplayMemberPath="NativeName"
+                              MinWidth="260" />
+
+                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Note]}"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </controls:SectionCardControl>
+
+            <!-- Appearance & System Backdrop Section Card -->
+            <controls:SectionCardControl
+                Title="{Binding Source={StaticResource Loc}, Path=[Settings_Appearance_Title]}"
+                Subtitle="{Binding Source={StaticResource Loc}, Path=[Settings_Appearance_Subtitle]}"
                 IconGlyph="&#xE790;">
                 <StackPanel Spacing="16">
-                    <ComboBox Header="App Theme (Applied Live)"
+                    <ComboBox Header="{Binding Source={StaticResource Loc}, Path=[Settings_Theme]}"
                               ItemsSource="{x:Bind ViewModel.ThemeOptions, Mode=OneWay}"
                               SelectedItem="{x:Bind ViewModel.SelectedTheme, Mode=TwoWay}"
                               MinWidth="220" />
 
-                    <ToggleSwitch Header="Enable MicaAlt System Backdrop"
+                    <ToggleSwitch Header="{Binding Source={StaticResource Loc}, Path=[Settings_MicaBackdrop]}"
                                   IsOn="{x:Bind ViewModel.EnableMicaAlt, Mode=TwoWay}" />
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Version" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[Common_Version]}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
 
-                    <Button Content="Save Preferences"
+                    <Button Content="{Binding Source={StaticResource Loc}, Path=[Settings_SavePreferences]}"
                             Command="{x:Bind ViewModel.SaveSettingsCommand}"
                             Style="{ThemeResource AccentButtonStyle}" />
 
