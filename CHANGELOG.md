@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Lucky Wheel Weight Stepper Direct Numeric Input & Fixed Range Clamping**:
+  - Replaced read-only `TextBlock` in `LuckyWheelPage.xaml` weight stepper with interactive `TextBox` supporting direct numeric input, Enter key commit via `WeightTextBox_KeyDown`, and two-way binding.
+  - Constrained weight values to a fixed scale of `[0.0, 10.0]` (clamping typed numbers, increment/decrement buttons, and quick-add default inputs).
+  - Enhanced parsing in `WheelItemViewModel` to support comma or period decimals (`5,5` or `5.5`), negative numbers clamped to `0.0`, and percentage suffixes (`10%`).
+  - Widened the table column width from 92px to 96px for comfortable numeric editing without truncation.
 - **Batch Folder Preview Panel Layout**:
   - Restructured `BatchFolderPage.xaml` PreviewCard header layout. Separated title/view toggles, status metric badges (`Total`, `New`, `Exists`, `Errors`), and search filter into dedicated rows. Resolved severe vertical word-wrap and character squishing ("📁 Xe / Phân / cấp / thư / mục...") caused by competing `Auto` and `*` columns.
 - **Dashboard Quick Launch Card Layout & Category Badge**:
