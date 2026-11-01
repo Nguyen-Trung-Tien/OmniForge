@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="OmniForge.App.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:OmniForge.App.ViewModels"
+    Title="{x:Bind ViewModel.AppTitle, Mode=OneWay}"
+    mc:Ignorable="d">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="BaseAlt" />
+    </Window.SystemBackdrop>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom Fluent App Title Bar with MicaAlt integration -->
+        <TitleBar x:Name="AppTitleBar"
+                  Grid.Row="0"
+                  Title="{x:Bind ViewModel.AppTitle, Mode=OneWay}">
+            <TitleBar.IconSource>
+                <ImageIconSource ImageSource="ms-appx:///Assets/AppIcon.ico" />
+            </TitleBar.IconSource>
+        </TitleBar>
+
+        <!-- Main Shell Navigation with Left-expanded Pane, AutoSuggestBox, and Fluent Design -->
+        <NavigationView x:Name="NavView"
+                        Grid.Row="1"
+                        PaneDisplayMode="Left"
+                        IsPaneOpen="True"
+                        OpenPaneLength="260"
+                        CompactPaneLength="48"
+                        IsBackButtonVisible="Auto"
+                        IsBackEnabled="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
+                        BackRequested="NavView_BackRequested"
+                        ItemInvoked="NavView_ItemInvoked"
+                        MenuItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
+                        SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=OneWay}"
+                        IsSettingsVisible="True"
+                        AlwaysShowHeader="False">
+
+            <!-- Real-time Tool Search and Auto-Suggest Box -->
+            <NavigationView.AutoSuggestBox>
+                <AutoSuggestBox x:Name="SearchBox"
+                                PlaceholderText="Search utilities..."
+                                QueryIcon="Find"
+                                Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                ItemsSource="{x:Bind ViewModel.SearchSuggestions, Mode=OneWay}"
+                                QuerySubmitted="SearchBox_QuerySubmitted" />
+            </NavigationView.AutoSuggestBox>
+
+            <NavigationView.MenuItemTemplate>
+                <DataTemplate x:DataType="vm:NavigationItemViewModel">
+                    <NavigationViewItem Content="{x:Bind Title}"
+                                        ToolTipService.ToolTip="{x:Bind Description}">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="{x:Bind IconGlyph}" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                </DataTemplate>
+            </NavigationView.MenuItemTemplate>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Module Fault Isolation Banner -->
+                <InfoBar Grid.Row="0"
+                         Margin="24,12,24,0"
+                         Severity="Error"
+                         Title="Module Activation Error"
+                         IsOpen="{x:Bind ViewModel.HasShellError, Mode=OneWay}"
+                         Message="{x:Bind ViewModel.ShellErrorMessage, Mode=OneWay}"
+                         CloseButtonCommand="{x:Bind ViewModel.DismissShellErrorCommand}" />
+
+                <!-- Dynamic Page Content Frame -->
+                <Frame x:Name="ContentFrame" Grid.Row="1" />
+            </Grid>
+        </NavigationView>
+    </Grid>
+</Window>

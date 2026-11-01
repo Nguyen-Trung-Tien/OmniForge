@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "Standard cubic bezier easing curves and formulas for Win2D animation loops.",
+  "easingFunctions": {
+    "Linear": {
+      "cubicBezier": [0.0, 0.0, 1.0, 1.0],
+      "description": "Constant speed animation from start to finish."
+    },
+    "EaseInQuad": {
+      "cubicBezier": [0.11, 0.0, 0.5, 0.0],
+      "formula": "t * t",
+      "description": "Accelerating from zero velocity."
+    },
+    "EaseOutQuad": {
+      "cubicBezier": [0.5, 1.0, 0.89, 1.0],
+      "formula": "1 - (1 - t) * (1 - t)",
+      "description": "Decelerating to zero velocity."
+    },
+    "EaseInOutCubic": {
+      "cubicBezier": [0.65, 0.0, 0.35, 1.0],
+      "formula": "t < 0.5 ? 4 * t * t * t : 1 - Math.Pow(-2 * t + 2, 3) / 2",
+      "description": "Smooth acceleration and deceleration, standard Windows 11 Fluent entrance curve."
+    },
+    "FluentDecelerate": {
+      "cubicBezier": [0.0, 0.0, 0.0, 1.0],
+      "description": "Fast launch with gentle natural settling curve used across Windows Shell controls."
+    }
+  }
+}
+

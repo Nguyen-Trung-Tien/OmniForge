@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "Standardized domain error codes and retry policies for OmniForge batch I/O operations.",
+  "errorCodes": {
+    "IO.AccessDenied": {
+      "hresult": "0x80070005",
+      "retryable": false,
+      "recommendedAction": "Prompt user for elevated file permissions or verify file is not marked read-only by OS."
+    },
+    "IO.SharingViolation": {
+      "hresult": "0x80070020",
+      "retryable": true,
+      "maxRetries": 3,
+      "backoffMs": 150,
+      "recommendedAction": "File is locked by another process (antivirus/editor). Retry with exponential backoff."
+    },
+    "IO.PathTooLong": {
+      "hresult": "0x800700CE",
+      "retryable": false,
+      "recommendedAction": "Prefix path with \\\\?\\ to enable Windows extended path syntax, or shorten destination path."
+    },
+    "IO.NotFound": {
+      "hresult": "0x80070002",
+      "retryable": false,
+      "recommendedAction": "File was deleted or moved prior to processing. Record warning and continue batch."
+    },
+    "IO.DiskFull": {
+      "hresult": "0x80070070",
+      "retryable": false,
+      "recommendedAction": "Target volume out of space. Abort batch immediately to prevent data corruption."
+    }
+  }
+}
+
