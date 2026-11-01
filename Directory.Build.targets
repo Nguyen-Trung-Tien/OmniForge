@@ -1,0 +1,8 @@
+<Project>
+  <!-- Global pre-build hook: Kill lingering markup compilers and running app instances to eliminate MSB3026/MSB3027 lock warnings -->
+  <Target Name="KillLockingProcessesBeforeBuild" BeforeTargets="BeforeBuild;BeforeRebuild" Condition="'$(OS)' == 'Windows_NT'">
+    <Exec Command="taskkill /F /IM OmniForge.App.exe 2&gt;nul || exit 0" ContinueOnError="true" />
+    <Exec Command="taskkill /F /IM Microsoft.UI.Xaml.Markup.Compiler.exe 2&gt;nul || exit 0" ContinueOnError="true" />
+  </Target>
+</Project>
+

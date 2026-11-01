@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Build Infrastructure & MSB3026 File Lock Elimination**:
+  - Created global MSBuild target `Directory.Build.targets` with `KillLockingProcessesBeforeBuild`.
+  - Automatically terminates lingering instances of `Microsoft.UI.Xaml.Markup.Compiler.exe` and running `OmniForge.App.exe` across all projects prior to compilation.
+  - Completely resolved `warning MSB3026` / `error MSB3027` ("Could not copy obj/.../OmniForge.Core.dll to bin/.../OmniForge.Core.dll because it is being used by another process: Microsoft.UI.Xaml.Markup.Compiler").
 - **Lucky Wheel Weight Stepper Direct Numeric Input & Fixed Range Clamping**:
   - Replaced read-only `TextBlock` in `LuckyWheelPage.xaml` weight stepper with interactive `TextBox` supporting direct numeric input, Enter key commit via `WeightTextBox_KeyDown`, and two-way binding.
   - Constrained weight values to a fixed scale of `[0.0, 10.0]` (clamping typed numbers, increment/decrement buttons, and quick-add default inputs).
