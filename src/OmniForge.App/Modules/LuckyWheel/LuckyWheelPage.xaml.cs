@@ -405,6 +405,15 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         }
     }
 
+    private void WeightTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+        {
+            FocusManager.TryMoveFocus(FocusNavigationDirection.Next);
+            e.Handled = true;
+        }
+    }
+
     public void Dispose()
     {
         _labelFormat?.Dispose();

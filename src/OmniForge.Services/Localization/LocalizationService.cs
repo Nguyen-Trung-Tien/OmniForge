@@ -321,7 +321,7 @@ public sealed class LocalizationService : ILocalizationService
         _enStrings[LocalizationKeys.LuckyWheel_Col_Delete] = "Delete";
         _enStrings[LocalizationKeys.LuckyWheel_Stepper_Decrease] = "Decrease weight (-0.5)";
         _enStrings[LocalizationKeys.LuckyWheel_Stepper_Increase] = "Increase weight (+0.5)";
-        _enStrings[LocalizationKeys.LuckyWheel_Stepper_Tip] = "Enter numeric weight";
+        _enStrings[LocalizationKeys.LuckyWheel_Stepper_Tip] = "Enter numeric weight (0.0 - 10.0)";
 
         _enStrings[LocalizationKeys.LuckyWheel_Empty_Title] = "No items yet";
         _enStrings[LocalizationKeys.LuckyWheel_Empty_Subtitle] = "Enter item names above and press Enter, or click 'Import File...' to load from Excel/TXT.";
@@ -636,7 +636,7 @@ public sealed class LocalizationService : ILocalizationService
         _viStrings[LocalizationKeys.LuckyWheel_Col_Delete] = "Xóa";
         _viStrings[LocalizationKeys.LuckyWheel_Stepper_Decrease] = "Giảm trọng số (-0.5)";
         _viStrings[LocalizationKeys.LuckyWheel_Stepper_Increase] = "Tăng trọng số (+0.5)";
-        _viStrings[LocalizationKeys.LuckyWheel_Stepper_Tip] = "Nhập trọng số trực tiếp";
+        _viStrings[LocalizationKeys.LuckyWheel_Stepper_Tip] = "Nhập trọng số trực tiếp (0.0 - 10.0)";
 
         _viStrings[LocalizationKeys.LuckyWheel_Empty_Title] = "Chưa có đối tượng nào";
         _viStrings[LocalizationKeys.LuckyWheel_Empty_Subtitle] = "Nhập tên đối tượng ở trên và nhấn Enter, hoặc bấm 'Nhập File...' để tải danh sách từ Excel/TXT.";

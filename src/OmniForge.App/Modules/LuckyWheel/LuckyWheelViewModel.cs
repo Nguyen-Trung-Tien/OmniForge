@@ -77,9 +77,9 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         get => _newItemWeight;
         set
         {
-            double sanitized = double.IsNaN(value) || double.IsInfinity(value) || value <= 0.0
+            double sanitized = double.IsNaN(value) || double.IsInfinity(value)
                 ? 1.0
-                : Math.Round(Math.Clamp(value, 0.1, 100.0), 2);
+                : Math.Round(Math.Clamp(value, 0.0, 10.0), 2);
 
             if (SetProperty(ref _newItemWeight, sanitized))
             {
@@ -99,8 +99,8 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
                 return;
             }
 
-            string normalized = value.Trim().Replace(',', '.');
-            if (double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && parsed > 0)
+            string normalized = value.Trim().TrimEnd('%').Trim().Replace(',', '.');
+            if (double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed))
             {
                 NewItemWeight = parsed;
             }
@@ -114,13 +114,13 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
     [RelayCommand]
     public void IncreaseNewItemWeight()
     {
-        NewItemWeight = Math.Round(Math.Min(100.0, NewItemWeight + 0.5), 2);
+        NewItemWeight = Math.Round(Math.Min(10.0, NewItemWeight + 0.5), 2);
     }
 
     [RelayCommand]
     public void DecreaseNewItemWeight()
     {
-        NewItemWeight = Math.Round(Math.Max(0.1, NewItemWeight - 0.5), 2);
+        NewItemWeight = Math.Round(Math.Max(0.0, NewItemWeight - 0.5), 2);
     }
 
     [ObservableProperty]

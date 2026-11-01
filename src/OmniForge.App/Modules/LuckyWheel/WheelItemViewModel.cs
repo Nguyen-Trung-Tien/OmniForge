@@ -26,9 +26,9 @@ public partial class WheelItemViewModel : ObservableObject
         get => _weight;
         set
         {
-            double sanitized = double.IsNaN(value) || double.IsInfinity(value) || value <= 0.0
+            double sanitized = double.IsNaN(value) || double.IsInfinity(value)
                 ? 1.0
-                : Math.Round(Math.Clamp(value, 0.1, 100.0), 2);
+                : Math.Round(Math.Clamp(value, 0.0, 10.0), 2);
 
             if (SetProperty(ref _weight, sanitized))
             {
@@ -49,8 +49,8 @@ public partial class WheelItemViewModel : ObservableObject
                 return;
             }
 
-            string normalized = value.Trim().Replace(',', '.');
-            if (double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && parsed > 0)
+            string normalized = value.Trim().TrimEnd('%').Trim().Replace(',', '.');
+            if (double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed))
             {
                 Weight = parsed;
             }
@@ -64,13 +64,13 @@ public partial class WheelItemViewModel : ObservableObject
     [RelayCommand]
     public void IncreaseWeight()
     {
-        Weight = Math.Round(Math.Min(100.0, Weight + 0.5), 2);
+        Weight = Math.Round(Math.Min(10.0, Weight + 0.5), 2);
     }
 
     [RelayCommand]
     public void DecreaseWeight()
     {
-        Weight = Math.Round(Math.Max(0.1, Weight - 0.5), 2);
+        Weight = Math.Round(Math.Max(0.0, Weight - 0.5), 2);
     }
 
     [ObservableProperty]
@@ -102,7 +102,7 @@ public partial class WheelItemViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(item);
         Id = item.Id;
         Text = item.Text;
-        Weight = Math.Max(0.1, item.Weight);
+        Weight = Math.Clamp(item.Weight, 0.0, 10.0);
         ColorHex = item.Color;
         IsEnabled = item.IsEnabled;
     }
