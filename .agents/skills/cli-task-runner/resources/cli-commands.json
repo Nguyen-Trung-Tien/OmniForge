@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OmniForgeCLICommandCatalog",
+  "commands": [
+    {
+      "name": "verify",
+      "summary": "Runs Static Arch Guardrails + Build (x64) + xUnit/NetArchTest",
+      "fastPath": true,
+      "gate": "Mandatory before task completion"
+    },
+    {
+      "name": "arch",
+      "summary": "Scans C#/XAML for AGENTS.md violations in < 1s",
+      "fastPath": true
+    },
+    {
+      "name": "build",
+      "summary": "Builds OmniForge.sln with TreatWarningsAsErrors=true"
+    },
+    {
+      "name": "run",
+      "summary": "Builds and launches OmniForge.App directly"
+    },
+    {
+      "name": "test",
+      "summary": "Executes all unit, integration, and architecture tests"
+    },
+    {
+      "name": "new-module",
+      "summary": "Generates Service, ViewModel, Page.xaml, Module, and Tests"
+    },
+    {
+      "name": "new-test",
+      "summary": "Generates a deterministic xUnit test class"
+    },
+    {
+      "name": "learn",
+      "summary": "Appends a learned pattern or fix to .agents/MEMORY.md"
+    },
+    {
+      "name": "logs",
+      "summary": "Prints structured JSONL log lines from %LocalAppData%"
+    },
+    {
+      "name": "doctor",
+      "summary": "Verifies .NET SDK, skills inventory, rules, and guardrails"
+    },
+    {
+      "name": "clean",
+      "summary": "Purges all bin/ and obj/ directories"
+    },
+    {
+      "name": "publish",
+      "summary": "Publishes self-contained Release build"
+    }
+  ]
+}
+

@@ -7,7 +7,18 @@ description: Scaffolds a new OmniForge modular sub-tool complying with Clean Arc
 
 This skill guides agents through creating a new modular utility sub-tool in **OmniForge** with minimal boilerplate and zero manual DI editing.
 
-## Architecture Advantages (Zero-Touch Auto-Discovery)
+---
+
+## 1. Directory Structure & Assets
+
+- Scaffolding Script: [scaffold_module.ps1](scripts/scaffold_module.ps1)
+- Reference Module: [SampleToolModule.cs](examples/SampleToolModule.cs)
+- ViewModel Template: [ViewModelTemplate.cs](resources/ViewModelTemplate.cs)
+- View XAML Template: [ViewTemplate.xaml](resources/ViewTemplate.xaml)
+
+---
+
+## 2. Architecture Advantages (Zero-Touch Auto-Discovery)
 
 1. **Automatic DI Registration**: `ModuleAutoDiscoveryExtensions` scans the assembly on startup. Any class implementing `IToolModule` has its `ViewType`, `ViewModelType`, and co-located `I[ToolName]Service` -> `[ToolName]Service` automatically registered in DI and `IToolRegistryService`. **Do NOT edit `ServiceCollectionExtensions.cs` or `App.xaml.cs` when adding a module.**
 2. **`ToolViewModelBase` Inheritance**: Inherit from `ToolViewModelBase` instead of `ObservableObject` to get `IsBusy`, `IsNotBusy`, `StatusMessage`, `ErrorMessage`, `HasError`, and `RunSafeAsync(...)` out of the box.

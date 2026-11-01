@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Standardized Agent Skills Architecture**:
+  - Restructured all 15 workspace skills under `.agents/skills/` to strictly comply with the standard 4-component specification: `SKILL.md`, `scripts/`, `examples/`, and `resources/`.
+  - Added dedicated utility scripts, reference implementations, and template/schema catalogs across all skills (`cli-task-runner`, `crash-resilience-and-fault-isolation`, `crypto-hash-engine`, `fluent-ui-design-system`, `msix-release-packager`, `performance-and-memory-optimization`, `regex-bulk-renamer`, `reusable-code-and-ui-architecture`, `security-and-input-hardening`, `text-payload-inspector`, `token-efficient-coding`, `unit-test-scaffolder`).
 - **File Hash & Integrity Validator Tool Module**:
   - `StreamHashEngine` (`OmniForge.Core.Modules.Checksum`): Zero-allocation streaming cryptographic checksum computation using `IncrementalHash` and `ArrayPool<byte>.Shared` supporting MD5, SHA-1, SHA-256, SHA-384, and SHA-512 with `CancellationToken` and progress reporting.
   - `IChecksumService` & `ChecksumService` (`OmniForge.App.Modules.Checksum`): Clean service abstraction auto-discovered by `ModuleAutoDiscoveryExtensions`.

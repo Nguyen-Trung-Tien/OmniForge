@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TokenSavingGuidelines",
+  "rules": [
+    {
+      "technique": "PrimaryConstructors",
+      "savingEstimate": "30%",
+      "description": "Declare dependencies directly on class declaration: public partial class MyViewModel(IService s) : ToolViewModelBase"
+    },
+    {
+      "technique": "ObservablePropertyAttributes",
+      "savingEstimate": "50%",
+      "description": "Use [ObservableProperty] public partial string Text { get; set; } instead of boilerplate field and property"
+    },
+    {
+      "technique": "ToolViewModelBaseRunSafeAsync",
+      "savingEstimate": "60%",
+      "description": "Single call to RunSafeAsync handles IsBusy, ErrorMessage, timing, and cancellation shielding"
+    },
+    {
+      "technique": "ToolHeaderControlInXaml",
+      "savingEstimate": "70%",
+      "description": "Replaces 20-line Title + Subtitle + InfoBar block with 4-line reusable component"
+    },
+    {
+      "technique": "ZeroTouchModuleRegistration",
+      "savingEstimate": "100%",
+      "description": "Never read or modify ServiceCollectionExtensions.cs; auto-discovery dynamically mounts modules"
+    }
+  ]
+}
+

@@ -9,7 +9,15 @@ Use this skill whenever writing ViewModels, asynchronous commands, XAML event ha
 
 ---
 
-## 1. The 5 Non-Negotiable Anti-Crash Rules
+## 1. Directory Structure & Assets
+
+- Audit Script: [check_crash_resilience.ps1](scripts/check_crash_resilience.ps1)
+- Reference Implementation: [SafeViewModelCommandExample.cs](examples/SafeViewModelCommandExample.cs)
+- Rules Matrix: [crash-resilience-rules.json](resources/crash-resilience-rules.json)
+
+---
+
+## 2. The 5 Non-Negotiable Anti-Crash Rules
 
 1. **Zero `async void` Methods**:
    - `async void` exceptions bypass `try/catch` and crash the application dispatcher immediately.
@@ -28,32 +36,6 @@ Use this skill whenever writing ViewModels, asynchronous commands, XAML event ha
 
 ---
 
-## 2. Standard Crash-Proof ViewModel Command Template
+## 3. Standard Crash-Proof ViewModel Command Pattern
 
-```csharp
-[RelayCommand(IncludeCancelCommand = true)]
-private async Task ExecuteHeavyWorkAsync(CancellationToken cancellationToken)
-{
-    // 1. Pre-flight security & input validation
-    var check = SecurityGuard.ValidatePayloadSize(InputText);
-    if (check.IsFailure)
-    {
-        ErrorMessage = check.Error.Message;
-        return;
-    }
-
-    // 2. Fault-isolated execution with automatic timing, IsBusy, and exception shielding
-    var output = await RunSafeAsync(
-        ct => _service.ProcessAsync(InputText, ct),
-        busyStatus: "Processing...",
-        successStatus: "Completed",
-        cancellationToken: cancellationToken);
-
-    // 3. Safe UI-thread mutation only when output succeeded
-    if (output is not null)
-    {
-        OutputResult = output;
-    }
-}
-```
-
+See [SafeViewModelCommandExample.cs](examples/SafeViewModelCommandExample.cs) for the complete reference implementation.

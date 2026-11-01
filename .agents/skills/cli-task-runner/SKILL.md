@@ -29,7 +29,15 @@ Always use the root `.\forge.ps1` (or `.\forge`) script from `d:\Tools\OmniForge
 
 ---
 
-## 2. Mandatory Agent Workflow Rules
+## 2. Directory Structure & Assets
+
+- Helper Script: [invoke_task.ps1](scripts/invoke_task.ps1)
+- Command Schema & Catalog: [cli-commands.json](resources/cli-commands.json)
+- Sample Output: [sample-cli-output.json](examples/sample-cli-output.json)
+
+---
+
+## 3. Mandatory Agent Workflow Rules
 
 1. **Zero Directory Hopping**:
    - Do **not** run `cd src/OmniForge.App` or `cd tests/OmniForge.Tests`.
@@ -42,4 +50,3 @@ Always use the root `.\forge.ps1` (or `.\forge`) script from `d:\Tools\OmniForge
    - Before starting complex debugging, check existing project memory with `.\forge learn`.
 3. **Pre-Completion Gate**:
    - Always run `.\forge verify` as the final verification step before completing any code modification task.
-

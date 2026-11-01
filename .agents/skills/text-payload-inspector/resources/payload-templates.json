@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PayloadTemplatesCatalog",
+  "templates": [
+    {
+      "format": "JSON",
+      "name": "Configuration Payload",
+      "content": "{\n  \"appName\": \"OmniForge\",\n  \"version\": \"0.2.0\",\n  \"telemetryEnabled\": false,\n  \"modules\": [\n    \"BatchRenamer\",\n    \"CryptoHasher\",\n    \"TextInspector\"\n  ]\n}"
+    },
+    {
+      "format": "XML",
+      "name": "Manifest Snippet",
+      "content": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Configuration>\n  <App Identity=\"OmniForge\" Version=\"0.2.0\" />\n  <Settings Logging=\"Verbose\" />\n</Configuration>"
+    },
+    {
+      "format": "JWT",
+      "name": "Sample Bearer Token",
+      "content": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsaWNlIERldmVsb3BlciIsImlhdCI6MTUxNjIzOTAyMn0.dummy_signature"
+    }
+  ]
+}
+

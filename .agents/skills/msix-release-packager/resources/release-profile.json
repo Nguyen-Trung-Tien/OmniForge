@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReleaseProfileConfiguration",
+  "profiles": [
+    {
+      "name": "PortableZip",
+      "targetFramework": "net9.0-windows10.0.26100.0",
+      "runtimeIdentifiers": ["win-x64", "win-arm64"],
+      "selfContained": true,
+      "publishTrimmed": false,
+      "windowsPackageType": "None"
+    },
+    {
+      "name": "MSIXStore",
+      "targetFramework": "net9.0-windows10.0.26100.0",
+      "runtimeIdentifiers": ["win-x64", "win-arm64"],
+      "selfContained": false,
+      "publishTrimmed": true,
+      "windowsPackageType": "MSIX"
+    }
+  ]
+}
+

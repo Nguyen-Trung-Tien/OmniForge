@@ -1,0 +1,31 @@
+{
+  "command": ".\\forge.ps1 verify",
+  "exitCode": 0,
+  "stages": [
+    {
+      "stage": "ArchitectureGuardrails",
+      "status": "PASSED",
+      "checks": [
+        "ViewModels partial class & ObservableObject check",
+        "No synchronous File I/O check",
+        "No Interfaces/ folder in Core check"
+      ]
+    },
+    {
+      "stage": "SolutionBuild",
+      "status": "PASSED",
+      "configuration": "Debug|x64",
+      "treatWarningsAsErrors": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "stage": "AutomatedTests",
+      "status": "PASSED",
+      "passed": 42,
+      "failed": 0,
+      "skipped": 0
+    }
+  ]
+}
+

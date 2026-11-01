@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RenameTokensCatalog",
+  "tokens": [
+    {
+      "token": "{name}",
+      "description": "Original file name without extension",
+      "example": "document"
+    },
+    {
+      "token": "{index}",
+      "description": "Sequential item index with default padding",
+      "example": "001, 002, 003"
+    },
+    {
+      "token": "{parent}",
+      "description": "Immediate parent directory name",
+      "example": "Invoices_2026"
+    },
+    {
+      "token": "{date}",
+      "description": "Current date formatted as YYYY-MM-DD",
+      "example": "2026-11-01"
+    },
+    {
+      "token": "{guid}",
+      "description": "Random unique GUID string (short or full)",
+      "example": "4a7f21b8"
+    }
+  ]
+}
+

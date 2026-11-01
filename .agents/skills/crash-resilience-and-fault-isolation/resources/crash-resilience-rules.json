@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CrashResilienceRules",
+  "rules": [
+    {
+      "id": "CR-01",
+      "name": "ZeroAsyncVoid",
+      "severity": "Fatal",
+      "description": "Never write async void methods. Use async Task with [RelayCommand] or Task.Run."
+    },
+    {
+      "id": "CR-02",
+      "name": "NoCrossThreadUIMutation",
+      "severity": "Fatal",
+      "description": "Never mutate [ObservableProperty] or collections inside Task.Run. Marshall via IDispatcherService or await."
+    },
+    {
+      "id": "CR-03",
+      "name": "GracefulCancellation",
+      "severity": "High",
+      "description": "Catch OperationCanceledException before generic Exception. Handle user cancel cleanly."
+    },
+    {
+      "id": "CR-04",
+      "name": "SafeWinRTInterop",
+      "severity": "Fatal",
+      "description": "Never instantiate FileOpenPicker or Clipboard directly. Inject IFilePickerService and IClipboardService with HWND binding."
+    },
+    {
+      "id": "CR-05",
+      "name": "SafeConverterBackwards",
+      "severity": "Medium",
+      "description": "Never throw NotImplementedException in IValueConverter.ConvertBack; return DependencyProperty.UnsetValue."
+    }
+  ]
+}
+

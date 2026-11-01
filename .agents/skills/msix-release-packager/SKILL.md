@@ -9,19 +9,27 @@ Use this skill when configuring, troubleshooting, or executing **Phase 5 Release
 
 ---
 
-## 1. Trimming & AOT Safety Rules for WinUI 3 + DI Reflection
+## 1. Directory Structure & Assets
+
+- Publish Script: [publish_release.ps1](scripts/publish_release.ps1)
+- Manifest Reference: [PackageManifestExample.xml](examples/PackageManifestExample.xml)
+- Release Profiles: [release-profile.json](resources/release-profile.json)
+
+---
+
+## 2. Trimming & AOT Safety Rules for WinUI 3 + DI Reflection
 
 Notice that `OmniForge.App.csproj` enables `<PublishTrimmed>True</PublishTrimmed>` and `<PublishReadyToRun>True</PublishReadyToRun>` in `Release` configurations. Because `ModuleAutoDiscoveryExtensions` and `System.Text.Json` inspect types at runtime, follow these rules:
 
 1. **Preserve Module & ViewModel Constructors for Trimmer**:
    When `PublishTrimmed` is enabled, annotate `ModuleAutoDiscoveryExtensions` or module base classes with `[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicConstructors)]` if trimmer warnings (`IL2026`, `IL2072`) appear.
-2. **Self-Contained Portable Build Command (Root CLI)**:
+2. **Self-Contained Portable Build Command**:
    ```powershell
    .\forge publish -Platform x64
    ```
-   Or for unpackaged portable distribution:
+   Or invoke the dedicated script:
    ```powershell
-   dotnet publish src/OmniForge.App/OmniForge.App.csproj -c Release -r win-x64 -p:Platform=x64 -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true --self-contained true
+   pwsh -File .agents/skills/msix-release-packager/scripts/publish_release.ps1 -Platform x64
    ```
 3. **MSIX Package Generation Command**:
    ```powershell
@@ -30,7 +38,7 @@ Notice that `OmniForge.App.csproj` enables `<PublishTrimmed>True</PublishTrimmed
 
 ---
 
-## 2. Automated Release Verification Checklist
+## 3. Automated Release Verification Checklist
 
 Before cutting a release tag (`v0.2.0-beta`, `v1.0.0`):
 1. Run `.\forge verify` to ensure all `NetArchTest` and `xUnit` suites pass with zero compiler warnings.
@@ -39,4 +47,3 @@ Before cutting a release tag (`v0.2.0-beta`, `v1.0.0`):
    - `src/OmniForge.App/Package.appxmanifest` (`<Identity Version="X.Y.Z.0" />`)
    - `src/OmniForge.App/ViewModels/SettingsViewModel.cs` (`AppVersion`)
    - `CHANGELOG.md`
-

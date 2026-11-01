@@ -9,7 +9,15 @@ This skill provides architecture patterns, rendering lifecycle guidelines, and h
 
 ---
 
-## 1. Win2D Rendering Controls Overview
+## 1. Directory Structure & Assets
+
+- Diagnostic Script: [verify_win2d_support.ps1](scripts/verify_win2d_support.ps1)
+- Reference Control: [RotatingCanvasExample.cs](examples/RotatingCanvasExample.cs)
+- Easing Curves Catalog: [easing-curves.json](resources/easing-curves.json)
+
+---
+
+## 2. Win2D Rendering Controls Overview
 
 | Control | Use Case | Rendering Thread |
 | :--- | :--- | :--- |

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SecurityLimitsAndThresholds",
+  "limits": [
+    {
+      "scope": "MaxInMemoryPayloadSize",
+      "limitBytes": 10485760,
+      "limitHuman": "10 MB",
+      "mitigation": "Enforce via SecurityGuard.ValidatePayloadSize before parsing into string or DOM"
+    },
+    {
+      "scope": "MaxRegexTimeout",
+      "limitMs": 250,
+      "mitigation": "Pass TimeSpan.FromMilliseconds(250) to all dynamic Regex constructors"
+    },
+    {
+      "scope": "XmlEntityResolution",
+      "setting": "DtdProcessing.Prohibit",
+      "mitigation": "Disable DTD processing and set XmlResolver = null"
+    },
+    {
+      "scope": "JsonDepthLimit",
+      "setting": "MaxDepth = 64",
+      "mitigation": "Maintain default depth limit on JsonDocumentOptions and Utf8JsonReader"
+    },
+    {
+      "scope": "FileSystemEnumeration",
+      "attributesToSkip": "FileAttributes.ReparsePoint | FileAttributes.System",
+      "mitigation": "Prevent symlink recursion and junction loop traps"
+    }
+  ]
+}
+

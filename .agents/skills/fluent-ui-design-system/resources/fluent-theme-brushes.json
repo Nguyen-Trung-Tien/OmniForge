@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FluentThemeBrushesCatalog",
+  "brushes": [
+    {
+      "key": "ApplicationPageBackgroundThemeBrush",
+      "usage": "Root page background fill"
+    },
+    {
+      "key": "CardBackgroundFillColorDefaultBrush",
+      "usage": "Primary card surface"
+    },
+    {
+      "key": "CardBackgroundFillColorSecondaryBrush",
+      "usage": "Secondary card surface"
+    },
+    {
+      "key": "CardStrokeColorDefaultBrush",
+      "usage": "Card border outline"
+    },
+    {
+      "key": "TextFillColorPrimaryBrush",
+      "usage": "High-contrast body text"
+    },
+    {
+      "key": "TextFillColorSecondaryBrush",
+      "usage": "Muted description text"
+    },
+    {
+      "key": "AccentTextFillColorPrimaryBrush",
+      "usage": "Accent link/brand text"
+    },
+    {
+      "key": "SystemFillColorSuccessBrush",
+      "usage": "Success green indicators"
+    },
+    {
+      "key": "SystemFillColorCautionBrush",
+      "usage": "Warning amber indicators"
+    },
+    {
+      "key": "SystemFillColorCriticalBrush",
+      "usage": "Critical red indicators"
+    }
+  ]
+}
+

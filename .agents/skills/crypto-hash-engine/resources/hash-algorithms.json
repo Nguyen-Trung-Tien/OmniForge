@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CryptoHashAlgorithms",
+  "algorithms": [
+    {
+      "name": "SHA256",
+      "digestBits": 256,
+      "digestBytes": 32,
+      "recommended": true,
+      "securityStatus": "Cryptographically Secure"
+    },
+    {
+      "name": "SHA512",
+      "digestBits": 512,
+      "digestBytes": 64,
+      "recommended": true,
+      "securityStatus": "Cryptographically Secure"
+    },
+    {
+      "name": "SHA384",
+      "digestBits": 384,
+      "digestBytes": 48,
+      "recommended": true,
+      "securityStatus": "Cryptographically Secure"
+    },
+    {
+      "name": "SHA1",
+      "digestBits": 160,
+      "digestBytes": 20,
+      "recommended": false,
+      "securityStatus": "Legacy / Non-Secure (Checksum only)"
+    },
+    {
+      "name": "MD5",
+      "digestBits": 128,
+      "digestBytes": 16,
+      "recommended": false,
+      "securityStatus": "Legacy / Non-Secure (Checksum only)"
+    }
+  ]
+}
+

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PerformanceBudgetsAndThresholds",
+  "metrics": [
+    {
+      "name": "FrameRate",
+      "target": "60+ FPS",
+      "maxFrameTimeMs": 16.67,
+      "rule": "Never invoke synchronous I/O or loop-add to UI collections on the UI thread."
+    },
+    {
+      "name": "LargeObjectHeapThreshold",
+      "target": "< 85,000 bytes",
+      "rule": "Rent byte/char buffers using ArrayPool<T>.Shared or MemoryPool<T>.Shared."
+    },
+    {
+      "name": "ArchitectureScanTime",
+      "target": "< 1000 ms",
+      "rule": "Run static architecture guardrails via regex AST scanning before full compilation."
+    },
+    {
+      "name": "StringFormattingAllocations",
+      "target": "Zero-Allocation",
+      "rule": "Use string.Create and ByteSizeFormatter for high-frequency numeric/span conversions."
+    }
+  ]
+}
+

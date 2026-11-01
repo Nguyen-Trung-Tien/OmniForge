@@ -9,7 +9,15 @@ This skill provides guidelines and robust architectural patterns for processing 
 
 ---
 
-## 1. Core Principles of Batch Processing
+## 1. Directory Structure & Assets
+
+- Benchmark Script: [benchmark_io.ps1](scripts/benchmark_io.ps1)
+- Reference Engine: [RobustBatchEngine.cs](examples/RobustBatchEngine.cs)
+- Error Codes Catalog: [batch-error-codes.json](resources/batch-error-codes.json)
+
+---
+
+## 2. Core Principles of Batch Processing
 
 1. **Throttled Concurrency**: Unbounded parallel file access causes I/O thrashing, disk queue bottlenecks, and OS handle exhaustion. Throttle concurrent operations using `SemaphoreSlim` or `Parallel.ForEachAsync` with `MaxDegreeOfParallelism` (typically `Environment.ProcessorCount` for CPU-bound tasks, or 4-8 for disk I/O).
 2. **Channel-Based Producer-Consumer**: Decouple file discovery (directory crawling) from file content processing using `System.Threading.Channels.Channel<T>`.

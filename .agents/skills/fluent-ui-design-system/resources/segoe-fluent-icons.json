@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SegoeFluentIconsCatalog",
+  "icons": [
+    { "category": "Navigation", "glyphCSharp": "\\uE80F", "glyphXaml": "&#xE80F;", "name": "Home / Dashboard" },
+    { "category": "Files", "glyphCSharp": "\\uE8B7", "glyphXaml": "&#xE8B7;", "name": "Folder / FileSystem" },
+    { "category": "Developer", "glyphCSharp": "\\uE943", "glyphXaml": "&#xE943;", "name": "Code / Terminal" },
+    { "category": "Security", "glyphCSharp": "\\uE8D7", "glyphXaml": "&#xE8D7;", "name": "Shield / Checksum / Security" },
+    { "category": "Text", "glyphCSharp": "\\uE8A5", "glyphXaml": "&#xE8A5;", "name": "Document / Text / Diff" },
+    { "category": "Media", "glyphCSharp": "\\uEB9F", "glyphXaml": "&#xEB9F;", "name": "Image / Canvas / Win2D" },
+    { "category": "System", "glyphCSharp": "\\uEC4A", "glyphXaml": "&#xEC4A;", "name": "Speed / Performance / Diagnostics" },
+    { "category": "Settings", "glyphCSharp": "\\uE713", "glyphXaml": "&#xE713;", "name": "Gear / Settings" }
+  ]
+}
+

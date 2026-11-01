@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReusableComponentsIndex",
+  "components": [
+    {
+      "name": "ToolViewModelBase",
+      "namespace": "OmniForge.Core.Models",
+      "purpose": "Base class providing IsBusy, ErrorMessage, HasError, RunSafeAsync, and duration metrics"
+    },
+    {
+      "name": "ToolModuleBase",
+      "namespace": "OmniForge.Core.Models",
+      "purpose": "Default implementation of IToolModule for zero-touch auto-discovery"
+    },
+    {
+      "name": "BulkObservableCollection<T>",
+      "namespace": "OmniForge.Core.Common",
+      "purpose": "Observable collection with single Reset notification via ReplaceAll / AddRange"
+    },
+    {
+      "name": "Result / Result<T>",
+      "namespace": "OmniForge.Core.Common",
+      "purpose": "Monadic error handling container replacing throw/catch"
+    },
+    {
+      "name": "SecurityGuard",
+      "namespace": "OmniForge.Core.Common",
+      "purpose": "Validates file paths and payload sizes against traversal/DoS"
+    },
+    {
+      "name": "ByteSizeFormatter",
+      "namespace": "OmniForge.Core.Common",
+      "purpose": "Zero-allocation formatters for byte sizes and durations"
+    },
+    {
+      "name": "ToolHeaderControl",
+      "namespace": "OmniForge.App.Controls",
+      "purpose": "Standard WinUI 3 tool title, subtitle, and fault-isolated InfoBar"
+    },
+    {
+      "name": "SectionCardControl",
+      "namespace": "OmniForge.App.Controls",
+      "purpose": "Elevated Fluent card container with icon and action header"
+    },
+    {
+      "name": "StatusFooterControl",
+      "namespace": "OmniForge.App.Controls",
+      "purpose": "Standard progress bar, status text, and execution duration badge"
+    },
+    {
+      "name": "EmptyStateControl",
+      "namespace": "OmniForge.App.Controls",
+      "purpose": "Placeholder state when collections or results are empty"
+    }
+  ]
+}
+
