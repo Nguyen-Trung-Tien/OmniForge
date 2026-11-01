@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Batch File & Path Renamer Tool Module**:
+  - `IRenameRule` contract (`OmniForge.Core.Contracts`) and `FileMetadata` rich record model (`OmniForge.Core.Models`).
+  - Concrete transformation rules (`OmniForge.Modules.BatchOps`):
+    - `PrefixSuffixRule`: Prepend prefixes and append suffixes to filename stems.
+    - `ReplaceRule`: Search & replace with plain text, Match Case, ReDoS-protected regular expressions (`matchTimeout: 250ms`), and token interpolation (`{index}`, `{date}`, `{parent}`, `{ext}`).
+    - `ChangeCaseRule`: Transform letter casing to `lowercase`, `UPPERCASE`, or `Title Case`.
+    - `NumberingRule`: Sequential numbering with custom start, step, padding formats (e.g. `001`), Suffix/Prefix positioning, and in-string `{num}` token replacement.
+  - `BatchRenameEngine` & `IBatchRenameEngine` (`OmniForge.Modules.BatchOps`):
+    - Live multi-rule collision detection: illegal filename characters, Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, etc.), intra-batch duplicate destination collisions, and existing disk target detection.
+    - Transactional rollback snapshot (`RenameExecutionJournal`) supporting 100% reversible undo in reverse topological order.
+    - Non-blocking asynchronous execution via worker thread offloading with `IProgress<BatchProgressReport>`, cancellation support, and streaming via `IAsyncEnumerable<RenameItemResult>`.
+  - Presentation & Fluent UI (`OmniForge.App.Modules.BatchRename`):
+    - `BatchRenameViewModel` deriving from `ToolViewModelBase` handling file picking (`IFilePickerService`), drag-and-drop ingestion, 200ms reactive debouncing, rule list pipeline management, and undo rollback.
+    - `BatchRenamePage.xaml` featuring top `CommandBar` (Add Files/Folders, Clear, Run Rename, Undo), side rule builder cards with interactive editors, and virtualized `ListView` data grid with collision warning badges.
+    - `BatchRenameModule` plugin auto-discovered by `ModuleAutoDiscoveryExtensions`.
+  - Comprehensive unit test suite (`RenameRulesTests`, `BatchRenameEngineTests`) validating rule chaining, ReDoS safety, collision diagnostics, and disk transaction rollback.
 - **Reusable Fluent UI Component Library & Design System**:
   - Centralized `Styles/SharedStyles.xaml` defining `PageScrollViewerStyle`, `PageRootStackPanelStyle`, `FluentCardBorderStyle`, `StatusBadgeBorderStyle`, and `MonospaceCodeTextBoxStyle`.
   - `SectionCardControl` (`OmniForge.App.Controls`) providing a reusable Fluent card container with header icon, title, subtitle, action slot, and `[ContentProperty(Name = nameof(InnerContent))]`.
