@@ -34,14 +34,67 @@ public partial class SettingsViewModel : ObservableObject
 
     public bool HasStatusNotice => !string.IsNullOrEmpty(StatusNotice);
 
+    [ObservableProperty]
+    public partial string TitleText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string SubtitleText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string LanguageTitle { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string LanguageSubtitle { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string LanguageLabel { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string LanguageNote { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string AppearanceTitle { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string AppearanceSubtitle { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string ThemeLabel { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string BackdropLabel { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string VersionLabel { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string SavePreferencesLabel { get; set; } = string.Empty;
+
     public SettingsViewModel(ISettingsService settingsService, ILocalizationService localizationService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
 
         _localizationService.LanguageChanged += OnLanguageChanged;
+        UpdateLocalizedStrings();
 
         _ = LoadSettingsAsync(CancellationToken.None);
+    }
+
+    private void UpdateLocalizedStrings()
+    {
+        TitleText = _localizationService.GetString(LocalizationKeys.Settings_Title);
+        SubtitleText = _localizationService.GetString(LocalizationKeys.Settings_Subtitle);
+        LanguageTitle = _localizationService.GetString(LocalizationKeys.Settings_Language_Title);
+        LanguageSubtitle = _localizationService.GetString(LocalizationKeys.Settings_Language_Subtitle);
+        LanguageLabel = _localizationService.GetString(LocalizationKeys.Settings_Language_Label);
+        LanguageNote = _localizationService.GetString(LocalizationKeys.Settings_Language_Note);
+        AppearanceTitle = _localizationService.GetString(LocalizationKeys.Settings_Appearance_Title);
+        AppearanceSubtitle = _localizationService.GetString(LocalizationKeys.Settings_Appearance_Subtitle);
+        ThemeLabel = _localizationService.GetString(LocalizationKeys.Settings_Theme);
+        BackdropLabel = _localizationService.GetString(LocalizationKeys.Settings_MicaBackdrop);
+        VersionLabel = _localizationService.GetString(LocalizationKeys.Common_Version);
+        SavePreferencesLabel = _localizationService.GetString(LocalizationKeys.Settings_SavePreferences);
     }
 
     async partial void OnSelectedThemeChanged(string value)
@@ -65,6 +118,7 @@ public partial class SettingsViewModel : ObservableObject
     private void OnLanguageChanged(object? sender, AppLanguage newLanguage)
     {
         SelectedLanguage = _localizationService.SupportedLanguages.FirstOrDefault(l => l.Language == newLanguage);
+        UpdateLocalizedStrings();
         OnPropertyChanged(nameof(SupportedLanguages));
     }
 

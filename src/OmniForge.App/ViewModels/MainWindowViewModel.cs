@@ -32,6 +32,9 @@ public partial class MainWindowViewModel : ObservableObject
     public partial string SearchQuery { get; set; } = string.Empty;
 
     [ObservableProperty]
+    public partial string SearchPlaceholder { get; set; } = "Search utilities...";
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasShellError))]
     public partial string? ShellErrorMessage { get; set; }
 
@@ -57,12 +60,14 @@ public partial class MainWindowViewModel : ObservableObject
         _localizationService.LanguageChanged += OnLanguageChanged;
 
         AppTitle = _localizationService.GetString(LocalizationKeys.Nav_AppTitle);
+        SearchPlaceholder = _localizationService.GetString(LocalizationKeys.Common_SearchPlaceholder);
         RefreshNavigationItems();
     }
 
     private void OnLanguageChanged(object? sender, OmniForge.Core.Models.AppLanguage e)
     {
         AppTitle = _localizationService.GetString(LocalizationKeys.Nav_AppTitle);
+        SearchPlaceholder = _localizationService.GetString(LocalizationKeys.Common_SearchPlaceholder);
         RefreshNavigationItems();
 
         if (SelectedItem is NavigationItemViewModel currentNav)

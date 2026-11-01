@@ -13,22 +13,22 @@
     <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
         <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
             <controls:ToolHeaderControl
-                Title="{Binding Source={StaticResource Loc}, Path=[Settings_Title]}"
-                Subtitle="{Binding Source={StaticResource Loc}, Path=[Settings_Subtitle]}" />
+                Title="{x:Bind ViewModel.TitleText, Mode=OneWay}"
+                Subtitle="{x:Bind ViewModel.SubtitleText, Mode=OneWay}" />
 
             <!-- Language & Regional Preferences Section Card -->
             <controls:SectionCardControl
-                Title="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Title]}"
-                Subtitle="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Subtitle]}"
+                Title="{x:Bind ViewModel.LanguageTitle, Mode=OneWay}"
+                Subtitle="{x:Bind ViewModel.LanguageSubtitle, Mode=OneWay}"
                 IconGlyph="&#xE774;">
                 <StackPanel Spacing="12">
-                    <ComboBox Header="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Label]}"
+                    <ComboBox Header="{x:Bind ViewModel.LanguageLabel, Mode=OneWay}"
                               ItemsSource="{x:Bind ViewModel.SupportedLanguages, Mode=OneWay}"
                               SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
                               DisplayMemberPath="NativeName"
                               MinWidth="260" />
 
-                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[Settings_Language_Note]}"
+                    <TextBlock Text="{x:Bind ViewModel.LanguageNote, Mode=OneWay}"
                                Style="{ThemeResource CaptionTextBlockStyle}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
@@ -36,25 +36,25 @@
 
             <!-- Appearance & System Backdrop Section Card -->
             <controls:SectionCardControl
-                Title="{Binding Source={StaticResource Loc}, Path=[Settings_Appearance_Title]}"
-                Subtitle="{Binding Source={StaticResource Loc}, Path=[Settings_Appearance_Subtitle]}"
+                Title="{x:Bind ViewModel.AppearanceTitle, Mode=OneWay}"
+                Subtitle="{x:Bind ViewModel.AppearanceSubtitle, Mode=OneWay}"
                 IconGlyph="&#xE790;">
                 <StackPanel Spacing="16">
-                    <ComboBox Header="{Binding Source={StaticResource Loc}, Path=[Settings_Theme]}"
+                    <ComboBox Header="{x:Bind ViewModel.ThemeLabel, Mode=OneWay}"
                               ItemsSource="{x:Bind ViewModel.ThemeOptions, Mode=OneWay}"
                               SelectedItem="{x:Bind ViewModel.SelectedTheme, Mode=TwoWay}"
                               MinWidth="220" />
 
-                    <ToggleSwitch Header="{Binding Source={StaticResource Loc}, Path=[Settings_MicaBackdrop]}"
+                    <ToggleSwitch Header="{x:Bind ViewModel.BackdropLabel, Mode=OneWay}"
                                   IsOn="{x:Bind ViewModel.EnableMicaAlt, Mode=TwoWay}" />
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[Common_Version]}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.VersionLabel, Mode=OneWay}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
 
-                    <Button Content="{Binding Source={StaticResource Loc}, Path=[Settings_SavePreferences]}"
+                    <Button Content="{x:Bind ViewModel.SavePreferencesLabel, Mode=OneWay}"
                             Command="{x:Bind ViewModel.SaveSettingsCommand}"
                             Style="{ThemeResource AccentButtonStyle}" />
 

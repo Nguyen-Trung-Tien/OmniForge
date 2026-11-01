@@ -65,7 +65,7 @@
             <!-- Real-time Tool Search and Auto-Suggest Box -->
             <NavigationView.AutoSuggestBox>
                 <AutoSuggestBox x:Name="SearchBox"
-                                PlaceholderText="{Binding Source={StaticResource Loc}, Path=[Common_SearchPlaceholder]}"
+                                PlaceholderText="{x:Bind ViewModel.SearchPlaceholder, Mode=OneWay}"
                                 QueryIcon="Find"
                                 Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 ItemsSource="{x:Bind ViewModel.SearchSuggestions, Mode=OneWay}"
