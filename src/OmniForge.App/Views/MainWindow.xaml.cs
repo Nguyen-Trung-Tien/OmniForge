@@ -26,6 +26,13 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
+        // Configure Win32 AppWindow Icon from high-DPI multi-layer app.ico
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+        if (File.Exists(iconPath))
+        {
+            AppWindow.SetIcon(iconPath);
+        }
+
         if (navigationService is NavigationService navService)
         {
             navService.Initialize(ContentFrame);

@@ -24,7 +24,7 @@
                   Grid.Row="0"
                   Title="{x:Bind ViewModel.AppTitle, Mode=OneWay}">
             <TitleBar.IconSource>
-                <ImageIconSource ImageSource="ms-appx:///Assets/AppIcon.ico" />
+                <ImageIconSource ImageSource="ms-appx:///Assets/app.ico" />
             </TitleBar.IconSource>
         </TitleBar>
 
@@ -42,7 +42,36 @@
                         MenuItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
                         SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=OneWay}"
                         IsSettingsVisible="True"
-                        AlwaysShowHeader="False">
+                        AlwaysShowHeader="True">
+
+            <!-- Branded Pane Header with Vector SVG Logo -->
+            <NavigationView.PaneHeader>
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="16,14,16,10" VerticalAlignment="Center">
+                    <Image Width="28" Height="28">
+                        <Image.Source>
+                            <SvgImageSource UriSource="ms-appx:///Assets/logo.svg" RasterizePixelWidth="56" RasterizePixelHeight="56" />
+                        </Image.Source>
+                    </Image>
+                    <TextBlock Text="OmniForge"
+                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </NavigationView.PaneHeader>
+
+            <!-- Custom Content Header with Vector SVG Logo and Section Title -->
+            <NavigationView.Header>
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <Image Width="32" Height="32">
+                        <Image.Source>
+                            <SvgImageSource UriSource="ms-appx:///Assets/logo.svg" RasterizePixelWidth="64" RasterizePixelHeight="64" />
+                        </Image.Source>
+                    </Image>
+                    <TextBlock Text="{x:Bind ViewModel.CurrentSectionTitle, Mode=OneWay}"
+                               Style="{ThemeResource TitleTextBlockStyle}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </NavigationView.Header>
 
             <!-- Real-time Tool Search and Auto-Suggest Box -->
             <NavigationView.AutoSuggestBox>
