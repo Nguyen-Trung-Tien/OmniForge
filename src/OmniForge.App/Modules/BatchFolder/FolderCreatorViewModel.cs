@@ -36,7 +36,10 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreate))]
+    [NotifyPropertyChangedFor(nameof(RootDirectoryExists))]
     public partial string RootDirectory { get; set; } = string.Empty;
+
+    public bool RootDirectoryExists => !string.IsNullOrWhiteSpace(RootDirectory) && Directory.Exists(RootDirectory);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreate))]
@@ -105,6 +108,51 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     [ObservableProperty]
     public partial bool AppendSeriesToExisting { get; set; } = true;
 
+    [ObservableProperty]
+    public partial string SeriesPreviewSampleText { get; set; } = "Preview: Lesson_01, Lesson_02 ... Lesson_10";
+
+    [ObservableProperty]
+    public partial string SearchFilterText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string PrefixText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string SuffixText { get; set; } = string.Empty;
+
+    // --- Import Modal States ---
+    [ObservableProperty]
+    public partial bool IsImportModalOpen { get; set; }
+
+    [ObservableProperty]
+    public partial int ImportTabIndex { get; set; }
+
+    [ObservableProperty]
+    public partial string ImportFilePath { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string ImportFileStatusText { get; set; } = "No file selected. Supports .xlsx, .csv, .tsv, .txt";
+
+    [ObservableProperty]
+    public partial string ImportPayloadText { get; set; } = string.Empty;
+
+    public ObservableCollection<string> ImportPreviewItems { get; } = [];
+
+    [ObservableProperty]
+    public partial bool HasImportPreview { get; set; }
+
+    [ObservableProperty]
+    public partial string ImportPreviewSummary { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsImportReplaceMode { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsImportAppendMode { get; set; }
+
+    [ObservableProperty]
+    public partial bool ImportSanitizeCharacters { get; set; } = true;
+
     public ObservableCollection<TreeViewNode> PreviewTreeNodes { get; } = [];
 
     public bool CanCreate => !string.IsNullOrWhiteSpace(RootDirectory) &&
@@ -127,9 +175,54 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
 
         // Load default template for immediate user feedback
         LoadTemplate("project");
+        UpdateSeriesPreviewSample();
     }
 
-    partial void OnRootDirectoryChanged(string value) => TriggerDebouncedPreview();
+    partial void OnRootDirectoryChanged(string value)
+    {
+        OnPropertyChanged(nameof(RootDirectoryExists));
+        TriggerDebouncedPreview();
+    }
+
+    partial void OnSearchFilterTextChanged(string value) => TriggerDebouncedPreview();
+
+    partial void OnSeriesPatternChanged(string value) => UpdateSeriesPreviewSample();
+
+    partial void OnSeriesCountChanged(int value) => UpdateSeriesPreviewSample();
+
+    partial void OnIsImportReplaceModeChanged(bool value)
+    {
+        if (value && IsImportAppendMode) IsImportAppendMode = false;
+    }
+
+    partial void OnIsImportAppendModeChanged(bool value)
+    {
+        if (value && IsImportReplaceMode) IsImportReplaceMode = false;
+    }
+
+    private void UpdateSeriesPreviewSample()
+    {
+        int count = Math.Clamp(SeriesCount, 1, 500);
+        string pattern = string.IsNullOrWhiteSpace(SeriesPattern) ? "Folder_{seq:2}" : SeriesPattern.Trim();
+        if (!TokenEvaluator.HasSequenceToken(pattern))
+        {
+            pattern = $"{pattern}_{{seq:2}}";
+        }
+
+        if (count <= 3)
+        {
+            var samples = Enumerable.Range(0, count)
+                .Select(i => TokenEvaluator.Evaluate(pattern, StartSequence + i));
+            SeriesPreviewSampleText = $"Preview: {string.Join(", ", samples)}";
+        }
+        else
+        {
+            string first = TokenEvaluator.Evaluate(pattern, StartSequence);
+            string second = TokenEvaluator.Evaluate(pattern, StartSequence + 1);
+            string last = TokenEvaluator.Evaluate(pattern, StartSequence + count - 1);
+            SeriesPreviewSampleText = $"Preview: {first}, {second} ... {last} ({count} folders)";
+        }
+    }
 
     partial void OnRawInputTextChanged(string value)
     {
@@ -291,11 +384,15 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
         var result = dryRunResult.Value;
         _lastPlannedItems = result.AllItems;
 
+        var displayedNodes = !string.IsNullOrWhiteSpace(SearchFilterText)
+            ? FilterNodes(result.RootNodes, SearchFilterText.Trim())
+            : result.RootNodes;
+
         // TreeViewNode is a WinUI DependencyObject and MUST be created on the UI thread
         _dispatcherService.TryEnqueue(() =>
         {
             PreviewTreeNodes.Clear();
-            foreach (var rootModel in result.RootNodes)
+            foreach (var rootModel in displayedNodes)
             {
                 PreviewTreeNodes.Add(FolderPreviewNode.FromModel(rootModel));
             }
@@ -310,6 +407,35 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             DryRunSummaryText = $"Planned: {result.TotalCount} folders ({result.NewCount} new, {result.ExistingCount} existing, {result.SuffixAppendedCount} renamed suffix).";
             OnPropertyChanged(nameof(CanCreate));
         });
+    }
+
+    private static List<FolderItemNode> FilterNodes(IReadOnlyList<FolderItemNode> nodes, string filter)
+    {
+        var matching = new List<FolderItemNode>();
+        foreach (var node in nodes)
+        {
+            var filteredChildren = FilterNodes(node.Children, filter);
+            bool selfMatches = node.EvaluatedName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                               node.RelativePath.Contains(filter, StringComparison.OrdinalIgnoreCase);
+
+            if (selfMatches || filteredChildren.Count > 0)
+            {
+                var clone = new FolderItemNode
+                {
+                    RawText = node.RawText,
+                    EvaluatedName = node.EvaluatedName,
+                    RelativePath = node.RelativePath,
+                    FullPath = node.FullPath,
+                    IndentLevel = node.IndentLevel,
+                    LineNumber = node.LineNumber,
+                    Status = node.Status,
+                    ErrorMessage = node.ErrorMessage
+                };
+                foreach (var c in filteredChildren) clone.AddChild(c);
+                matching.Add(clone);
+            }
+        }
+        return matching;
     }
 
     [RelayCommand]
@@ -363,42 +489,8 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     [RelayCommand]
     private void LoadTemplate(string templateType)
     {
-        RawInputText = templateType.ToLowerInvariant() switch
-        {
-            "project" => """
-                Project
-                  src
-                    components
-                    services
-                    utils
-                  tests
-                  docs
-                    api
-                  assets
-                """,
-            "archive" => """
-                Archive_{date:yyyy-MM-dd}
-                  Exports_{time:HHmmss}
-                  Backups
-                  Logs_{seq:3}
-                """,
-            "dataset" => """
-                Dataset_{seq:3}
-                  Images
-                  Annotations
-                  Labels
-                Dataset_{seq:3}
-                  Images
-                  Annotations
-                  Labels
-                """,
-            _ => """
-                Folder1
-                  SubFolderA
-                  SubFolderB
-                Folder2
-                """
-        };
+        RawInputText = FolderParser.GetPresetTemplate(templateType);
+        StatusMessage = $"Loaded '{templateType}' folder template.";
     }
 
     [RelayCommand]
@@ -427,15 +519,148 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             return;
         }
 
-        string prefix = QuickAddAsSubfolder ? "  " : string.Empty;
-        string newEntry = prefix + QuickAddFolderName.Trim();
+        var newEntries = FolderParser.ParseBulkAddInput(QuickAddFolderName, QuickAddAsSubfolder);
+        if (newEntries.Count == 0)
+        {
+            return;
+        }
 
+        string appendedText = string.Join(Environment.NewLine, newEntries);
         RawInputText = string.IsNullOrWhiteSpace(RawInputText)
-            ? newEntry
-            : $"{RawInputText.TrimEnd('\r', '\n')}{Environment.NewLine}{newEntry}";
+            ? appendedText
+            : $"{RawInputText.TrimEnd('\r', '\n')}{Environment.NewLine}{appendedText}";
 
         QuickAddFolderName = string.Empty;
-        StatusMessage = $"Added folder '{newEntry.Trim()}' to list.";
+        StatusMessage = $"Added {newEntries.Count} folder(s) to list.";
+    }
+
+    [RelayCommand]
+    private void ApplyPrefixSuffix()
+    {
+        if (string.IsNullOrWhiteSpace(RawInputText)) return;
+        if (string.IsNullOrEmpty(PrefixText) && string.IsNullOrEmpty(SuffixText)) return;
+
+        RawInputText = FolderParser.ApplyPrefixSuffix(RawInputText, PrefixText, SuffixText);
+        StatusMessage = $"Applied prefix '{PrefixText}' and suffix '{SuffixText}' to all folder rows.";
+        PrefixText = string.Empty;
+        SuffixText = string.Empty;
+    }
+
+    [RelayCommand]
+    private void OpenImportModal()
+    {
+        IsImportModalOpen = true;
+        ImportTabIndex = 0;
+        ImportFilePath = string.Empty;
+        ImportFileStatusText = "No file selected. Supports .xlsx, .csv, .tsv, .txt";
+        ImportPreviewItems.Clear();
+        HasImportPreview = false;
+        ImportPreviewSummary = string.Empty;
+        ImportPayloadText = string.Empty;
+        IsImportReplaceMode = true;
+        IsImportAppendMode = false;
+        ImportSanitizeCharacters = true;
+    }
+
+    [RelayCommand]
+    private void CloseImportModal()
+    {
+        IsImportModalOpen = false;
+    }
+
+    [RelayCommand]
+    private async Task PickImportFileAsync(CancellationToken cancellationToken)
+    {
+        var pickResult = await _filePickerService.PickSingleFileAsync(
+            [".xlsx", ".csv", ".tsv", ".txt"],
+            cancellationToken);
+
+        if (pickResult.IsFailure || string.IsNullOrWhiteSpace(pickResult.Value))
+        {
+            return;
+        }
+
+        string path = pickResult.Value;
+        ImportFilePath = path;
+        ImportFileStatusText = Path.GetFileName(path);
+
+        var parseResult = await _folderService.ImportFolderListFromFileAsync(path, cancellationToken);
+        if (parseResult.IsFailure)
+        {
+            ErrorMessage = parseResult.Error.Message;
+            ImportFileStatusText = $"Error reading file: {parseResult.Error.Message}";
+            ImportPreviewItems.Clear();
+            HasImportPreview = false;
+            return;
+        }
+
+        ImportPreviewItems.Clear();
+        foreach (var item in parseResult.Value.Take(100))
+        {
+            ImportPreviewItems.Add(item);
+        }
+
+        HasImportPreview = parseResult.Value.Count > 0;
+        ImportPreviewSummary = $"Loaded {parseResult.Value.Count} folder(s) ready to import (showing first {ImportPreviewItems.Count}):";
+    }
+
+    [RelayCommand]
+    private async Task ExecuteImportAsync()
+    {
+        IReadOnlyList<string> itemsToImport = [];
+
+        if (ImportTabIndex == 0) // File Tab
+        {
+            if (string.IsNullOrWhiteSpace(ImportFilePath) || !File.Exists(ImportFilePath))
+            {
+                ErrorMessage = "Please select a valid Excel or text file first.";
+                return;
+            }
+
+            var result = await _folderService.ImportFolderListFromFileAsync(ImportFilePath);
+            if (result.IsFailure)
+            {
+                ErrorMessage = result.Error.Message;
+                return;
+            }
+            itemsToImport = result.Value;
+        }
+        else // Paste Tab
+        {
+            if (string.IsNullOrWhiteSpace(ImportPayloadText))
+            {
+                ErrorMessage = "Please paste or enter folder names first.";
+                return;
+            }
+
+            var result = _folderService.ParseFolderListFromText(ImportPayloadText, ImportSanitizeCharacters);
+            if (result.IsFailure)
+            {
+                ErrorMessage = result.Error.Message;
+                return;
+            }
+            itemsToImport = result.Value;
+        }
+
+        if (itemsToImport.Count == 0)
+        {
+            ErrorMessage = "No valid folder items to import.";
+            return;
+        }
+
+        string formattedText = string.Join(Environment.NewLine, itemsToImport);
+
+        if (IsImportReplaceMode || string.IsNullOrWhiteSpace(RawInputText))
+        {
+            RawInputText = formattedText;
+        }
+        else
+        {
+            RawInputText = $"{RawInputText.TrimEnd('\r', '\n')}{Environment.NewLine}{formattedText}";
+        }
+
+        IsImportModalOpen = false;
+        SuccessMessage = $"Successfully imported {itemsToImport.Count} folder item(s).";
     }
 
     [RelayCommand]

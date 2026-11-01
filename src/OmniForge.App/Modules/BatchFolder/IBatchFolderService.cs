@@ -28,6 +28,18 @@ public interface IBatchFolderService
         IReadOnlyList<FolderItemNode> items,
         IProgress<BatchProgressReport>? progress = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Imports a list of folder names or relative paths from an Excel (.xlsx), CSV, TSV, or TXT file asynchronously.
+    /// </summary>
+    Task<Result<IReadOnlyList<string>>> ImportFolderListFromFileAsync(
+        string filePath,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Parses folder names from raw text lines, supporting delimiters and optional sanitization.
+    /// </summary>
+    Result<IReadOnlyList<string>> ParseFolderListFromText(string rawText, bool sanitize = true);
 }
 
 /// <summary>
@@ -61,6 +73,20 @@ public sealed class BatchFolderService : IBatchFolderService
         CancellationToken cancellationToken = default)
     {
         return _engine.ExecuteCreationAsync(items, progress, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<string>>> ImportFolderListFromFileAsync(
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        return FolderParser.ImportFromFileAsync(filePath, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Result<IReadOnlyList<string>> ParseFolderListFromText(string rawText, bool sanitize = true)
+    {
+        return FolderParser.ParseLinesFromText(rawText, sanitize);
     }
 }
 

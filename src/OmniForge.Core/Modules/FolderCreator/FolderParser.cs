@@ -1,4 +1,7 @@
+using System.Globalization;
+using System.IO.Compression;
 using System.Text;
+using System.Xml.Linq;
 using OmniForge.Core.Common;
 
 namespace OmniForge.Core.Modules.FolderCreator;
@@ -339,6 +342,492 @@ public static class FolderParser
         }
 
         return Result.Success<IReadOnlyList<FolderItemNode>>(rootNodes);
+    }
+
+    /// <summary>
+    /// Parses plain text, CSV, or TSV lines into a clean list of folder strings.
+    /// Supports comma-, semicolon-, tab- or newline-separated values with optional header filtering.
+    /// </summary>
+    public static Result<IReadOnlyList<string>> ParseLinesFromText(string? rawText, bool sanitize = true)
+    {
+        if (string.IsNullOrWhiteSpace(rawText))
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.EmptyText", "Text cannot be empty.");
+        }
+
+        var lines = rawText.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (lines.Length == 0)
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.NoValidLines", "No valid lines found to import.");
+        }
+
+        var folderList = new List<string>(lines.Length);
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            // Check if line 0 is a table header row (e.g. "Folder Name, Path" or "Thư mục, Ghi chú")
+            if (i == 0 && IsLikelyHeaderRow(line))
+            {
+                continue;
+            }
+
+            // Check for delimited lines: Tab, Semicolon, or Comma (when not containing slash paths)
+            char? delimiter = line.Contains('\t') ? '\t' : (line.Contains(';') ? ';' : (line.Contains(',') && !line.Contains('/') && !line.Contains('\\') ? ',' : null));
+            if (delimiter.HasValue)
+            {
+                var parts = line.Split(delimiter.Value, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (parts.Length > 1)
+                {
+                    // Check if one of the parts is numeric (e.g. "1, Client_A" in tabular CSV)
+                    bool hasNumericCol = parts.Any(p => int.TryParse(p, out _));
+                    if (hasNumericCol)
+                    {
+                        // Tabular row: select the meaningful non-numeric folder column
+                        string candidate = parts.FirstOrDefault(p => !int.TryParse(p, out _) && !string.IsNullOrWhiteSpace(p)) ?? parts[0];
+                        string cleaned = sanitize ? SanitizePathPreservingSeparators(candidate) : candidate.Trim();
+                        if (!string.IsNullOrWhiteSpace(cleaned) && !IsLikelyHeaderRow(cleaned))
+                        {
+                            folderList.Add(cleaned);
+                        }
+                        continue;
+                    }
+
+                    // Otherwise, all parts are distinct folder names in a delimited list (e.g. "Photos, Videos, Audio")
+                    foreach (var part in parts)
+                    {
+                        string cleaned = sanitize ? SanitizeFolderName(part) : part.Trim();
+                        if (!string.IsNullOrWhiteSpace(cleaned) && !IsLikelyHeaderRow(cleaned))
+                        {
+                            folderList.Add(cleaned);
+                        }
+                    }
+                    continue;
+                }
+            }
+
+            // Case C: Single line folder path (e.g. "Parent/Child" or "Folder 1")
+            string finalEntry = sanitize ? SanitizePathPreservingSeparators(line) : line.Trim();
+            if (!string.IsNullOrWhiteSpace(finalEntry))
+            {
+                folderList.Add(finalEntry);
+            }
+        }
+
+        if (folderList.Count == 0)
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.NoItems", "Could not parse any valid folder names from input.");
+        }
+
+        return Result.Success<IReadOnlyList<string>>(folderList);
+    }
+
+    /// <summary>
+    /// Parses Excel (.xlsx) OpenXML files asynchronously using native BCL ZipArchive and XDocument.
+    /// Zero third-party dependencies, high performance, trimming-safe.
+    /// </summary>
+    public static async Task<Result<IReadOnlyList<string>>> ParseFromExcelStreamAsync(
+        Stream stream,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+
+        try
+        {
+            using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+
+            // 1. Load shared strings table if present
+            var sharedStrings = new List<string>();
+            var sharedStringsEntry = archive.GetEntry("xl/sharedStrings.xml");
+            if (sharedStringsEntry is not null)
+            {
+                await using var ssStream = sharedStringsEntry.Open();
+                var ssDoc = await XDocument.LoadAsync(ssStream, LoadOptions.None, cancellationToken);
+                XNamespace ssNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+                foreach (var si in ssDoc.Descendants(ssNs + "si"))
+                {
+                    string val = string.Concat(si.Descendants(ssNs + "t").Select(t => t.Value));
+                    sharedStrings.Add(val);
+                }
+            }
+
+            // 2. Locate first worksheet
+            var sheetEntry = archive.GetEntry("xl/worksheets/sheet1.xml")
+                ?? archive.Entries.FirstOrDefault(e => e.FullName.StartsWith("xl/worksheets/sheet", StringComparison.OrdinalIgnoreCase) && e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+
+            if (sheetEntry is null)
+            {
+                return Result.Failure<IReadOnlyList<string>>("FolderParser.NoWorksheet", "No valid worksheet found in the Excel workbook.");
+            }
+
+            await using var sheetStream = sheetEntry.Open();
+            var sheetDoc = await XDocument.LoadAsync(sheetStream, LoadOptions.None, cancellationToken);
+            XNamespace sNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+
+            var rows = sheetDoc.Descendants(sNs + "row").ToList();
+            if (rows.Count == 0)
+            {
+                return Result.Failure<IReadOnlyList<string>>("FolderParser.EmptyWorksheet", "The selected worksheet contains no rows.");
+            }
+
+            var folderList = new List<string>(rows.Count);
+            int targetColIdx = 0;
+            bool isFirstRow = true;
+
+            foreach (var row in rows)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var cells = row.Elements(sNs + "c").ToList();
+                if (cells.Count == 0) continue;
+
+                // On first row, check if any column header matches "Folder", "Name", "Path", "Thư mục", etc.
+                if (isFirstRow)
+                {
+                    isFirstRow = false;
+                    bool headerFound = false;
+                    foreach (var cell in cells)
+                    {
+                        string cellRef = cell.Attribute("r")?.Value ?? string.Empty;
+                        int colIdx = GetColumnIndex(cellRef);
+                        string cellVal = GetCellValue(cell, sharedStrings, sNs);
+
+                        if (IsLikelyHeaderRow(cellVal))
+                        {
+                            targetColIdx = colIdx;
+                            headerFound = true;
+                            break;
+                        }
+                    }
+
+                    if (headerFound)
+                    {
+                        // Skip the header row itself
+                        continue;
+                    }
+                }
+
+                // Extract cell in targetColIdx
+                string? folderName = null;
+                foreach (var cell in cells)
+                {
+                    string cellRef = cell.Attribute("r")?.Value ?? string.Empty;
+                    int colIdx = GetColumnIndex(cellRef);
+                    if (colIdx == targetColIdx)
+                    {
+                        folderName = GetCellValue(cell, sharedStrings, sNs);
+                        break;
+                    }
+                }
+
+                // Fallback to first non-empty cell if target column had no value
+                if (string.IsNullOrWhiteSpace(folderName) && cells.Count > 0)
+                {
+                    folderName = GetCellValue(cells[0], sharedStrings, sNs);
+                }
+
+                if (!string.IsNullOrWhiteSpace(folderName))
+                {
+                    string sanitized = SanitizePathPreservingSeparators(folderName.Trim());
+                    if (!string.IsNullOrWhiteSpace(sanitized) && !IsLikelyHeaderRow(sanitized))
+                    {
+                        folderList.Add(sanitized);
+                    }
+                }
+            }
+
+            if (folderList.Count == 0)
+            {
+                return Result.Failure<IReadOnlyList<string>>("FolderParser.NoValidRows", "No valid folder entries could be parsed from the Excel file.");
+            }
+
+            return Result.Success<IReadOnlyList<string>>(folderList);
+        }
+        catch (InvalidDataException)
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.CorruptedExcel", "The file is not a valid Excel (.xlsx) file or is corrupted.");
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.ExcelReadError", $"Failed to read Excel workbook: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Imports a list of folders from an Excel (.xlsx), CSV, TSV, or TXT file asynchronously.
+    /// </summary>
+    public static async Task<Result<IReadOnlyList<string>>> ImportFromFileAsync(
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.InvalidPath", "File path cannot be empty.");
+        }
+
+        if (!File.Exists(filePath))
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.FileNotFound", $"File not found: {filePath}");
+        }
+
+        string ext = Path.GetExtension(filePath).ToLowerInvariant();
+        if (ext == ".xlsx")
+        {
+            await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+            return await ParseFromExcelStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Plain text formats: .csv, .tsv, .txt
+        string text = await File.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+        return ParseLinesFromText(text, sanitize: true);
+    }
+
+    /// <summary>
+    /// Parses quick-add / bulk-add text input which may contain single or multiple comma-, semicolon-,
+    /// or newline-separated folder names.
+    /// </summary>
+    public static IReadOnlyList<string> ParseBulkAddInput(string? rawInput, bool asSubfolder = false)
+    {
+        if (string.IsNullOrWhiteSpace(rawInput))
+        {
+            return [];
+        }
+
+        var entries = rawInput.Split(['\r', '\n', ',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var result = new List<string>(entries.Length);
+        string prefix = asSubfolder ? "  " : string.Empty;
+
+        foreach (var entry in entries)
+        {
+            string sanitized = SanitizePathPreservingSeparators(entry);
+            if (!string.IsNullOrWhiteSpace(sanitized))
+            {
+                result.Add(prefix + sanitized);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Applies a prefix and/or suffix to every line in the raw input text while preserving indentation.
+    /// </summary>
+    public static string ApplyPrefixSuffix(string? rawInput, string? prefix, string? suffix)
+    {
+        if (string.IsNullOrWhiteSpace(rawInput))
+        {
+            return rawInput ?? string.Empty;
+        }
+
+        string p = prefix ?? string.Empty;
+        string s = suffix ?? string.Empty;
+        if (string.IsNullOrEmpty(p) && string.IsNullOrEmpty(s))
+        {
+            return rawInput;
+        }
+
+        var lines = rawInput.Replace("\r\n", "\n").Split('\n');
+        var sb = new StringBuilder(rawInput.Length + lines.Length * (p.Length + s.Length));
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                if (i < lines.Length - 1) sb.AppendLine();
+                continue;
+            }
+
+            int leadingSpaces = 0;
+            while (leadingSpaces < line.Length && (line[leadingSpaces] == ' ' || line[leadingSpaces] == '\t'))
+            {
+                leadingSpaces++;
+            }
+
+            string indent = line[..leadingSpaces];
+            string content = line[leadingSpaces..];
+            string modified = $"{indent}{p}{content}{s}";
+
+            if (i < lines.Length - 1)
+            {
+                sb.AppendLine(modified);
+            }
+            else
+            {
+                sb.Append(modified);
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns predefined hierarchical templates for various workflows.
+    /// </summary>
+    public static string GetPresetTemplate(string? templateType)
+    {
+        return (templateType?.ToLowerInvariant() ?? "project") switch
+        {
+            "project" => """
+                Project
+                  src
+                    components
+                    services
+                    utils
+                  tests
+                  docs
+                    api
+                  assets
+                """,
+            "archive" => """
+                Archive_{date:yyyy-MM-dd}
+                  Exports_{time:HHmmss}
+                  Backups
+                  Logs_{seq:3}
+                """,
+            "dataset" => """
+                Dataset_{seq:3}
+                  Images
+                  Annotations
+                  Labels
+                Dataset_{seq:3}
+                  Images
+                  Annotations
+                  Labels
+                """,
+            "media" => """
+                Media_Project_{date:yyyy-MM-dd}
+                  01_Footage
+                    Raw
+                    B-Roll
+                  02_Audio
+                    Voiceover
+                    Music
+                    SFX
+                  03_Graphics
+                  04_Exports
+                    Drafts
+                    Final
+                  05_Documents
+                """,
+            "web" => """
+                WebApp
+                  client
+                    public
+                    src
+                      assets
+                      components
+                      hooks
+                      pages
+                  server
+                    api
+                    controllers
+                    models
+                    middleware
+                  database
+                    migrations
+                  config
+                """,
+            "office" => """
+                Company_{date:yyyy}
+                  Accounting
+                    Invoices
+                    Receipts
+                    Tax
+                  Human_Resources
+                    Contracts
+                    Onboarding
+                  Marketing
+                    Campaigns
+                    Designs
+                  Operations
+                    Reports
+                """,
+            _ => """
+                Folder1
+                  SubFolderA
+                  SubFolderB
+                Folder2
+                """
+        };
+    }
+
+    /// <summary>
+    /// Sanitizes an entire path preserving forward or backward slashes between segments.
+    /// </summary>
+    public static string SanitizePathPreservingSeparators(string rawPath)
+    {
+        if (string.IsNullOrWhiteSpace(rawPath))
+        {
+            return string.Empty;
+        }
+
+        var segments = rawPath.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        var sanitizedSegments = segments.Select(s => SanitizeFolderName(s));
+        return string.Join("/", sanitizedSegments);
+    }
+
+    private static bool IsLikelyHeaderRow(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        string lower = text.Trim().ToLowerInvariant();
+
+        return lower is "folder" or "folder name" or "folders" or "directory" or "path"
+            or "name" or "thư mục" or "tên thư mục" or "đường dẫn" or "tên" or "stt"
+            or "danh sách" or "list" or "item" or "items" or "title"
+            || lower.StartsWith("folder,", StringComparison.Ordinal)
+            || lower.StartsWith("folder name,", StringComparison.Ordinal)
+            || lower.StartsWith("thư mục,", StringComparison.Ordinal)
+            || lower.StartsWith("folder\t", StringComparison.Ordinal)
+            || lower.StartsWith("thư mục\t", StringComparison.Ordinal);
+    }
+
+    private static int GetColumnIndex(string cellRef)
+    {
+        if (string.IsNullOrEmpty(cellRef)) return 0;
+        int col = 0;
+        foreach (char ch in cellRef)
+        {
+            if (char.IsLetter(ch))
+            {
+                col = (col * 26) + (char.ToUpperInvariant(ch) - 'A' + 1);
+            }
+            else break;
+        }
+        return Math.Max(0, col - 1);
+    }
+
+    private static string GetCellValue(XElement cell, List<string> sharedStrings, XNamespace ns)
+    {
+        string? type = cell.Attribute("t")?.Value;
+        if (type == "s")
+        {
+            string? val = cell.Element(ns + "v")?.Value;
+            if (int.TryParse(val, out int idx) && idx >= 0 && idx < sharedStrings.Count)
+            {
+                return sharedStrings[idx];
+            }
+            return string.Empty;
+        }
+
+        if (type == "inlineStr")
+        {
+            var isElem = cell.Element(ns + "is");
+            if (isElem is not null)
+            {
+                return string.Concat(isElem.Descendants(ns + "t").Select(t => t.Value));
+            }
+            return string.Empty;
+        }
+
+        return cell.Element(ns + "v")?.Value ?? string.Empty;
     }
 
     /// <summary>

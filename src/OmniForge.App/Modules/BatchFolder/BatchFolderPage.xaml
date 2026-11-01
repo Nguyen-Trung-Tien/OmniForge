@@ -9,588 +9,902 @@
     xmlns:local="using:OmniForge.App.Modules.BatchFolder"
     mc:Ignorable="d">
 
-    <Grid x:Name="RootGrid" RowSpacing="12" Padding="{StaticResource OmniPagePadding}">
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="ResponsiveStates">
-                <VisualState x:Name="WideState">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="980" />
-                    </VisualState.StateTriggers>
-                </VisualState>
-                <VisualState x:Name="NarrowState">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="0" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="RootGrid.Padding" Value="{StaticResource OmniCompactPagePadding}" />
-                        <Setter Target="LeftCol.Width" Value="*" />
-                        <Setter Target="LeftCol.MinWidth" Value="0" />
-                        <Setter Target="RightCol.Width" Value="0" />
-                        <Setter Target="RightCol.MinWidth" Value="0" />
-                        <Setter Target="WorkspaceRow0.Height" Value="*" />
-                        <Setter Target="WorkspaceRow1.Height" Value="*" />
-                        <Setter Target="PreviewCard.(Grid.Row)" Value="1" />
-                        <Setter Target="PreviewCard.(Grid.Column)" Value="0" />
-                        <Setter Target="PreviewCard.Margin" Value="0,12,0,0" />
-                        <Setter Target="SummaryPillText.Visibility" Value="Collapsed" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
+    <Grid>
+        <!-- Main Scrollable / Responsive Content Grid -->
+        <Grid x:Name="RootGrid" RowSpacing="12" Padding="{StaticResource OmniPagePadding}">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="ResponsiveStates">
+                    <VisualState x:Name="WideState">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="980" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                    <VisualState x:Name="NarrowState">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="0" />
+                        </VisualState.StateTriggers>
+                        <VisualState.Setters>
+                            <Setter Target="RootGrid.Padding" Value="{StaticResource OmniCompactPagePadding}" />
+                            <Setter Target="LeftCol.Width" Value="*" />
+                            <Setter Target="LeftCol.MinWidth" Value="0" />
+                            <Setter Target="RightCol.Width" Value="0" />
+                            <Setter Target="RightCol.MinWidth" Value="0" />
+                            <Setter Target="WorkspaceRow0.Height" Value="*" />
+                            <Setter Target="WorkspaceRow1.Height" Value="*" />
+                            <Setter Target="PreviewCard.(Grid.Row)" Value="1" />
+                            <Setter Target="PreviewCard.(Grid.Column)" Value="0" />
+                            <Setter Target="PreviewCard.Margin" Value="0,12,0,0" />
+                            <Setter Target="SummaryPillText.Visibility" Value="Collapsed" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <!-- Tool Header -->
-        <controls:ToolHeaderControl
-            Grid.Row="0"
-            Title="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Title]}"
-            Subtitle="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Subtitle]}"
-            HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
-            ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
-
-        <!-- Target Root Folder & Creation Settings Bar -->
-        <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="16,12">
-            <Grid RowSpacing="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!-- Target Root Directory Picker -->
-                <Grid Grid.Row="0" ColumnSpacing="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBox
-                        Grid.Column="0"
-                        Header="Target Root Directory"
-                        PlaceholderText="Select or paste target root folder path..."
-                        Text="{x:Bind ViewModel.RootDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <Button
-                        Grid.Column="1"
-                        Content="Browse..."
-                        VerticalAlignment="Bottom"
-                        Command="{x:Bind ViewModel.BrowseRootFolderCommand}">
-                        <Button.KeyboardAccelerators>
-                            <KeyboardAccelerator Key="O" Modifiers="Control" />
-                        </Button.KeyboardAccelerators>
-                    </Button>
-
-                    <Button
-                        Grid.Column="2"
-                        ToolTipService.ToolTip="Open in Windows Explorer"
-                        VerticalAlignment="Bottom"
-                        Command="{x:Bind ViewModel.OpenRootFolderCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8DA;" FontSize="14" />
-                            <TextBlock Text="Open" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
-
-                <!-- Input Mode & Conflict Resolution Controls -->
-                <Grid Grid.Row="1" ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Input Mode Selector -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="Mode:" FontWeight="SemiBold" VerticalAlignment="Center" />
-                        <RadioButton
-                            Content="Tree / Indented"
-                            MinWidth="0"
-                            IsChecked="{x:Bind ViewModel.IsTreeMode, Mode=TwoWay}"
-                            ToolTipService.ToolTip="Indentation (2 spaces, 4 spaces, or Tabs) defines parent-child subfolders" />
-                        <RadioButton
-                            Content="Flat List"
-                            MinWidth="0"
-                            IsChecked="{x:Bind ViewModel.IsFlatMode, Mode=TwoWay}"
-                            ToolTipService.ToolTip="Each line is a folder name or slash-separated subpath (e.g. A/B/C)" />
-                    </StackPanel>
-
-                    <!-- Conflict Handling Selector -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="On Conflict:" FontWeight="SemiBold" VerticalAlignment="Center" />
-                        <ComboBox
-                            SelectedIndex="{x:Bind ViewModel.ConflictResolutionIndex, Mode=TwoWay}"
-                            Width="180">
-                            <ComboBoxItem Content="Skip existing" />
-                            <ComboBoxItem Content="Overwrite / Merge" />
-                            <ComboBoxItem Content="Append suffix (e.g. (1))" />
-                        </ComboBox>
-                    </StackPanel>
-
-                    <!-- Start Sequence Box -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="Seq Start:" FontWeight="SemiBold" VerticalAlignment="Center" />
-                        <NumberBox
-                            Value="{x:Bind ViewModel.StartSequence, Mode=TwoWay}"
-                            SpinButtonPlacementMode="Inline"
-                            SmallChange="1"
-                            Minimum="1"
-                            Maximum="99999"
-                            Width="105" />
-                    </StackPanel>
-
-                    <!-- Summary Pill Text -->
-                    <TextBlock
-                        x:Name="SummaryPillText"
-                        Grid.Column="3"
-                        Text="{x:Bind ViewModel.DryRunSummaryText, Mode=OneWay}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        TextTrimming="CharacterEllipsis" />
-                </Grid>
-
-                <!-- Execution Result InfoBar -->
-                <InfoBar
-                    Grid.Row="2"
-                    IsOpen="{x:Bind ViewModel.HasExecutionSummary, Mode=TwoWay}"
-                    Severity="Success"
-                    IsClosable="True"
-                    Title="Folder Creation Summary"
-                    Message="{x:Bind ViewModel.ExecutionResultSummary, Mode=OneWay}" />
-            </Grid>
-        </Border>
-
-        <!-- Main Workspace: Split Left (Input & Visual Row Builder) and Right (Live TreeView Preview) -->
-        <Grid Grid.Row="2" ColumnSpacing="16">
             <Grid.RowDefinitions>
-                <RowDefinition x:Name="WorkspaceRow0" Height="*" />
-                <RowDefinition x:Name="WorkspaceRow1" Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="LeftCol" Width="1.15*" MinWidth="340" />
-                <ColumnDefinition x:Name="RightCol" Width="1.25*" MinWidth="340" />
-            </Grid.ColumnDefinitions>
 
-            <!-- Left Panel: Visual Row Builder, Batch Series Generator & Synchronized Editor -->
-            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
+            <!-- Row 0: Tool Header -->
+            <controls:ToolHeaderControl
+                Grid.Row="0"
+                Title="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Title]}"
+                Subtitle="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Subtitle]}"
+                HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
+                ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
+
+            <!-- Row 1: Target Destination & Settings Card -->
+            <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="16,12">
                 <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- Row 0: Visual Quick-Add Row & Batch Series Generator -->
-                    <Border Grid.Row="0"
-                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="6"
-                            Padding="10,8">
-                        <Grid ColumnSpacing="8">
+                    <!-- Target Root Directory Picker & Status Indicator -->
+                    <Grid Grid.Row="0" ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox
+                            Grid.Column="0"
+                            Header="{Binding Source={StaticResource Loc}, Path=[BatchFolder_TargetRoot]}"
+                            PlaceholderText="{Binding Source={StaticResource Loc}, Path=[BatchFolder_TargetRootPlaceholder]}"
+                            Text="{x:Bind ViewModel.RootDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- Directory Existence Status Pill -->
+                        <Border Grid.Column="1"
+                                VerticalAlignment="Bottom"
+                                Height="32"
+                                Margin="0,0,0,0"
+                                Padding="8,4"
+                                CornerRadius="4"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                          Visibility="{x:Bind ViewModel.RootDirectoryExists, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <FontIcon Glyph="&#xE8F4;" FontSize="11" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                          Visibility="{x:Bind ViewModel.RootDirectoryExists, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_PathExists]}"
+                                           FontSize="11" FontWeight="Medium"
+                                           Visibility="{x:Bind ViewModel.RootDirectoryExists, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_PathWillCreate]}"
+                                           FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Visibility="{x:Bind ViewModel.RootDirectoryExists, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Button
+                            Grid.Column="2"
+                            VerticalAlignment="Bottom"
+                            Height="32"
+                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[Common_Browse]}"
+                            Command="{x:Bind ViewModel.BrowseRootFolderCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[Common_Browse]}" />
+                            </StackPanel>
+                            <Button.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="O" Modifiers="Control" />
+                            </Button.KeyboardAccelerators>
+                        </Button>
+
+                        <Button
+                            Grid.Column="3"
+                            VerticalAlignment="Bottom"
+                            Height="32"
+                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_OpenExplorer]}"
+                            Command="{x:Bind ViewModel.OpenRootFolderCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8DA;" FontSize="13" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[Common_Open]}" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Input Mode, Conflict Resolution & Sequence Start -->
+                    <Grid Grid.Row="1" ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Input Mode Selector -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Mode]}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <RadioButton
+                                Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ModeTree]}"
+                                MinWidth="0"
+                                IsChecked="{x:Bind ViewModel.IsTreeMode, Mode=TwoWay}"
+                                ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ModeTreeTip]}" />
+                            <RadioButton
+                                Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ModeFlat]}"
+                                MinWidth="0"
+                                IsChecked="{x:Bind ViewModel.IsFlatMode, Mode=TwoWay}"
+                                ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ModeFlatTip]}" />
+                        </StackPanel>
+
+                        <!-- Conflict Handling Selector -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Conflict]}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <ComboBox
+                                SelectedIndex="{x:Bind ViewModel.ConflictResolutionIndex, Mode=TwoWay}"
+                                Width="190">
+                                <ComboBoxItem Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ConflictSkip]}" />
+                                <ComboBoxItem Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ConflictOverwrite]}" />
+                                <ComboBoxItem Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ConflictSuffix]}" />
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Start Sequence Box -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SeqStart]}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <NumberBox
+                                Value="{x:Bind ViewModel.StartSequence, Mode=TwoWay}"
+                                SpinButtonPlacementMode="Inline"
+                                SmallChange="1"
+                                Minimum="1"
+                                Maximum="99999"
+                                Width="105" />
+                        </StackPanel>
+
+                        <!-- Summary Status Pill -->
+                        <TextBlock
+                            x:Name="SummaryPillText"
+                            Grid.Column="3"
+                            Text="{x:Bind ViewModel.DryRunSummaryText, Mode=OneWay}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            TextTrimming="CharacterEllipsis" />
+                    </Grid>
+
+                    <!-- Execution Result InfoBar -->
+                    <InfoBar
+                        Grid.Row="2"
+                        IsOpen="{x:Bind ViewModel.HasExecutionSummary, Mode=TwoWay}"
+                        Severity="Success"
+                        IsClosable="True"
+                        Title="{Binding Source={StaticResource Loc}, Path=[Control_ToolHeader_ActionCompleted]}"
+                        Message="{x:Bind ViewModel.ExecutionResultSummary, Mode=OneWay}" />
+                </Grid>
+            </Border>
+
+            <!-- Row 2: Main Workspace (Split Left: Visual Tools & Editor; Right: Live Tree Preview) -->
+            <Grid Grid.Row="2" ColumnSpacing="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="WorkspaceRow0" Height="*" />
+                    <RowDefinition x:Name="WorkspaceRow1" Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="LeftCol" Width="1.2*" MinWidth="340" />
+                    <ColumnDefinition x:Name="RightCol" Width="1.2*" MinWidth="340" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Panel: Command Bar, Quick/Bulk Add & Monospaced Editor -->
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 0: Professional Action Command Bar -->
+                        <Border Grid.Row="0"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="8,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Left Actions: Import, Series, Templates, Tokens, Tools -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <!-- Primary: Smart Import from File -->
+                                    <Button Style="{ThemeResource AccentButtonStyle}"
+                                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnImportTip]}"
+                                            Command="{x:Bind ViewModel.OpenImportModalCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8FD;" FontSize="13" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnImport]}" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Series Generator Dialog / Flyout -->
+                                    <Button ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnSeriesTip]}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8EC;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnSeries]}" />
+                                        </StackPanel>
+                                        <Button.Flyout>
+                                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                                <StackPanel Spacing="12" Width="300">
+                                                    <StackPanel Spacing="4">
+                                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SeriesModalTitle]}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SeriesModalSubtitle]}"
+                                                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                   TextWrapping="Wrap" />
+                                                    </StackPanel>
+
+                                                    <TextBox Header="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SeriesPattern]}"
+                                                             Text="{x:Bind ViewModel.SeriesPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             PlaceholderText="Lesson_{seq:2} or Item_{seq:3}" />
+
+                                                    <NumberBox Header="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SeriesCount]}"
+                                                               Value="{x:Bind ViewModel.SeriesCount, Mode=TwoWay}"
+                                                               Minimum="1"
+                                                               Maximum="500"
+                                                               SmallChange="5"
+                                                               SpinButtonPlacementMode="Inline" />
+
+                                                    <!-- Live Preview Badge -->
+                                                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="4"
+                                                            Padding="8,6">
+                                                        <TextBlock Text="{x:Bind ViewModel.SeriesPreviewSampleText, Mode=OneWay}"
+                                                                   FontSize="11"
+                                                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                                   FontFamily="Cascadia Code, Consolas"
+                                                                   TextWrapping="Wrap" />
+                                                    </Border>
+
+                                                    <CheckBox Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SeriesAppend]}"
+                                                              IsChecked="{x:Bind ViewModel.AppendSeriesToExisting, Mode=TwoWay}" />
+
+                                                    <Button Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SeriesGenerate]}"
+                                                            Style="{ThemeResource AccentButtonStyle}"
+                                                            HorizontalAlignment="Stretch"
+                                                            Command="{x:Bind ViewModel.GenerateSeriesCommand}" />
+                                                </StackPanel>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                    </Button>
+
+                                    <!-- Templates DropDown -->
+                                    <DropDownButton Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnTemplates]}" FontSize="12">
+                                        <DropDownButton.Flyout>
+                                            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tpl_Project]}"
+                                                                Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="project">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8F4;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tpl_Web]}"
+                                                                Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="web">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE774;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tpl_Media]}"
+                                                                Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="media">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8B9;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tpl_Archive]}"
+                                                                Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="archive">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE787;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tpl_Dataset]}"
+                                                                Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="dataset">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE943;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tpl_Office]}"
+                                                                Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="office">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE821;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </DropDownButton.Flyout>
+                                    </DropDownButton>
+
+                                    <!-- Dynamic Token Chips DropDown -->
+                                    <DropDownButton Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnTokens]}" FontSize="12">
+                                        <DropDownButton.Flyout>
+                                            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                                <MenuFlyoutItem Text="{}{date:yyyy-MM-dd} (Current Date)"
+                                                                Command="{x:Bind ViewModel.InsertTokenCommand}" CommandParameter="{}{date:yyyy-MM-dd}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE787;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{}{time:HHmmss} (Current Time)"
+                                                                Command="{x:Bind ViewModel.InsertTokenCommand}" CommandParameter="{}{time:HHmmss}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE823;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{}{seq:2} (01, 02, 03...)"
+                                                                Command="{x:Bind ViewModel.InsertTokenCommand}" CommandParameter="{}{seq:2}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8EC;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{}{seq:3} (001, 002, 003...)"
+                                                                Command="{x:Bind ViewModel.InsertTokenCommand}" CommandParameter="{}{seq:3}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8EC;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{}{guid} (Unique GUID)"
+                                                                Command="{x:Bind ViewModel.InsertTokenCommand}" CommandParameter="{}{guid}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8D7;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </DropDownButton.Flyout>
+                                    </DropDownButton>
+
+                                    <!-- Edit Tools DropDown -->
+                                    <DropDownButton Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnTools]}" FontSize="12">
+                                        <DropDownButton.Flyout>
+                                            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tools_Indent]}"
+                                                                Command="{x:Bind ViewModel.IndentAllCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE76C;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tools_Outdent]}"
+                                                                Command="{x:Bind ViewModel.OutdentAllCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE76B;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tools_Clean]}"
+                                                                Command="{x:Bind ViewModel.CleanAndSortLinesCommand}" CommandParameter="clean">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8E6;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tools_Sort]}"
+                                                                Command="{x:Bind ViewModel.CleanAndSortLinesCommand}" CommandParameter="sort">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8CB;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </DropDownButton.Flyout>
+                                    </DropDownButton>
+
+                                    <!-- Add Prefix / Suffix Flyout Button -->
+                                    <Button ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_Tools_PrefixSuffix]}">
+                                        <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                        <Button.Flyout>
+                                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                                <StackPanel Spacing="10" Width="260">
+                                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_PrefixSuffixTitle]}"
+                                                               Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                                                    <TextBox Header="{Binding Source={StaticResource Loc}, Path=[BatchFolder_PrefixLabel]}"
+                                                             Text="{x:Bind ViewModel.PrefixText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             PlaceholderText="e.g. 2026_" />
+                                                    <TextBox Header="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SuffixLabel]}"
+                                                             Text="{x:Bind ViewModel.SuffixText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             PlaceholderText="e.g. _v1" />
+                                                    <Button Style="{ThemeResource AccentButtonStyle}"
+                                                            HorizontalAlignment="Stretch"
+                                                            Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ApplyBtn]}"
+                                                            Command="{x:Bind ViewModel.ApplyPrefixSuffixCommand}" />
+                                                </StackPanel>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Right: Clear All Button -->
+                                <Button Grid.Column="1"
+                                        ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnClear]}"
+                                        Command="{x:Bind ViewModel.ClearInputCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnClear]}" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Row 1: Quick & Bulk Add Row (Supports comma/semicolon/newline separated entries) -->
+                        <Grid Grid.Row="1" ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <TextBox Grid.Column="0"
-                                     PlaceholderText="Quick add folder name (Press Enter to add row)..."
+                                     PlaceholderText="{Binding Source={StaticResource Loc}, Path=[BatchFolder_QuickAddPlaceholder]}"
                                      Text="{x:Bind ViewModel.QuickAddFolderName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      KeyDown="QuickAddTextBox_KeyDown" />
 
                             <CheckBox Grid.Column="1"
-                                      Content="Subfolder"
+                                      Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_QuickAddSubfolder]}"
                                       MinWidth="0"
                                       IsChecked="{x:Bind ViewModel.QuickAddAsSubfolder, Mode=TwoWay}"
-                                      ToolTipService.ToolTip="Indent as child of previous folder"
+                                      ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_QuickAddSubfolderTip]}"
                                       VerticalAlignment="Center" />
 
                             <Button Grid.Column="2"
                                     Style="{ThemeResource AccentButtonStyle}"
-                                    ToolTipService.ToolTip="Add Folder Row"
+                                    ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_QuickAddTip]}"
                                     Command="{x:Bind ViewModel.QuickAddFolderCommand}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE710;" FontSize="12" />
-                                    <TextBlock Text="Add Row" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_QuickAddBtn]}" />
                                 </StackPanel>
-                            </Button>
-
-                            <!-- Batch Series Generator Flyout -->
-                            <Button Grid.Column="3"
-                                    ToolTipService.ToolTip="Generate numbered folder series (e.g. Week 01..10)">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE8EC;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                    <TextBlock Text="Series..." />
-                                </StackPanel>
-                                <Button.Flyout>
-                                    <Flyout Placement="BottomEdgeAlignedRight">
-                                        <StackPanel Spacing="12" Width="280">
-                                            <TextBlock Text="Generate Numbered Folder Series" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                                            <TextBlock Text="Automatically creates multiple sequential folder rows."
-                                                       Style="{ThemeResource CaptionTextBlockStyle}"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                       TextWrapping="Wrap" />
-
-                                            <TextBox Header="Folder Name Pattern"
-                                                     Text="{x:Bind ViewModel.SeriesPattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                     PlaceholderText="e.g. Lesson_{seq:2} or Module_{seq:3}" />
-
-                                            <NumberBox Header="Number of Folders (Count)"
-                                                       Value="{x:Bind ViewModel.SeriesCount, Mode=TwoWay}"
-                                                       Minimum="1"
-                                                       Maximum="500"
-                                                       SmallChange="5"
-                                                       SpinButtonPlacementMode="Inline" />
-
-                                            <CheckBox Content="Append to existing list"
-                                                      IsChecked="{x:Bind ViewModel.AppendSeriesToExisting, Mode=TwoWay}" />
-
-                                            <Button Content="Generate Series Rows"
-                                                    Style="{ThemeResource AccentButtonStyle}"
-                                                    HorizontalAlignment="Stretch"
-                                                    Command="{x:Bind ViewModel.GenerateSeriesCommand}" />
-                                        </StackPanel>
-                                    </Flyout>
-                                </Button.Flyout>
                             </Button>
                         </Grid>
-                    </Border>
 
-                    <!-- Row 1: Quick-Insert Token Chips & Templates -->
-                    <Grid Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                        <!-- Row 2: Helper Explanation Text -->
+                        <TextBlock
+                            Grid.Row="2"
+                            Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_EditorHelper]}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <TextBlock Text="Tokens:" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="12" Margin="0,0,4,0" />
-                            <Button Content="{}{date}"
-                                    Style="{ThemeResource SubtleButtonStyle}"
-                                    Padding="6,3"
-                                    FontSize="11"
-                                    ToolTipService.ToolTip="Insert current date (yyyy-MM-dd)"
-                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
-                                    CommandParameter="{}{date:yyyy-MM-dd}" />
-                            <Button Content="{}{time}"
-                                    Style="{ThemeResource SubtleButtonStyle}"
-                                    Padding="6,3"
-                                    FontSize="11"
-                                    ToolTipService.ToolTip="Insert current time (HHmmss)"
-                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
-                                    CommandParameter="{}{time:HHmmss}" />
-                            <Button Content="{}{seq:2}"
-                                    Style="{ThemeResource SubtleButtonStyle}"
-                                    Padding="6,3"
-                                    FontSize="11"
-                                    ToolTipService.ToolTip="Insert 2-digit sequence counter (01, 02...)"
-                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
-                                    CommandParameter="{}{seq:2}" />
-                            <Button Content="{}{seq:3}"
-                                    Style="{ThemeResource SubtleButtonStyle}"
-                                    Padding="6,3"
-                                    FontSize="11"
-                                    ToolTipService.ToolTip="Insert 3-digit sequence counter (001, 002...)"
-                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
-                                    CommandParameter="{}{seq:3}" />
-                            <Button Content="{}{guid}"
-                                    Style="{ThemeResource SubtleButtonStyle}"
-                                    Padding="6,3"
-                                    FontSize="11"
-                                    ToolTipService.ToolTip="Insert unique GUID"
-                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
-                                    CommandParameter="{}{guid}" />
-                        </StackPanel>
+                        <!-- Row 3: Multi-line Monospaced Input TextBox with Line Numbers Gutter -->
+                        <Border Grid.Row="3"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Background="{ThemeResource LayerFillColorDefaultBrush}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
 
-                        <!-- Editor Helper Actions & Templates -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <Button Padding="6,4"
-                                    ToolTipService.ToolTip="Outdent all lines (-2 spaces)"
-                                    Command="{x:Bind ViewModel.OutdentAllCommand}">
-                                <FontIcon Glyph="&#xE76B;" FontSize="11" />
-                            </Button>
-                            <Button Padding="6,4"
-                                    ToolTipService.ToolTip="Indent all lines (+2 spaces)"
-                                    Command="{x:Bind ViewModel.IndentAllCommand}">
-                                <FontIcon Glyph="&#xE76C;" FontSize="11" />
-                            </Button>
-                            <Button Padding="6,4"
-                                    ToolTipService.ToolTip="Clean blank lines &amp; trim spaces"
-                                    Command="{x:Bind ViewModel.CleanAndSortLinesCommand}"
-                                    CommandParameter="clean">
-                                <FontIcon Glyph="&#xE8E6;" FontSize="11" />
-                            </Button>
+                                    <!-- Synchronized Line Numbers Gutter -->
+                                    <Border Grid.Column="0"
+                                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="0,0,1,0"
+                                            Padding="8,10,8,10"
+                                            MinWidth="34">
+                                        <TextBlock
+                                            Text="{x:Bind ViewModel.LineNumbersText, Mode=OneWay}"
+                                            FontFamily="Cascadia Code, Consolas, Courier New"
+                                            FontSize="13"
+                                            LineHeight="20"
+                                            TextAlignment="Right"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
 
-                            <DropDownButton Content="Templates" FontSize="12" Padding="8,4">
-                                <DropDownButton.Flyout>
-                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
-                                        <MenuFlyoutItem Text="Project Template" Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="project" />
-                                        <MenuFlyoutItem Text="Dated Archive Template" Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="archive" />
-                                        <MenuFlyoutItem Text="Dataset Sets Template" Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="dataset" />
-                                        <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Text="Sort Lines A-Z" Command="{x:Bind ViewModel.CleanAndSortLinesCommand}" CommandParameter="sort" />
-                                        <MenuFlyoutItem Text="Clear All" Command="{x:Bind ViewModel.ClearInputCommand}" />
-                                    </MenuFlyout>
-                                </DropDownButton.Flyout>
-                            </DropDownButton>
-                        </StackPanel>
+                                    <!-- Multi-line Monospaced Input TextBox -->
+                                    <TextBox
+                                        Grid.Column="1"
+                                        Text="{x:Bind ViewModel.RawInputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                        BorderThickness="0"
+                                        Background="Transparent"
+                                        VerticalAlignment="Stretch"
+                                        Padding="10,9,10,10"
+                                        PlaceholderText="ProjectRoot&#x0a;  src&#x0a;    components_{seq:2}&#x0a;  docs_{date:yyyy-MM-dd}&#x0a;  assets" />
+                                </Grid>
+                            </ScrollViewer>
+                        </Border>
                     </Grid>
+                </Border>
 
-                    <!-- Row 2: Helper Subtitle -->
-                    <TextBlock
-                        Grid.Row="2"
-                        Text="Enter 1 folder per line. Indent with 2 spaces or use '/' (e.g. Parent/Child) for subfolders:"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <!-- Right Panel: Live TreeView Preview Showing Exact Target Path Structure -->
+                <Border x:Name="PreviewCard" Grid.Row="0" Grid.Column="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
+                    <Grid RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                    <!-- Row 3: Multi-line Monospaced Input TextBox with Line Number Gutter -->
-                    <Border Grid.Row="3"
+                        <!-- Row 0: Preview Header with Title & Tree Controls -->
+                        <Grid Grid.Row="0" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8B7;" FontSize="15" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_TreePreviewTitle]}" FontWeight="SemiBold" FontSize="15" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_TreePreviewSubtitle]}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
+                            <!-- Stat Badges & Tree Expand/Collapse Controls -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BadgeTotal]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
+                                        <TextBlock Text="{x:Bind ViewModel.TotalFoldersCount, Mode=OneWay}" FontWeight="SemiBold" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BadgeNew]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
+                                        <TextBlock Text="{x:Bind ViewModel.NewFoldersCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BadgeExists]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
+                                        <TextBlock Text="{x:Bind ViewModel.ExistingFoldersCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCautionBrush}" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BadgeErr]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
+                                        <TextBlock Text="{x:Bind ViewModel.ErrorsCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Button Padding="6,4"
+                                        ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ExpandAll]}"
+                                        Command="{x:Bind ViewModel.ExpandAllPreviewCommand}">
+                                    <FontIcon Glyph="&#xE70D;" FontSize="11" />
+                                </Button>
+                                <Button Padding="6,4"
+                                        ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[BatchFolder_CollapseAll]}"
+                                        Command="{x:Bind ViewModel.CollapseAllPreviewCommand}">
+                                    <FontIcon Glyph="&#xE70E;" FontSize="11" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Row 1: Search / Filter in Preview Tree -->
+                        <TextBox Grid.Row="1"
+                                 PlaceholderText="{Binding Source={StaticResource Loc}, Path=[BatchFolder_SearchPlaceholder]}"
+                                 Text="{x:Bind ViewModel.SearchFilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBox.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE721;" FontSize="11" />
+                                    <TextBlock Text="Filter" FontSize="11" />
+                                </StackPanel>
+                            </TextBox.Header>
+                        </TextBox>
+
+                        <!-- Row 2: Real-Time TreeView Preview -->
+                        <Border
+                            Grid.Row="2"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                             BorderThickness="1"
                             CornerRadius="6"
-                            Background="{ThemeResource LayerFillColorDefaultBrush}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            Padding="8">
                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                                <!-- TreeView when items exist -->
+                                <TreeView
+                                    ItemsSource="{x:Bind ViewModel.PreviewTreeNodes, Mode=OneWay}"
+                                    SelectionMode="None">
+                                    <TreeView.ItemTemplate>
+                                        <DataTemplate x:DataType="local:FolderPreviewNode">
+                                            <Grid ColumnSpacing="8" Padding="2,4" ToolTipService.ToolTip="{x:Bind FullPath, Mode=OneTime}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
 
-                                <!-- Synchronized Line Numbers Gutter -->
-                                <Border Grid.Column="0"
-                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                        BorderThickness="0,0,1,0"
-                                        Padding="8,10,8,10"
-                                        MinWidth="34">
-                                    <TextBlock
-                                        Text="{x:Bind ViewModel.LineNumbersText, Mode=OneWay}"
-                                        FontFamily="Cascadia Code, Consolas, Courier New"
-                                        FontSize="13"
-                                        LineHeight="20"
-                                        TextAlignment="Right"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
+                                                <!-- Folder Icon -->
+                                                <FontIcon
+                                                    Grid.Column="0"
+                                                    Glyph="&#xE8B7;"
+                                                    FontSize="15"
+                                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                    VerticalAlignment="Center" />
 
-                                <!-- Multi-line Monospaced Input TextBox -->
-                                <TextBox
-                                    Grid.Column="1"
-                                    Text="{x:Bind ViewModel.RawInputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Style="{StaticResource MonospaceCodeTextBoxStyle}"
-                                    BorderThickness="0"
-                                    Background="Transparent"
-                                    VerticalAlignment="Stretch"
-                                    Padding="10,9,10,10"
-                                    PlaceholderText="RootFolder&#x0a;  src&#x0a;    components_{seq:2}&#x0a;  docs_{date:yyyy-MM-dd}&#x0a;  logs_{guid}" />
-                            </Grid>
-                        </ScrollViewer>
-                    </Border>
-                </Grid>
-            </Border>
-
-            <!-- Right Panel: Live TreeView Preview Showing Exact Target Path Structure -->
-            <Border x:Name="PreviewCard" Grid.Row="0" Grid.Column="1" Style="{StaticResource FluentCardBorderStyle}" Padding="14">
-                <Grid RowSpacing="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <!-- Preview Header with Metrics Badges & Expand/Collapse -->
-                    <Grid Grid.Row="0" ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="Directory Tree Preview" FontWeight="SemiBold" FontSize="15" />
-                            <TextBlock Text="Live target hierarchy &amp; collision status"
-                                       Style="{ThemeResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-
-                        <!-- Stat Badges & Tree Controls -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="Total:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
-                                    <TextBlock Text="{x:Bind ViewModel.TotalFoldersCount, Mode=OneWay}" FontWeight="SemiBold" FontSize="11" />
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="New:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
-                                    <TextBlock Text="{x:Bind ViewModel.NewFoldersCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" FontSize="11" />
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="Exists:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
-                                    <TextBlock Text="{x:Bind ViewModel.ExistingFoldersCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCautionBrush}" FontSize="11" />
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="Err:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="11" />
-                                    <TextBlock Text="{x:Bind ViewModel.ErrorsCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="11" />
-                                </StackPanel>
-                            </Border>
-
-                            <Button Padding="6,4"
-                                    ToolTipService.ToolTip="Expand All Nodes"
-                                    Command="{x:Bind ViewModel.ExpandAllPreviewCommand}">
-                                <FontIcon Glyph="&#xE70D;" FontSize="11" />
-                            </Button>
-                            <Button Padding="6,4"
-                                    ToolTipService.ToolTip="Collapse All Nodes"
-                                    Command="{x:Bind ViewModel.CollapseAllPreviewCommand}">
-                                <FontIcon Glyph="&#xE70E;" FontSize="11" />
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Real-Time TreeView Preview -->
-                    <Border
-                        Grid.Row="1"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        Padding="8">
-                        <Grid>
-                            <!-- TreeView when items exist -->
-                            <TreeView
-                                ItemsSource="{x:Bind ViewModel.PreviewTreeNodes, Mode=OneWay}"
-                                SelectionMode="None">
-                                <TreeView.ItemTemplate>
-                                    <DataTemplate x:DataType="local:FolderPreviewNode">
-                                        <Grid ColumnSpacing="8" Padding="2,4" ToolTipService.ToolTip="{x:Bind FullPath, Mode=OneTime}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <!-- Folder Icon -->
-                                            <FontIcon
-                                                Grid.Column="0"
-                                                Glyph="&#xE8B7;"
-                                                FontSize="15"
-                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                VerticalAlignment="Center" />
-
-                                            <!-- Evaluated Folder Name & Relative Path -->
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                <TextBlock
-                                                    Text="{x:Bind Name, Mode=OneTime}"
-                                                    FontWeight="Medium"
-                                                    VerticalAlignment="Center"
-                                                    TextTrimming="CharacterEllipsis" />
-                                                <TextBlock
-                                                    Text="{x:Bind RelativePath, Mode=OneTime}"
-                                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    VerticalAlignment="Center"
-                                                    TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-
-                                            <!-- Conflict Status Pill Badge -->
-                                            <Border
-                                                Grid.Column="2"
-                                                CornerRadius="4"
-                                                Padding="6,2"
-                                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                                VerticalAlignment="Center">
-                                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="{ThemeResource SystemFillColorSuccessBrush}"
-                                                              Visibility="{x:Bind IsNewStatus, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                                    <FontIcon Glyph="&#xE7BA;" FontSize="10" Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                                              Visibility="{x:Bind IsWarningStatus, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                                    <FontIcon Glyph="&#xE783;" FontSize="10" Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                                              Visibility="{x:Bind HasError, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                <!-- Evaluated Folder Name & Relative Path -->
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                     <TextBlock
-                                                        Text="{x:Bind StatusBadge, Mode=OneTime}"
-                                                        FontSize="11"
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                        Text="{x:Bind Name, Mode=OneTime}"
+                                                        FontWeight="Medium"
+                                                        VerticalAlignment="Center"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock
+                                                        Text="{x:Bind RelativePath, Mode=OneTime}"
+                                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                        VerticalAlignment="Center"
+                                                        TextTrimming="CharacterEllipsis" />
                                                 </StackPanel>
-                                            </Border>
-                                        </Grid>
-                                    </DataTemplate>
-                                </TreeView.ItemTemplate>
-                            </TreeView>
 
-                            <!-- Empty State Display -->
-                            <controls:EmptyStateControl
-                                IconGlyph="&#xE8F4;"
-                                Title="No folder structure to preview"
-                                Subtitle="Use 'Quick add', 'Series...', or type folder names on the left to preview the directory tree."
-                                IsEmpty="{x:Bind ViewModel.IsPreviewEmpty, Mode=OneWay}" />
-                        </Grid>
-                    </Border>
+                                                <!-- Conflict Status Pill Badge -->
+                                                <Border
+                                                    Grid.Column="2"
+                                                    CornerRadius="4"
+                                                    Padding="6,2"
+                                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                    VerticalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                                        <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                                  Visibility="{x:Bind IsNewStatus, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                        <FontIcon Glyph="&#xE7BA;" FontSize="10" Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                                  Visibility="{x:Bind IsWarningStatus, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                        <FontIcon Glyph="&#xE783;" FontSize="10" Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                                  Visibility="{x:Bind HasError, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                        <TextBlock
+                                                            Text="{x:Bind StatusBadge, Mode=OneTime}"
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </TreeView.ItemTemplate>
+                                </TreeView>
+
+                                <!-- Empty State Display -->
+                                <controls:EmptyStateControl
+                                    IconGlyph="&#xE8F4;"
+                                    Title="{Binding Source={StaticResource Loc}, Path=[BatchFolder_EmptyTitle]}"
+                                    Subtitle="{Binding Source={StaticResource Loc}, Path=[BatchFolder_EmptySubtitle]}"
+                                    IsEmpty="{x:Bind ViewModel.IsPreviewEmpty, Mode=OneWay}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Row 3: Bottom Action Bar & Status/Progress Reporting -->
+            <Border Grid.Row="3" Style="{StaticResource FluentCardBorderStyle}" Padding="14,10">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Create Folders Primary Button -->
+                    <Button
+                        Grid.Column="0"
+                        Style="{ThemeResource AccentButtonStyle}"
+                        Command="{x:Bind ViewModel.CreateFoldersCommand}"
+                        IsEnabled="{x:Bind ViewModel.CanCreate, Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8F4;" FontSize="14" />
+                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnCreate]}" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <Button.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="Enter" Modifiers="Control" />
+                        </Button.KeyboardAccelerators>
+                    </Button>
+
+                    <!-- Refresh Preview Secondary Button -->
+                    <Button
+                        Grid.Column="1"
+                        Command="{x:Bind ViewModel.RefreshPreviewCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE72C;" FontSize="13" />
+                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_BtnRefresh]}" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Standardized StatusFooterControl -->
+                    <controls:StatusFooterControl
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                        IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
+                        ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                        StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                        DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- Bottom Action Bar & Status/Progress Reporting -->
-        <Border Grid.Row="3" Style="{StaticResource FluentCardBorderStyle}" Padding="14,10">
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <!-- Create Folders Primary Button -->
-                <Button
-                    Grid.Column="0"
-                    Style="{ThemeResource AccentButtonStyle}"
-                    Command="{x:Bind ViewModel.CreateFoldersCommand}"
-                    IsEnabled="{x:Bind ViewModel.CanCreate, Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE8F4;" FontSize="14" />
-                        <TextBlock Text="Create Folders" FontWeight="SemiBold" />
-                    </StackPanel>
-                    <Button.KeyboardAccelerators>
-                        <KeyboardAccelerator Key="Enter" Modifiers="Control" />
-                    </Button.KeyboardAccelerators>
-                </Button>
-
-                <!-- Refresh Preview Secondary Button -->
-                <Button
-                    Grid.Column="1"
-                    Command="{x:Bind ViewModel.RefreshPreviewCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE72C;" FontSize="13" />
-                        <TextBlock Text="Refresh Preview" />
-                    </StackPanel>
-                </Button>
-
-                <!-- Standardized StatusFooterControl -->
-                <controls:StatusFooterControl
-                    Grid.Column="2"
+        <!-- ========================================================================= -->
+        <!-- POPUP MODAL: SMART IMPORT FROM EXCEL (.XLSX), CSV, TXT & BATCH PASTE      -->
+        <!-- ========================================================================= -->
+        <Grid Background="#CC000000"
+              Visibility="{x:Bind ViewModel.IsImportModalOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
+            <Border Style="{StaticResource FluentDialogBorderStyle}"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
-                    IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
-                    ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
-                    StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                    DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
-            </Grid>
-        </Border>
+                    Width="600"
+                    Padding="26"
+                    CornerRadius="14">
+                <StackPanel Spacing="16">
+                    <!-- Title & Subtitle with Icon -->
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8FD;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportModalTitle]}"
+                                       Style="{ThemeResource SubtitleTextBlockStyle}"
+                                       FontWeight="Bold" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportModalSubtitle]}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+
+                    <!-- Segmented Tabs for Import Source -->
+                    <Pivot SelectedIndex="{x:Bind ViewModel.ImportTabIndex, Mode=TwoWay}">
+                        <!-- Tab 1: File Import (Excel / CSV / TXT) -->
+                        <PivotItem>
+                            <PivotItem.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8E5;" FontSize="13" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportTabFile]}" />
+                                </StackPanel>
+                            </PivotItem.Header>
+                            <StackPanel Spacing="12" Margin="0,10,0,0">
+                                <!-- File Selector Card -->
+                                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="18">
+                                    <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE8E5;" FontSize="30" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{x:Bind ViewModel.ImportFileStatusText, Mode=OneWay}"
+                                                   Style="{ThemeResource BodyTextBlockStyle}"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap" />
+                                        <Button Style="{ThemeResource AccentButtonStyle}"
+                                                HorizontalAlignment="Center"
+                                                Command="{x:Bind ViewModel.PickImportFileCommand}">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <FontIcon Glyph="&#xE838;" FontSize="14" />
+                                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportChooseFile]}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Parsed Folder Preview List -->
+                                <StackPanel Spacing="6" Visibility="{x:Bind ViewModel.HasImportPreview, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <TextBlock Text="{x:Bind ViewModel.ImportPreviewSummary, Mode=OneWay}"
+                                               Style="{ThemeResource CaptionTextBlockStyle}"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+
+                                    <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                            MaxHeight="140">
+                                        <ListView ItemsSource="{x:Bind ViewModel.ImportPreviewItems, Mode=OneWay}" SelectionMode="None">
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <Grid ColumnSpacing="8" Padding="4,3">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <FontIcon Grid.Column="0" Glyph="&#xE8B7;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" VerticalAlignment="Center" />
+                                                        <TextBlock Grid.Column="1" Text="{x:Bind}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" FontFamily="Cascadia Code, Consolas" FontSize="12" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
+                                        </ListView>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </PivotItem>
+
+                        <!-- Tab 2: Raw Text Paste -->
+                        <PivotItem>
+                            <PivotItem.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportTabPaste]}" />
+                                </StackPanel>
+                            </PivotItem.Header>
+                            <StackPanel Spacing="8" Margin="0,10,0,0">
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportPasteTip]}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                <TextBox Text="{x:Bind ViewModel.ImportPayloadText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                         Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                         Height="160"
+                                         AcceptsReturn="True"
+                                         PlaceholderText="Folder1&#x0a;Folder2/SubA&#x0a;Folder2/SubB&#x0a;Folder3, Folder4, Folder5" />
+                            </StackPanel>
+                        </PivotItem>
+                    </Pivot>
+
+                    <!-- Import Mode: Replace vs Append -->
+                    <StackPanel Spacing="6" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportOptionMode]}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <RadioButton IsChecked="{x:Bind ViewModel.IsImportReplaceMode, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportReplace]}" />
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton IsChecked="{x:Bind ViewModel.IsImportAppendMode, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE710;" FontSize="12" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportAppend]}" />
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+
+                        <CheckBox IsChecked="{x:Bind ViewModel.ImportSanitizeCharacters, Mode=TwoWay}"
+                                  Content="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportSanitize]}"
+                                  Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Command="{x:Bind ViewModel.CloseImportModalCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE711;" FontSize="12" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportCancel]}" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{ThemeResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.ExecuteImportCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE73E;" FontSize="13" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[BatchFolder_ImportConfirm]}" FontWeight="SemiBold" />
+                            </StackPanel>
+                            <Button.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="Enter" />
+                            </Button.KeyboardAccelerators>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

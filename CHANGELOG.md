@@ -9,3 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Batch Folder Creator UX & Architecture Overhaul**:
+  - Smart Import Modal dialog with support for Excel (`.xlsx`), CSV, TSV, and Text (`.txt`) files or direct raw paste.
+  - Multi-item Bulk Quick-Add support for comma-, semicolon-, or newline-separated folder names.
+  - Numbered Series Generator with real-time live sample preview.
+  - Prefix & Suffix batch applicator preserving line indentation.
+  - Real-time search and filter box inside the live TreeView preview.
+  - Comprehensive bilingual localization (English & Tiếng Việt) for all Batch Folder elements.
+  - Fluent Segoe icon integration on all action buttons, pills, badges, tabs, and menus.
+  - Additional domain templates: Web Full-Stack, Media & Video Production, and Business Office.
+  - 7 unit tests in `FolderCreatorTests` covering Excel parsing, CSV/delimiter handling, bulk add, and templates.
+
+### Changed
+- Re-architected `BatchFolderPage.xaml` layout with streamlined card hierarchy (Target Path, Settings Bar, Tools & Editor, Tree Preview, Action Bar).
+- Grouped tool actions into clean categorized command menus (Import, Series, Templates, Tokens, Tools, Clear).
+- Overhauled `LuckyWheelPage.xaml` visual display:
+  - Eliminated Title/Subtitle text truncation and multi-line wrapping in `SectionCardControl` by relocating action buttons to a dedicated full-width command toolbar.
+  - Replaced misplaced folder icon with native list icon (`\uE8FD`).
+  - Removed cramped 92px stepper from quick-add bar to give full width to the item name text input.
+  - Redesigned search bar and metrics badges into a spacious 2-tier layout preventing text clipping.
+  - Fixed dark mode stepper background rendering in ListView by transitioning from `TextBox` to semibold `TextBlock`, eliminating unsightly black rectangles.
+  - Optimized canvas height to `390px` to prevent vertical viewport overflow and clipping of spin controls.
+

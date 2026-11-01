@@ -389,4 +389,162 @@ public sealed class FolderCreatorTests : IDisposable
         string sorted = FolderParser.NormalizeLines(messy, sortAlphabetically: true);
         Assert.Equal($"  Alpha{Environment.NewLine}  Beta{Environment.NewLine}  Zebra", sorted);
     }
+
+    [Fact]
+    public void FolderParser_ParseLinesFromText_ParsesDelimitedAndSingleLines()
+    {
+        string raw = "Folder Alpha, Folder Beta, Folder Gamma";
+        var result = FolderParser.ParseLinesFromText(raw);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(3, result.Value.Count);
+        Assert.Equal("Folder Alpha", result.Value[0]);
+        Assert.Equal("Folder Beta", result.Value[1]);
+        Assert.Equal("Folder Gamma", result.Value[2]);
+    }
+
+    [Fact]
+    public void FolderParser_ParseLinesFromText_SkipsHeadersAndHandlesCsv()
+    {
+        string csv = """
+            Folder Name, Status
+            1, Client_A
+            2, Client_B
+            3, Client_C
+            """;
+        var result = FolderParser.ParseLinesFromText(csv);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(3, result.Value.Count);
+        Assert.Equal("Client_A", result.Value[0]);
+        Assert.Equal("Client_B", result.Value[1]);
+        Assert.Equal("Client_C", result.Value[2]);
+    }
+
+    [Fact]
+    public void FolderParser_ParseBulkAddInput_SplitsMultipleSeparatorsAndHandlesSubfolders()
+    {
+        string input = "Alpha, Beta; Gamma\nDelta";
+        var topLevel = FolderParser.ParseBulkAddInput(input, asSubfolder: false);
+        Assert.Equal(4, topLevel.Count);
+        Assert.Equal("Alpha", topLevel[0]);
+        Assert.Equal("Beta", topLevel[1]);
+        Assert.Equal("Gamma", topLevel[2]);
+        Assert.Equal("Delta", topLevel[3]);
+
+        var subfolders = FolderParser.ParseBulkAddInput(input, asSubfolder: true);
+        Assert.Equal(4, subfolders.Count);
+        Assert.Equal("  Alpha", subfolders[0]);
+        Assert.Equal("  Beta", subfolders[1]);
+        Assert.Equal("  Gamma", subfolders[2]);
+        Assert.Equal("  Delta", subfolders[3]);
+    }
+
+    [Fact]
+    public void FolderParser_ApplyPrefixSuffix_AppliesToLinesPreservingIndentation()
+    {
+        string raw = "Root\n  Child1\n    GrandChild";
+        string modified = FolderParser.ApplyPrefixSuffix(raw, prefix: "2026_", suffix: "_v1");
+
+        var lines = modified.Replace("\r\n", "\n").Split('\n');
+        Assert.Equal(3, lines.Length);
+        Assert.Equal("2026_Root_v1", lines[0]);
+        Assert.Equal("  2026_Child1_v1", lines[1]);
+        Assert.Equal("    2026_GrandChild_v1", lines[2]);
+    }
+
+    [Fact]
+    public void FolderParser_GetPresetTemplate_ReturnsAllTemplateTypes()
+    {
+        string project = FolderParser.GetPresetTemplate("project");
+        Assert.Contains("src", project);
+        Assert.Contains("components", project);
+
+        string web = FolderParser.GetPresetTemplate("web");
+        Assert.Contains("client", web);
+        Assert.Contains("server", web);
+
+        string media = FolderParser.GetPresetTemplate("media");
+        Assert.Contains("01_Footage", media);
+        Assert.Contains("02_Audio", media);
+
+        string archive = FolderParser.GetPresetTemplate("archive");
+        Assert.Contains("Archive_{date:yyyy-MM-dd}", archive);
+
+        string dataset = FolderParser.GetPresetTemplate("dataset");
+        Assert.Contains("Dataset_{seq:3}", dataset);
+
+        string office = FolderParser.GetPresetTemplate("office");
+        Assert.Contains("Accounting", office);
+    }
+
+    [Fact]
+    public async Task FolderParser_ParseFromExcelStreamAsync_ParsesWorksheetAndSkipsHeaders()
+    {
+        using var memoryStream = new MemoryStream();
+        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var ssEntry = archive.CreateEntry("xl/sharedStrings.xml");
+            using (var writer = new StreamWriter(ssEntry.Open()))
+            {
+                writer.Write("""
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="4" uniqueCount="4">
+                        <si><t>Folder Name</t></si>
+                        <si><t>Department_HR</t></si>
+                        <si><t>Department_IT</t></si>
+                        <si><t>Department_Finance</t></si>
+                    </sst>
+                    """);
+            }
+
+            var sheetEntry = archive.CreateEntry("xl/worksheets/sheet1.xml");
+            using (var writer = new StreamWriter(sheetEntry.Open()))
+            {
+                writer.Write("""
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+                        <sheetData>
+                            <row r="1">
+                                <c r="A1" t="s"><v>0</v></c>
+                            </row>
+                            <row r="2">
+                                <c r="A2" t="s"><v>1</v></c>
+                            </row>
+                            <row r="3">
+                                <c r="A3" t="s"><v>2</v></c>
+                            </row>
+                            <row r="4">
+                                <c r="A4" t="s"><v>3</v></c>
+                            </row>
+                        </sheetData>
+                    </worksheet>
+                    """);
+            }
+        }
+
+        memoryStream.Position = 0;
+        var result = await FolderParser.ParseFromExcelStreamAsync(memoryStream);
+
+        Assert.True(result.IsSuccess);
+        var items = result.Value;
+        Assert.Equal(3, items.Count);
+        Assert.Equal("Department_HR", items[0]);
+        Assert.Equal("Department_IT", items[1]);
+        Assert.Equal("Department_Finance", items[2]);
+    }
+
+    [Fact]
+    public async Task FolderParser_ImportFromFileAsync_ReadsTextAndCsvFiles()
+    {
+        string testFilePath = Path.Combine(_tempTestDir, "folders.txt");
+        await File.WriteAllTextAsync(testFilePath, "Folder_Alpha\nFolder_Beta/Sub1\nFolder_Gamma");
+
+        var result = await FolderParser.ImportFromFileAsync(testFilePath);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(3, result.Value.Count);
+        Assert.Equal("Folder_Alpha", result.Value[0]);
+        Assert.Equal("Folder_Beta/Sub1", result.Value[1]);
+        Assert.Equal("Folder_Gamma", result.Value[2]);
+    }
 }
