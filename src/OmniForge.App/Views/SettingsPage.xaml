@@ -20,6 +20,11 @@
                 Subtitle="Customize Fluent MicaAlt window chrome and visual preferences"
                 IconGlyph="&#xE790;">
                 <StackPanel Spacing="16">
+                    <ComboBox Header="App Theme (Applied Live)"
+                              ItemsSource="{x:Bind ViewModel.ThemeOptions, Mode=OneWay}"
+                              SelectedItem="{x:Bind ViewModel.SelectedTheme, Mode=TwoWay}"
+                              MinWidth="220" />
+
                     <ToggleSwitch Header="Enable MicaAlt System Backdrop"
                                   IsOn="{x:Bind ViewModel.EnableMicaAlt, Mode=TwoWay}" />
 

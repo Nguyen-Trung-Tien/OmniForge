@@ -12,6 +12,7 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly INavigationService _navigationService;
     private readonly IToolRegistryService _toolRegistry;
+    private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "OmniForge Utility Suite";
@@ -38,10 +39,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<string> SearchSuggestions { get; } = [];
 
-    public MainWindowViewModel(INavigationService navigationService, IToolRegistryService toolRegistry)
+    public MainWindowViewModel(
+        INavigationService navigationService,
+        IToolRegistryService toolRegistry,
+        ISettingsService settingsService)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
 
         _toolRegistry.ModulesChanged += OnModulesChanged;
         _navigationService.Navigated += OnNavigated;
@@ -136,11 +141,37 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
 
-        // Navigate to the first available module if nothing is currently selected
+        // Navigate to the restored module or first available module
         if (SelectedItem is null && NavigationItems.Count > 0)
         {
-            SelectedItem = NavigationItems[0];
-            TryNavigateToType(NavigationItems[0].ViewType, NavigationItems[0].Title);
+            _ = RestoreInitialSelectionAsync();
+        }
+    }
+
+    private async Task RestoreInitialSelectionAsync()
+    {
+        try
+        {
+            var lastModuleId = await _settingsService.GetLastOpenedModuleAsync();
+            NavigationItemViewModel? targetItem = null;
+
+            if (!string.IsNullOrEmpty(lastModuleId))
+            {
+                targetItem = NavigationItems.FirstOrDefault(i =>
+                    i.Id.Equals(lastModuleId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            targetItem ??= NavigationItems.FirstOrDefault();
+
+            if (targetItem is not null)
+            {
+                SelectedItem = targetItem;
+                TryNavigateToType(targetItem.ViewType, targetItem.Title);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShellErrorMessage = $"Failed to restore last module selection: {ex.Message}";
         }
     }
 
@@ -171,10 +202,12 @@ public partial class MainWindowViewModel : ObservableObject
         {
             SelectedItem = matchingItem;
             CurrentSectionTitle = matchingItem.Title;
+            _ = _settingsService.SetLastOpenedModuleAsync(matchingItem.Id);
         }
         else if (pageType.Name.Contains("Settings", StringComparison.OrdinalIgnoreCase))
         {
             CurrentSectionTitle = "Settings";
+            _ = _settingsService.SetLastOpenedModuleAsync("Settings");
         }
     }
 }

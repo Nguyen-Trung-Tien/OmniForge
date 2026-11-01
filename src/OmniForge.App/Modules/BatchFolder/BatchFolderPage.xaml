@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="OmniForge.App.Modules.BatchFolder.BatchFolderPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:OmniForge.App.Controls"
+    xmlns:local="using:OmniForge.App.Modules.BatchFolder"
+    mc:Ignorable="d">
+
+    <Grid RowSpacing="12" Padding="{StaticResource OmniPagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Tool Header -->
+        <controls:ToolHeaderControl
+            Grid.Row="0"
+            Title="Batch Folder Creator"
+            Subtitle="Generate single or nested directory structures from flat lists or indented hierarchy templates with variable interpolation"
+            HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
+            ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+
+        <!-- Target Root Folder & Creation Settings Bar -->
+        <Border Grid.Row="1" Style="{StaticResource FluentCardBorderStyle}" Padding="16,12">
+            <Grid RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Target Root Directory Picker -->
+                <Grid Grid.Row="0" ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox
+                        Grid.Column="0"
+                        Header="Target Root Directory"
+                        PlaceholderText="Select or paste target root folder path..."
+                        Text="{x:Bind ViewModel.RootDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Button
+                        Grid.Column="1"
+                        Content="Browse..."
+                        VerticalAlignment="Bottom"
+                        Command="{x:Bind ViewModel.BrowseRootFolderCommand}">
+                        <Button.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="O" Modifiers="Control" />
+                        </Button.KeyboardAccelerators>
+                    </Button>
+
+                    <Button
+                        Grid.Column="2"
+                        ToolTipService.ToolTip="Open in Windows Explorer"
+                        VerticalAlignment="Bottom"
+                        Command="{x:Bind ViewModel.OpenRootFolderCommand}">
+                        <FontIcon Glyph="&#xE8DA;" FontSize="14" />
+                    </Button>
+                </Grid>
+
+                <!-- Input Mode & Conflict Resolution Controls -->
+                <Grid Grid.Row="1" ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Input Mode Selector -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Mode:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <RadioButton
+                            Content="Tree / Indented"
+                            IsChecked="{x:Bind ViewModel.IsTreeMode, Mode=TwoWay}"
+                            ToolTipService.ToolTip="Indentation (2 spaces, 4 spaces, or Tabs) defines parent-child subfolders" />
+                        <RadioButton
+                            Content="Flat List"
+                            IsChecked="{x:Bind ViewModel.IsFlatMode, Mode=TwoWay}"
+                            ToolTipService.ToolTip="Each line is a folder name or slash-separated subpath" />
+                    </StackPanel>
+
+                    <!-- Conflict Handling Selector -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="On Conflict:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <ComboBox
+                            SelectedIndex="{x:Bind ViewModel.ConflictResolutionIndex, Mode=TwoWay}"
+                            Width="190">
+                            <ComboBoxItem Content="Skip existing" />
+                            <ComboBoxItem Content="Overwrite / Merge" />
+                            <ComboBoxItem Content="Append suffix (e.g. (1))" />
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Start Sequence Box -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Seq Start:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <NumberBox
+                            Value="{x:Bind ViewModel.StartSequence, Mode=TwoWay}"
+                            SpinButtonPlacementMode="Inline"
+                            SmallChange="1"
+                            Minimum="1"
+                            Maximum="99999"
+                            Width="110" />
+                    </StackPanel>
+
+                    <!-- Summary Pill Text -->
+                    <TextBlock
+                        Grid.Column="3"
+                        Text="{x:Bind ViewModel.DryRunSummaryText, Mode=OneWay}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Main Workspace: Split Left (Input & Helper) and Right (Live TreeView Preview) -->
+        <Grid Grid.Row="2" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="480" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Text Input with Line Numbers & Helper Token Buttons -->
+            <Border Grid.Column="0" Style="{StaticResource FluentCardBorderStyle}" Padding="16">
+                <Grid RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Quick-Insert Token Chips -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="Insert:" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="12" />
+                            <Button Content="{}{date:yyyy-MM-dd}"
+                                    Style="{ThemeResource SubtleButtonStyle}"
+                                    Padding="6,3"
+                                    FontSize="11"
+                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
+                                    CommandParameter="{}{date:yyyy-MM-dd}" />
+                            <Button Content="{}{time:HHmmss}"
+                                    Style="{ThemeResource SubtleButtonStyle}"
+                                    Padding="6,3"
+                                    FontSize="11"
+                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
+                                    CommandParameter="{}{time:HHmmss}" />
+                            <Button Content="{}{guid}"
+                                    Style="{ThemeResource SubtleButtonStyle}"
+                                    Padding="6,3"
+                                    FontSize="11"
+                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
+                                    CommandParameter="{}{guid}" />
+                            <Button Content="{}{seq:3}"
+                                    Style="{ThemeResource SubtleButtonStyle}"
+                                    Padding="6,3"
+                                    FontSize="11"
+                                    Command="{x:Bind ViewModel.InsertTokenCommand}"
+                                    CommandParameter="{}{seq:3}" />
+                        </StackPanel>
+
+                        <!-- Template Flyout Button -->
+                        <DropDownButton Grid.Column="1" Content="Templates" FontSize="12" Padding="8,4">
+                            <DropDownButton.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                    <MenuFlyoutItem Text="Project Template" Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="project" />
+                                    <MenuFlyoutItem Text="Dated Archive Template" Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="archive" />
+                                    <MenuFlyoutItem Text="Dataset Sets Template" Command="{x:Bind ViewModel.LoadTemplateCommand}" CommandParameter="dataset" />
+                                    <MenuFlyoutSeparator />
+                                    <MenuFlyoutItem Text="Clear All" Command="{x:Bind ViewModel.ClearInputCommand}" />
+                                </MenuFlyout>
+                            </DropDownButton.Flyout>
+                        </DropDownButton>
+                    </Grid>
+
+                    <!-- Helper Subtitle -->
+                    <TextBlock
+                        Grid.Row="1"
+                        Text="Enter folder names or indent with 2 spaces / 4 spaces / Tab for subfolders"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                    <!-- Multi-Line TextBox Container with Line Numbers Column -->
+                    <Border
+                        Grid.Row="2"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Line Numbers Column -->
+                            <Border
+                                Grid.Column="0"
+                                Background="{ThemeResource LayerFillColorAltBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,1,0"
+                                Padding="8,8,8,8"
+                                CornerRadius="6,0,0,6">
+                                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+                                    <TextBlock
+                                        Text="{x:Bind ViewModel.LineNumbersText, Mode=OneWay}"
+                                        FontFamily="Cascadia Code, Consolas, Courier New"
+                                        FontSize="13"
+                                        LineHeight="20"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        TextAlignment="Right" />
+                                </ScrollViewer>
+                            </Border>
+
+                            <!-- Multi-line Monospaced Input TextBox -->
+                            <TextBox
+                                Grid.Column="1"
+                                Text="{x:Bind ViewModel.RawInputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                AcceptsReturn="True"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Padding="10,8,10,8"
+                                FontFamily="Cascadia Code, Consolas, Courier New"
+                                FontSize="13"
+                                PlaceholderText="RootFolder&#x0a;  src&#x0a;    components_{seq:2}&#x0a;  docs_{date:yyyy-MM-dd}&#x0a;  logs_{guid}" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Right Panel: Live TreeView Preview Showing Exact Target Path Structure -->
+            <Border Grid.Column="1" Style="{StaticResource FluentCardBorderStyle}" Padding="16">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Preview Header with Metrics Badges -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="Directory Tree Preview" FontWeight="SemiBold" FontSize="15" />
+                            <TextBlock Text="Calculated target paths reflecting token evaluation and conflict rules"
+                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+
+                        <!-- Stat Badges -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="Total:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" />
+                                    <TextBlock Text="{x:Bind ViewModel.TotalFoldersCount, Mode=OneWay}" FontWeight="SemiBold" FontSize="12" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="New:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" />
+                                    <TextBlock Text="{x:Bind ViewModel.NewFoldersCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="LimeGreen" FontSize="12" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="Existing:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" />
+                                    <TextBlock Text="{x:Bind ViewModel.ExistingFoldersCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="DarkOrange" FontSize="12" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="Errors:" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" />
+                                    <TextBlock Text="{x:Bind ViewModel.ErrorsCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="OrangeRed" FontSize="12" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Real-Time TreeView Preview -->
+                    <Border
+                        Grid.Row="1"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        Padding="8">
+                        <Grid>
+                            <!-- TreeView when items exist -->
+                            <TreeView
+                                ItemsSource="{x:Bind ViewModel.PreviewTreeNodes, Mode=OneWay}"
+                                SelectionMode="None">
+                                <TreeView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:FolderPreviewNode">
+                                        <Grid ColumnSpacing="8" Padding="2,4" ToolTipService.ToolTip="{x:Bind FullPath, Mode=OneTime}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Folder Icon -->
+                                            <FontIcon
+                                                Grid.Column="0"
+                                                Glyph="&#xE8B7;"
+                                                FontSize="15"
+                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                VerticalAlignment="Center" />
+
+                                            <!-- Evaluated Folder Name -->
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{x:Bind Name, Mode=OneTime}"
+                                                VerticalAlignment="Center"
+                                                TextTrimming="CharacterEllipsis" />
+
+                                            <!-- Conflict Status Pill Badge -->
+                                            <Border
+                                                Grid.Column="2"
+                                                CornerRadius="4"
+                                                Padding="6,2"
+                                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                VerticalAlignment="Center">
+                                                <TextBlock
+                                                    Text="{x:Bind StatusBadge, Mode=OneTime}"
+                                                    FontSize="11"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </TreeView.ItemTemplate>
+                            </TreeView>
+
+                            <!-- Empty State Display -->
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="8"
+                                Visibility="{x:Bind ViewModel.HasPreviewItems, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+                                <FontIcon Glyph="&#xE8F4;" FontSize="32" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                                <TextBlock Text="No preview available" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock Text="Enter folder names on the left to see directory hierarchy preview" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Bottom Action Bar & Status/Progress Reporting -->
+        <Border Grid.Row="3" Style="{StaticResource FluentCardBorderStyle}" Padding="16,12">
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Create Folders Primary Button -->
+                <Button
+                    Grid.Column="0"
+                    Content="Create Folders"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Command="{x:Bind ViewModel.CreateFoldersCommand}"
+                    IsEnabled="{x:Bind ViewModel.CanCreate, Mode=OneWay}">
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Enter" Modifiers="Control" />
+                    </Button.KeyboardAccelerators>
+                </Button>
+
+                <!-- Refresh Preview Secondary Button -->
+                <Button
+                    Grid.Column="1"
+                    Content="Refresh Preview"
+                    Command="{x:Bind ViewModel.RefreshPreviewCommand}" />
+
+                <!-- Progress & Status Info -->
+                <Grid Grid.Column="2" VerticalAlignment="Center" RowSpacing="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Status Text / Execution Result -->
+                    <TextBlock
+                        Grid.Row="0"
+                        Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                        FontWeight="Medium"
+                        TextTrimming="CharacterEllipsis" />
+
+                    <!-- Progress Bar during creation -->
+                    <ProgressBar
+                        Grid.Row="1"
+                        Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                        IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
+                        Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

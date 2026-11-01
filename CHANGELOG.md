@@ -10,6 +10,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Production Settings & Preferences Architecture**:
+  - `ISettingsService` contract (`OmniForge.Core.Contracts`) & `SettingsService` implementation (`OmniForge.Services`):
+    - Persistent configuration stored in `%LocalAppData%/OmniForge/settings.json`.
+    - Live dynamic theme switching (`Light`, `Dark`, `Default`) applied immediately without requiring application restart.
+    - Automatic state restoration for last opened module and main window dimensions (`Window.Width`, `Window.Height`).
+    - Custom user templates storage engine categorized by module (`GetUserTemplatesAsync`, `SaveUserTemplateAsync`, `DeleteUserTemplateAsync`).
+  - Settings UI and Shell integration:
+    - `SettingsPage.xaml` & `SettingsViewModel`: Added live theme selector bound to `SettingsService`.
+    - `MainWindow.xaml.cs` & `MainWindowViewModel.cs`: Theme observer, geometry restorer/saver on close, and last opened module restoration.
+  - Integration test suite (`SettingsService_ThemeWindowSizeAndTemplates_ShouldPersistAndNotify`) verifying end-to-end persistence and reactive notifications.
+- **Global Exception & Crash Telemetry**:
+  - `App.xaml.cs`:
+    - Intercepts WinUI 3 XAML `UnhandledException`, `AppDomain.CurrentDomain.UnhandledException`, and `TaskScheduler.UnobservedTaskException`.
+    - Thread-safe non-fatal `ContentDialog` displaying structured diagnostic crash reports (timestamp, source, exception type, message, HResult, stack trace, inner exception).
+    - One-click "Copy to Clipboard" button enabling instant diagnostic sharing.
+    - Dialog re-entrancy shielding (`Interlocked.CompareExchange`) and fault isolation keeping the host process responsive.
+- **Deployment Packaging & GitHub Actions CI Workflow**:
+  - Dual packaging configuration in `OmniForge.App.csproj`:
+    - Supports unpackaged self-contained builds (`<WindowsPackageType>None</WindowsPackageType>` and `<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>`).
+    - Supports packaged MSIX builds (`-p:WindowsPackageType=MSIX`).
+    - Trimming and AOT safety guards (`PublishReadyToRun=True`, suppression of IL2026/IL2072 in `ModuleAutoDiscoveryExtensions`).
+  - `.github/workflows/build.yml`:
+    - Automated GitHub Actions workflow on push and pull requests to `main`/`develop` and version tags (`v*`).
+    - Executes .NET 9 restore, static architectural checks, and xUnit/NetArchTest test suite.
+    - Validates packaged MSIX build and publishes unpackaged self-contained x64 executable.
+    - Generates standalone `OmniForge-win-x64-standalone.zip` distribution archive and uploads it as a release artifact.
+- **Lucky Wheel (Vòng quay may mắn) Tool Module**:
+  - `LuckyWheelEngine` (`OmniForge.Core.Modules.LuckyWheel`):
+    - Pure physics and geometry calculation engine with zero UI dependencies.
+    - Smooth spin deceleration using Ease-Out Cubic ($\theta(t) = \theta_{target} - (\theta_{target} - \theta_0) \times (1 - t)^3$) and Exponential profiles.
+    - Deterministic target calculation mapping weighted items to target angles with boundary safety margins.
+    - Real-time slice divider crossing detection for audio tick cues and physical ticker recoil.
+  - `LuckyWheelCatalog` & `WheelItem` (`OmniForge.Core.Modules.LuckyWheel`):
+    - Domain models for items, slices, deceleration profiles, and spin targets.
+    - Curated 12-color high-contrast vibrant palette.
+    - Built-in presets: "Decision Maker", "Lunch Chooser", "Prize Raffle", "Team Standup", "Dice Roll (1-6)".
+    - Multi-line text import parser supporting `"Option: 2"`, `"Option, 2"`, `"Option (3)"`, and tab-delimited formats.
+  - Presentation & Win2D Rendering (`OmniForge.App.Modules.LuckyWheel`):
+    - `LuckyWheelViewModel` deriving from `ToolViewModelBase` with reactive slice recalculation, item editing, presets, clipboard import/copy, and celebratory victory presentation.
+    - `LuckyWheelPage.xaml` & `LuckyWheelPage.xaml.cs` powered by Win2D (`CanvasControl`):
+      - High-performance, DPI-aware 60/120 FPS render loop synchronized to `CompositionTarget.Rendering`.
+      - Segmented pie slices with metallic rim, drop shadow, and amber divider studs.
+      - Radially oriented labels along slice bisectors with clean text clipping.
+      - Interactive multi-layer center hub with click-to-spin trigger.
+      - Top ticker needle with damped harmonic spring-recoil animation upon divider crossings.
+      - Celebratory 70-particle floating confetti physics simulation on spin completion.
+      - Responsive right configuration panel with live option editing, custom weights, and presets.
+      - Celebratory winner overlay dialog with "Spin Again", "Remove Winner", and clipboard copy.
+    - `LuckyWheelModule` plugin auto-discovered by `ModuleAutoDiscoveryExtensions`.
+  - Comprehensive unit test suites (`LuckyWheelEngineTests`, `LuckyWheelCatalogTests`) validating physics formulas, slice partitioning, winner target landing, and import parsing.
+- **Batch Folder Creator Tool Module**:
+  - `FolderParser` (`OmniForge.Core.Modules.FolderCreator`):
+    - Mode A (Flat/List): Supports line-by-line directory declarations with relative path / subpath splitting (`/` and `\`).
+    - Mode B (Tree/Hierarchy): Stack-based visual indentation parser supporting 2 spaces, 4 spaces, and Tabs for defining parent-child nested directory trees.
+    - Path sanitizer replacing illegal Windows characters (`\ / : * ? " < > |` and control characters 0-31) with safe replacements, trimming trailing spaces/dots, and neutralizing reserved Windows device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
+  - `TokenEvaluator` (`OmniForge.Core.Modules.FolderCreator`):
+    - Dynamic variable token interpolation for `{date:format}`, `{time:format}`, `{guid}`, and auto-incrementing `{seq:width,start}` with ReDoS timeout protection.
+  - `FolderCreatorEngine` & `IFolderCreatorEngine` (`OmniForge.Core.Contracts` & `OmniForge.Core.Modules.FolderCreator`):
+    - Non-destructive dry-run inspection returning real-time directory tree preview with collision diagnostics.
+    - Three conflict resolution modes: `SkipExisting`, `Overwrite` (merge), and `AppendSuffix` (e.g. `Folder (1)`).
+    - Asynchronous directory creation on thread pool with `CancellationToken` support and fault isolation (individual folder failures do not abort remaining creations).
+  - Presentation & Fluent UI (`OmniForge.App.Modules.BatchFolder`):
+    - `FolderCreatorViewModel` deriving from `ToolViewModelBase` with 180ms debounced reactive preview, directory picker (`IFilePickerService`), token insert chips, preset templates, line number generation, and progress reporting.
+    - `BatchFolderPage.xaml` featuring target root folder picker, mode & conflict selectors, multi-line monospaced input with line numbers column, live `TreeView` directory preview with status pill badges, and progress bar.
+    - `BatchFolderModule` plugin automatically discovered and registered via `ModuleAutoDiscoveryExtensions`.
+  - Comprehensive unit test suite (`FolderCreatorTests`) validating flat and indented tree parsing, token expansion, sequence increments, path sanitization, conflict resolutions, and fault isolation.
 - **Batch File & Path Renamer Tool Module**:
   - `IRenameRule` contract (`OmniForge.Core.Contracts`) and `FileMetadata` rich record model (`OmniForge.Core.Models`).
   - Concrete transformation rules (`OmniForge.Modules.BatchOps`):

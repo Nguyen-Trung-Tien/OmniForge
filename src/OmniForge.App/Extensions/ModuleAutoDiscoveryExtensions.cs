@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using OmniForge.Core.Contracts;
@@ -16,6 +17,8 @@ public static class ModuleAutoDiscoveryExtensions
     /// 2. Its <see cref="IToolModule.ViewModelType"/> and <see cref="IToolModule.ViewType"/> as transient.
     /// 3. Any co-located module service matching <c>I[Module]Service</c> -> <c>[Module]Service</c> in the same namespace.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "Module auto-discovery scans loaded assembly types for IToolModule implementations.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2072:Target parameter argument does not satisfy DynamicallyAccessedMembers", Justification = "Module discovery dynamically registers tool views, viewmodels, and module services.")]
     public static IServiceCollection AddDiscoveredToolModules(this IServiceCollection services, Assembly assembly)
     {
         ArgumentNullException.ThrowIfNull(services);

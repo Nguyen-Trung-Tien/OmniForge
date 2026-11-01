@@ -1,0 +1,62 @@
+name: OmniForge Build & Distribution Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+jobs:
+  build-test-package:
+    name: Build, Verify & Package (win-x64)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore NuGet Dependencies
+        run: dotnet restore OmniForge.sln
+
+      - name: Static Architecture Guardrails
+        shell: pwsh
+        run: ./.agents/scripts/check-architecture.ps1
+
+      - name: Run Test Suite (xUnit & NetArchTest)
+        run: dotnet test tests/OmniForge.Tests/OmniForge.Tests.csproj -c Release --no-restore --nologo --verbosity normal
+
+      - name: Verify Packaged MSIX Build
+        run: dotnet build src/OmniForge.App/OmniForge.App.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=MSIX --no-restore --nologo
+
+      - name: Publish Unpackaged Self-Contained Portable Executable
+        run: >
+          dotnet publish src/OmniForge.App/OmniForge.App.csproj
+          -c Release
+          -r win-x64
+          -p:Platform=x64
+          -p:WindowsPackageType=None
+          --self-contained true
+          -o ./publish/win-x64
+
+      - name: Generate Standalone Zip Archive
+        shell: pwsh
+        run: |
+          Compress-Archive -Path ./publish/win-x64/* -DestinationPath ./publish/OmniForge-win-x64-standalone.zip -CompressionLevel Optimal
+          $zipItem = Get-Item ./publish/OmniForge-win-x64-standalone.zip
+          Write-Host "Generated standalone archive: $($zipItem.FullName) ($([math]::Round($zipItem.Length / 1MB, 2)) MB)"
+
+      - name: Upload Standalone Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmniForge-win-x64-standalone
+          path: ./publish/OmniForge-win-x64-standalone.zip
+          if-no-files-found: error
+          retention-days: 14
+

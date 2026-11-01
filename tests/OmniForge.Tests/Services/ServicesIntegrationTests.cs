@@ -84,6 +84,54 @@ public sealed class ServicesIntegrationTests : IDisposable
         Assert.Single(registry.Modules);
     }
 
+    [Fact]
+    public async Task SettingsService_ThemeWindowSizeAndTemplates_ShouldPersistAndNotify()
+    {
+        var settingsFile = Path.Combine(_tempDirectory, "settings_service.json");
+        var localSettings = new LocalSettingsService(settingsFile);
+        var settingsService = new SettingsService(localSettings);
+
+        var changedKeys = new List<string>();
+        settingsService.SettingChanged += (sender, key) => changedKeys.Add(key);
+
+        // Theme test
+        var initialTheme = await settingsService.GetThemeAsync();
+        Assert.Equal("Default", initialTheme);
+
+        await settingsService.SetThemeAsync("Dark");
+        var updatedTheme = await settingsService.GetThemeAsync();
+        Assert.Equal("Dark", updatedTheme);
+
+        // Window size test
+        var initialSize = await settingsService.GetWindowSizeAsync();
+        Assert.Equal((1200, 800), initialSize);
+
+        await settingsService.SetWindowSizeAsync(1440, 900);
+        var updatedSize = await settingsService.GetWindowSizeAsync();
+        Assert.Equal((1440, 900), updatedSize);
+
+        // Last opened module test
+        Assert.Null(await settingsService.GetLastOpenedModuleAsync());
+        await settingsService.SetLastOpenedModuleAsync("batch-rename");
+        Assert.Equal("batch-rename", await settingsService.GetLastOpenedModuleAsync());
+
+        // Custom templates test
+        var initialTemplates = await settingsService.GetUserTemplatesAsync("BatchRename");
+        Assert.Empty(initialTemplates);
+
+        await settingsService.SaveUserTemplateAsync("BatchRename", "Photos2026", "IMG_{date}_{index}");
+        var templates = await settingsService.GetUserTemplatesAsync("BatchRename");
+        Assert.Single(templates);
+        Assert.Equal("IMG_{date}_{index}", templates["Photos2026"]);
+
+        await settingsService.DeleteUserTemplateAsync("BatchRename", "Photos2026");
+        var afterDelete = await settingsService.GetUserTemplatesAsync("BatchRename");
+        Assert.Empty(afterDelete);
+
+        Assert.Contains(SettingsService.ThemeSettingKey, changedKeys);
+        Assert.Contains(SettingsService.LastOpenedModuleKey, changedKeys);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempDirectory))

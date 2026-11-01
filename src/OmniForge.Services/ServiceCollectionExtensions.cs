@@ -23,7 +23,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IToolRegistryService, ToolRegistryService>();
         services.AddSingleton<IFileSystemService, FileSystemService>();
         services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
-        services.AddSingleton<IAppSettingsService, AppSettingsService>();
+        services.AddSingleton<SettingsService>();
+        services.AddSingleton<ISettingsService>(sp => sp.GetRequiredService<SettingsService>());
+        services.AddSingleton<IAppSettingsService>(sp => sp.GetRequiredService<SettingsService>());
+        services.AddSingleton<AppSettingsService>();
 
         services.AddSingleton<NavigationService>();
         services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<NavigationService>());
