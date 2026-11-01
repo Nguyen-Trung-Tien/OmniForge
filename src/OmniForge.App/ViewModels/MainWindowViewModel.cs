@@ -15,6 +15,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly IToolRegistryService _toolRegistry;
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _localizationService;
+    private readonly IDispatcherService _dispatcherService;
 
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "OmniForge Utility Suite";
@@ -48,12 +49,14 @@ public partial class MainWindowViewModel : ObservableObject
         INavigationService navigationService,
         IToolRegistryService toolRegistry,
         ISettingsService settingsService,
-        ILocalizationService localizationService)
+        ILocalizationService localizationService,
+        IDispatcherService dispatcherService)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
+        _dispatcherService = dispatcherService ?? throw new ArgumentNullException(nameof(dispatcherService));
 
         _toolRegistry.ModulesChanged += OnModulesChanged;
         _navigationService.Navigated += OnNavigated;
@@ -66,18 +69,27 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void OnLanguageChanged(object? sender, OmniForge.Core.Models.AppLanguage e)
     {
-        AppTitle = _localizationService.GetString(LocalizationKeys.Nav_AppTitle);
-        SearchPlaceholder = _localizationService.GetString(LocalizationKeys.Common_SearchPlaceholder);
-        RefreshNavigationItems();
+        _dispatcherService.TryEnqueue(() =>
+        {
+            AppTitle = _localizationService.GetString(LocalizationKeys.Nav_AppTitle);
+            SearchPlaceholder = _localizationService.GetString(LocalizationKeys.Common_SearchPlaceholder);
+            RefreshNavigationItems();
 
-        if (SelectedItem is NavigationItemViewModel currentNav)
-        {
-            CurrentSectionTitle = currentNav.Title;
-        }
-        else if (CurrentSectionTitle == "Settings" || CurrentSectionTitle == "Cài đặt")
-        {
-            CurrentSectionTitle = _localizationService.GetString(LocalizationKeys.Nav_Settings);
-        }
+            if (SelectedItem is NavigationItemViewModel currentNav)
+            {
+                currentNav.RefreshLocalizedText();
+                CurrentSectionTitle = currentNav.Title;
+            }
+            else if (CurrentSectionTitle == "Settings" || CurrentSectionTitle == "Cài đặt")
+            {
+                CurrentSectionTitle = _localizationService.GetString(LocalizationKeys.Nav_Settings);
+            }
+        });
+    }
+
+    private void OnModulesChanged(object? sender, EventArgs e)
+    {
+        _dispatcherService.TryEnqueue(RefreshNavigationItems);
     }
 
     partial void OnSearchQueryChanged(string value)
@@ -216,11 +228,6 @@ public partial class MainWindowViewModel : ObservableObject
         {
             ShellErrorMessage = $"Module '{moduleTitle}' failed to activate: {ex.Message}";
         }
-    }
-
-    private void OnModulesChanged(object? sender, EventArgs e)
-    {
-        RefreshNavigationItems();
     }
 
     private void OnNavigated(object? sender, Type pageType)

@@ -75,9 +75,9 @@
 
             <NavigationView.MenuItemTemplate>
                 <DataTemplate x:DataType="vm:NavigationItemViewModel">
-                    <NavigationViewItem Content="{x:Bind Title}"
+                    <NavigationViewItem Content="{x:Bind Title, Mode=OneWay}"
                                         Tag="{x:Bind}"
-                                        ToolTipService.ToolTip="{x:Bind Description}">
+                                        ToolTipService.ToolTip="{x:Bind Description, Mode=OneWay}">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="{x:Bind IconGlyph}" />
                         </NavigationViewItem.Icon>

@@ -124,7 +124,7 @@ public sealed class LocalizationService : ILocalizationService
         }
 
         ApplyCulture(language);
-        await _settingsService.SetSettingAsync(LanguageSettingKey, language.ToString(), cancellationToken).ConfigureAwait(false);
+        await _settingsService.SetSettingAsync(LanguageSettingKey, language.ToString(), cancellationToken);
         LanguageChanged?.Invoke(this, language);
     }
 
@@ -221,6 +221,22 @@ public sealed class LocalizationService : ILocalizationService
         _enStrings[LocalizationKeys.Settings_SavePreferences] = "Save Preferences";
         _enStrings[LocalizationKeys.Settings_SavedSuccess] = "Preferences saved successfully.";
         _enStrings[LocalizationKeys.Settings_ThemeUpdatedLive] = "Theme updated to '{0}' (applied live).";
+
+        // Dashboard
+        _enStrings[LocalizationKeys.Dashboard_Title] = "OmniForge Dashboard";
+        _enStrings[LocalizationKeys.Dashboard_Subtitle] = "Centralized workspace & modular utility hub";
+        _enStrings[LocalizationKeys.Dashboard_Status_Title] = "Modular System Status";
+        _enStrings[LocalizationKeys.Dashboard_Status_Subtitle] = "Zero-touch auto-discovered IToolModule plugins";
+        _enStrings[LocalizationKeys.Dashboard_Welcome] = "Welcome to OmniForge Utility Suite";
+        _enStrings[LocalizationKeys.Dashboard_RegisteredTools] = "Registered Tools:";
+        _enStrings[LocalizationKeys.Dashboard_Highlights_Title] = "Foundation Highlights";
+        _enStrings[LocalizationKeys.Dashboard_Highlights_Subtitle] = "Clean Architecture & Fluent Design System";
+        _enStrings[LocalizationKeys.Dashboard_Highlight1] = "• Windows App SDK & WinUI 3 with MicaAlt Backdrop";
+        _enStrings[LocalizationKeys.Dashboard_Highlight2] = "• Shared Controls (ToolHeader, SectionCard, StatusFooter, EmptyState)";
+        _enStrings[LocalizationKeys.Dashboard_Highlight3] = "• Decoupled DI services (FilePicker, Clipboard, FileSystem, Settings)";
+        _enStrings[LocalizationKeys.Dashboard_Available_Title] = "Available Utilities";
+        _enStrings[LocalizationKeys.Dashboard_Available_Subtitle] = "Select a tool module to launch directly";
+        _enStrings[LocalizationKeys.Dashboard_Launch] = "Launch";
     }
 
     private void PopulateVietnameseCatalog()
@@ -306,5 +322,21 @@ public sealed class LocalizationService : ILocalizationService
         _viStrings[LocalizationKeys.Settings_SavePreferences] = "Lưu thiết lập";
         _viStrings[LocalizationKeys.Settings_SavedSuccess] = "Thiết lập đã được lưu thành công.";
         _viStrings[LocalizationKeys.Settings_ThemeUpdatedLive] = "Chủ đề đã được cập nhật thành '{0}' (áp dụng ngay).";
+
+        // Dashboard
+        _viStrings[LocalizationKeys.Dashboard_Title] = "Bảng điều khiển OmniForge";
+        _viStrings[LocalizationKeys.Dashboard_Subtitle] = "Không gian làm việc tập trung & trung tâm tiện ích mô-đun";
+        _viStrings[LocalizationKeys.Dashboard_Status_Title] = "Trạng thái hệ thống";
+        _viStrings[LocalizationKeys.Dashboard_Status_Subtitle] = "Tự động phát hiện và kích hoạt mô-đun công cụ";
+        _viStrings[LocalizationKeys.Dashboard_Welcome] = "Chào mừng bạn đến với Bộ tiện ích OmniForge";
+        _viStrings[LocalizationKeys.Dashboard_RegisteredTools] = "Công cụ đã đăng ký:";
+        _viStrings[LocalizationKeys.Dashboard_Highlights_Title] = "Điểm nổi bật kiến trúc";
+        _viStrings[LocalizationKeys.Dashboard_Highlights_Subtitle] = "Kiến trúc sạch & Hệ thống Fluent Design";
+        _viStrings[LocalizationKeys.Dashboard_Highlight1] = "• Windows App SDK & WinUI 3 với hiệu ứng nền MicaAlt";
+        _viStrings[LocalizationKeys.Dashboard_Highlight2] = "• Thành phần dùng chung (ToolHeader, SectionCard, StatusFooter, EmptyState)";
+        _viStrings[LocalizationKeys.Dashboard_Highlight3] = "• Dịch vụ DI phân tách (FilePicker, Clipboard, FileSystem, Settings)";
+        _viStrings[LocalizationKeys.Dashboard_Available_Title] = "Công cụ khả dụng";
+        _viStrings[LocalizationKeys.Dashboard_Available_Subtitle] = "Chọn một công cụ để khởi chạy trực tiếp";
+        _viStrings[LocalizationKeys.Dashboard_Launch] = "Khởi chạy";
     }
 }

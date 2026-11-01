@@ -61,5 +61,21 @@ public static class LocalizationKeys
     public const string Settings_SavePreferences = "Settings_SavePreferences";
     public const string Settings_SavedSuccess = "Settings_SavedSuccess";
     public const string Settings_ThemeUpdatedLive = "Settings_ThemeUpdatedLive";
+
+    // Dashboard Page
+    public const string Dashboard_Title = "Dashboard_Title";
+    public const string Dashboard_Subtitle = "Dashboard_Subtitle";
+    public const string Dashboard_Status_Title = "Dashboard_Status_Title";
+    public const string Dashboard_Status_Subtitle = "Dashboard_Status_Subtitle";
+    public const string Dashboard_Welcome = "Dashboard_Welcome";
+    public const string Dashboard_RegisteredTools = "Dashboard_RegisteredTools";
+    public const string Dashboard_Highlights_Title = "Dashboard_Highlights_Title";
+    public const string Dashboard_Highlights_Subtitle = "Dashboard_Highlights_Subtitle";
+    public const string Dashboard_Highlight1 = "Dashboard_Highlight1";
+    public const string Dashboard_Highlight2 = "Dashboard_Highlight2";
+    public const string Dashboard_Highlight3 = "Dashboard_Highlight3";
+    public const string Dashboard_Available_Title = "Dashboard_Available_Title";
+    public const string Dashboard_Available_Subtitle = "Dashboard_Available_Subtitle";
+    public const string Dashboard_Launch = "Dashboard_Launch";
 }
 

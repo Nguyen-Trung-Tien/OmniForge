@@ -10,7 +10,9 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _localizationService;
+    private readonly IDispatcherService _dispatcherService;
     private bool _isInitialLoading = true;
+    private bool _isUpdatingSelection;
 
     [ObservableProperty]
     public partial string AppVersion { get; set; } = "0.1.0-alpha";
@@ -70,10 +72,14 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial string SavePreferencesLabel { get; set; } = string.Empty;
 
-    public SettingsViewModel(ISettingsService settingsService, ILocalizationService localizationService)
+    public SettingsViewModel(
+        ISettingsService settingsService,
+        ILocalizationService localizationService,
+        IDispatcherService dispatcherService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
+        _dispatcherService = dispatcherService ?? throw new ArgumentNullException(nameof(dispatcherService));
 
         _localizationService.LanguageChanged += OnLanguageChanged;
         UpdateLocalizedStrings();
@@ -106,9 +112,17 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
+    async partial void OnEnableMicaAltChanged(bool value)
+    {
+        if (!_isInitialLoading)
+        {
+            await _settingsService.SetSettingAsync("General.EnableMicaAlt", value);
+        }
+    }
+
     async partial void OnSelectedLanguageChanged(LanguageItem? value)
     {
-        if (!_isInitialLoading && value is not null && value.Language != _localizationService.CurrentLanguage)
+        if (!_isInitialLoading && !_isUpdatingSelection && value is not null && value.Language != _localizationService.CurrentLanguage)
         {
             await _localizationService.SetLanguageAsync(value.Language);
             StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_SavedSuccess);
@@ -117,9 +131,20 @@ public partial class SettingsViewModel : ObservableObject
 
     private void OnLanguageChanged(object? sender, AppLanguage newLanguage)
     {
-        SelectedLanguage = _localizationService.SupportedLanguages.FirstOrDefault(l => l.Language == newLanguage);
-        UpdateLocalizedStrings();
-        OnPropertyChanged(nameof(SupportedLanguages));
+        _dispatcherService.TryEnqueue(() =>
+        {
+            _isUpdatingSelection = true;
+            try
+            {
+                SelectedLanguage = _localizationService.SupportedLanguages.FirstOrDefault(l => l.Language == newLanguage);
+                UpdateLocalizedStrings();
+                OnPropertyChanged(nameof(SupportedLanguages));
+            }
+            finally
+            {
+                _isUpdatingSelection = false;
+            }
+        });
     }
 
     [RelayCommand]

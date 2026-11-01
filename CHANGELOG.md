@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Bilingual Localization Crash & Thread Marshaling Isolation (COMException 0x8001010E)**:
+  - Fixed cross-thread UI mutation crash when switching display language by removing `.ConfigureAwait(false)` in [LocalizationService.cs](file:///d:/Tools/OmniForge/src/OmniForge.Services/Localization/LocalizationService.cs) and enforcing `_dispatcherService.TryEnqueue(...)` marshaling in [MainWindowViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/ViewModels/MainWindowViewModel.cs) and [SettingsViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/ViewModels/SettingsViewModel.cs).
+  - Added re-entrancy protection guard (`_isUpdatingSelection`) in `SettingsViewModel` preventing circular language change triggers.
+  - Eliminated the unhandled error telemetry popup dialog on language switch.
+- **Full UI Synchronization & Localization Coverage**:
+  - Upgraded [NavigationItemViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/ViewModels/NavigationItemViewModel.cs) and `NavigationView.MenuItemTemplate` in [MainWindow.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Views/MainWindow.xaml) with compile-time `{x:Bind Title, Mode=OneWay}` and `{x:Bind Description, Mode=OneWay}`.
+  - Localized the shell `Settings` navigation item at the bottom of the navigation pane dynamically in [MainWindow.xaml.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Views/MainWindow.xaml.cs).
+  - Fully localized the [DashboardPage.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/Dashboard/DashboardPage.xaml) and [DashboardViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/Dashboard/DashboardViewModel.cs) (ToolHeaders, System Status, Foundation Highlights, Available Utilities, and Launch buttons).
+- **Theme & System Backdrop Synchronization**:
+  - Fixed TitleBar caption button mismatch across Light and Dark themes by synchronizing `AppWindow.TitleBar` button colors with [MainWindow.xaml.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Views/MainWindow.xaml.cs).
+  - Added reactive live updates for `General.EnableMicaAlt` system backdrop toggle in [SettingsViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/ViewModels/SettingsViewModel.cs) and [MainWindow.xaml.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Views/MainWindow.xaml.cs).
+  - Enforced theme inheritance across the active `ContentFrame` page on navigation and runtime theme change.
 - **Thread Marshaling & Unobserved Task Exception (COMException 0x8001010E)**:
   - Fixed `RPC_E_WRONG_THREAD` fault in [FolderCreatorViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/BatchFolder/FolderCreatorViewModel.cs) caused by instantiating `FolderPreviewNode` (`TreeViewNode` / WinUI `DependencyObject`) on a background worker thread (`Task.Run`). Moved tree node construction inside `_dispatcherService.TryEnqueue(...)` onto the UI thread.
   - Added global error guarding with `try/catch` in `TriggerDebouncedPreview()` and `TriggerDebouncePreview()` ([BatchRenameViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/BatchRename/BatchRenameViewModel.cs)) to catch and marshal any operational errors, eliminating unobserved task exceptions rethrown by the finalizer thread.

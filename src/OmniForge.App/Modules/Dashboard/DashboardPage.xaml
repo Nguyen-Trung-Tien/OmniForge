@@ -14,8 +14,8 @@
     <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
         <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
             <controls:ToolHeaderControl
-                Title="OmniForge Dashboard"
-                Subtitle="Centralized workspace &amp; modular utility hub"
+                Title="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
+                Subtitle="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}"
                 HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
                 ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
@@ -28,14 +28,14 @@
                 <!-- Active Modules Card -->
                 <controls:SectionCardControl
                     Grid.Column="0"
-                    Title="Modular System Status"
-                    Subtitle="Zero-touch auto-discovered IToolModule plugins"
+                    Title="{x:Bind ViewModel.SystemStatusTitle, Mode=OneWay}"
+                    Subtitle="{x:Bind ViewModel.SystemStatusSubtitle, Mode=OneWay}"
                     IconGlyph="&#xE74C;">
                     <StackPanel Spacing="10">
                         <TextBlock Text="{x:Bind ViewModel.WelcomeMessage, Mode=OneWay}"
                                    Style="{ThemeResource BodyTextBlockStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Registered Tools:" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.RegisteredToolsLabel, Mode=OneWay}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.RegisteredModuleCount, Mode=OneWay}"
                                        Style="{ThemeResource BodyTextBlockStyle}" />
                         </StackPanel>
@@ -45,21 +45,21 @@
                 <!-- Architectural Overview Card -->
                 <controls:SectionCardControl
                     Grid.Column="1"
-                    Title="Foundation Highlights"
-                    Subtitle="Clean Architecture &amp; Fluent Design System"
+                    Title="{x:Bind ViewModel.HighlightsTitle, Mode=OneWay}"
+                    Subtitle="{x:Bind ViewModel.HighlightsSubtitle, Mode=OneWay}"
                     IconGlyph="&#xE943;">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="• Windows App SDK &amp; WinUI 3 with MicaAlt Backdrop" />
-                        <TextBlock Text="• Shared Controls (ToolHeader, SectionCard, StatusFooter, EmptyState)" />
-                        <TextBlock Text="• Decoupled DI services (FilePicker, Clipboard, FileSystem, Settings)" />
+                        <TextBlock Text="{x:Bind ViewModel.Highlight1, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind ViewModel.Highlight2, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind ViewModel.Highlight3, Mode=OneWay}" />
                     </StackPanel>
                 </controls:SectionCardControl>
             </Grid>
 
             <!-- Quick Launch Available Modules -->
             <controls:SectionCardControl
-                Title="Available Utilities"
-                Subtitle="Select a tool module to launch directly"
+                Title="{x:Bind ViewModel.AvailableUtilitiesTitle, Mode=OneWay}"
+                Subtitle="{x:Bind ViewModel.AvailableUtilitiesSubtitle, Mode=OneWay}"
                 IconGlyph="&#xE71D;">
                 <ItemsControl ItemsSource="{x:Bind ViewModel.AvailableTools, Mode=OneWay}">
                     <ItemsControl.ItemTemplate>
@@ -101,7 +101,7 @@
                                     </StackPanel>
 
                                     <Button Grid.Column="2"
-                                            Content="Launch"
+                                            Content="{x:Bind LaunchText}"
                                             Command="{x:Bind LaunchCommand}"
                                             VerticalAlignment="Center" />
                                 </Grid>

@@ -1,6 +1,9 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using OmniForge.App.ViewModels;
+using OmniForge.Core.Common;
 using OmniForge.Core.Contracts;
 using OmniForge.Services;
 using OmniForge.Services.Navigation;
@@ -13,13 +16,19 @@ namespace OmniForge.App.Views;
 public sealed partial class MainWindow : Window
 {
     private readonly ISettingsService _settingsService;
+    private readonly ILocalizationService _localizationService;
 
     public MainWindowViewModel ViewModel { get; }
 
-    public MainWindow(MainWindowViewModel viewModel, INavigationService navigationService, ISettingsService settingsService)
+    public MainWindow(
+        MainWindowViewModel viewModel,
+        INavigationService navigationService,
+        ISettingsService settingsService,
+        ILocalizationService localizationService)
     {
         ViewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
 
         InitializeComponent();
 
@@ -36,13 +45,32 @@ public sealed partial class MainWindow : Window
         if (navigationService is NavigationService navService)
         {
             navService.Initialize(ContentFrame);
+            navService.Navigated += (sender, pageType) =>
+            {
+                if (ContentFrame.Content is FrameworkElement page && Content is FrameworkElement root)
+                {
+                    page.RequestedTheme = root.RequestedTheme;
+                }
+            };
         }
 
         // Initialize persistent theme, window geometry, and navigation state
         InitializeWindowSettings();
 
+        // Listen for language changes to update native Settings item text
+        _localizationService.LanguageChanged += (_, _) => DispatcherQueue?.TryEnqueue(UpdateLocalizedChrome);
+        NavView.Loaded += (_, _) => UpdateLocalizedChrome();
+
         // Trigger initial item binding and default navigation
         ViewModel.RefreshNavigationItems();
+    }
+
+    private void UpdateLocalizedChrome()
+    {
+        if (NavView.SettingsItem is NavigationViewItem settingsItem)
+        {
+            settingsItem.Content = _localizationService.GetString(LocalizationKeys.Nav_Settings);
+        }
     }
 
     private void InitializeWindowSettings()
@@ -60,7 +88,23 @@ public sealed partial class MainWindow : Window
             }
         });
 
-        // 2. React to dynamic live theme switches
+        // 2. Initial MicaAlt backdrop application
+        _ = _settingsService.GetSettingAsync("General.EnableMicaAlt", true).ContinueWith(t =>
+        {
+            if (t.IsCompletedSuccessfully)
+            {
+                DispatcherQueue?.TryEnqueue(() =>
+                {
+                    SystemBackdrop = t.Result ? new MicaBackdrop { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt } : null;
+                });
+            }
+            else
+            {
+                _ = t.Exception;
+            }
+        });
+
+        // 3. React to dynamic live setting switches (Theme, MicaAlt)
         _settingsService.SettingChanged += (sender, key) =>
         {
             if (string.Equals(key, SettingsService.ThemeSettingKey, StringComparison.OrdinalIgnoreCase))
@@ -77,9 +121,26 @@ public sealed partial class MainWindow : Window
                     }
                 });
             }
+            else if (string.Equals(key, "General.EnableMicaAlt", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = _settingsService.GetSettingAsync("General.EnableMicaAlt", true).ContinueWith(t =>
+                {
+                    if (t.IsCompletedSuccessfully)
+                    {
+                        DispatcherQueue?.TryEnqueue(() =>
+                        {
+                            SystemBackdrop = t.Result ? new MicaBackdrop { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt } : null;
+                        });
+                    }
+                    else
+                    {
+                        _ = t.Exception;
+                    }
+                });
+            }
         };
 
-        // 3. Restore persisted window dimensions
+        // 4. Restore persisted window dimensions
         _ = _settingsService.GetWindowSizeAsync().ContinueWith(t =>
         {
             if (t.IsCompletedSuccessfully)
@@ -99,7 +160,7 @@ public sealed partial class MainWindow : Window
             }
         });
 
-        // 4. Persist window dimensions on window close
+        // 5. Persist window dimensions on window close
         Closed += (sender, args) =>
         {
             var size = AppWindow.Size;
@@ -114,12 +175,51 @@ public sealed partial class MainWindow : Window
     {
         if (Content is FrameworkElement rootElement)
         {
-            rootElement.RequestedTheme = theme switch
+            var elementTheme = theme switch
             {
                 "Light" => ElementTheme.Light,
                 "Dark" => ElementTheme.Dark,
                 _ => ElementTheme.Default
             };
+
+            rootElement.RequestedTheme = elementTheme;
+
+            if (AppTitleBar is not null)
+            {
+                AppTitleBar.RequestedTheme = elementTheme;
+            }
+
+            if (ContentFrame.Content is FrameworkElement pageContent)
+            {
+                pageContent.RequestedTheme = elementTheme;
+            }
+
+            UpdateTitleBarButtonColors(elementTheme);
+        }
+    }
+
+    private void UpdateTitleBarButtonColors(ElementTheme theme)
+    {
+        if (AppWindowTitleBar.IsCustomizationSupported() && AppWindow?.TitleBar is { } titleBar)
+        {
+            bool isDark = theme == ElementTheme.Dark ||
+                (theme == ElementTheme.Default && Application.Current.RequestedTheme == ApplicationTheme.Dark);
+
+            var foregroundColor = isDark
+                ? Windows.UI.Color.FromArgb(255, 255, 255, 255)
+                : Windows.UI.Color.FromArgb(255, 30, 30, 30);
+
+            var hoverBgColor = isDark
+                ? Windows.UI.Color.FromArgb(30, 255, 255, 255)
+                : Windows.UI.Color.FromArgb(30, 0, 0, 0);
+
+            titleBar.ButtonForegroundColor = foregroundColor;
+            titleBar.ButtonHoverForegroundColor = foregroundColor;
+            titleBar.ButtonPressedForegroundColor = foregroundColor;
+            titleBar.ButtonHoverBackgroundColor = hoverBgColor;
+            titleBar.ButtonInactiveForegroundColor = isDark
+                ? Windows.UI.Color.FromArgb(120, 255, 255, 255)
+                : Windows.UI.Color.FromArgb(120, 0, 0, 0);
         }
     }
 
