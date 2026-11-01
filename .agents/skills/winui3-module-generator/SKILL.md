@@ -1,160 +1,133 @@
 ---
 name: winui3-module-generator
-description: Scaffolds a new OmniForge modular sub-tool complying with Clean Architecture, MVVM source generators, and IToolModule plugin registration.
+description: Scaffolds a new OmniForge modular sub-tool complying with Clean Architecture, ToolViewModelBase, ToolHeaderControl, and zero-touch IToolModule auto-discovery.
 ---
 
-# WinUI 3 Module Generator Skill
+# WinUI 3 Module Generator Skill (Token-Efficient Edition)
 
-This skill guides agents and developers through creating a new modular utility sub-tool in the **OmniForge Utility Suite**.
+This skill guides agents through creating a new modular utility sub-tool in **OmniForge** with minimal boilerplate and zero manual DI editing.
 
-## Overview of a Sub-Tool Module
+## Architecture Advantages (Zero-Touch Auto-Discovery)
 
-Every sub-tool in OmniForge consists of four core components located in `src/OmniForge.App/Modules/[ToolName]/`:
-1. **`[ToolName]Service.cs`**: Pure domain/business logic service (optional separate interface in `OmniForge.Core` if cross-cutting).
-2. **`[ToolName]ViewModel.cs`**: MVVM ViewModel leveraging `CommunityToolkit.Mvvm` source generators (`[ObservableProperty]`, `[RelayCommand]`).
-3. **`[ToolName]Page.xaml` & `[ToolName]Page.xaml.cs`**: WinUI 3 Fluent Page using compiled `{x:Bind}`.
-4. **`[ToolName]Module.cs`**: Descriptor implementing `IToolModule` for dynamic shell discovery.
+1. **Automatic DI Registration**: `ModuleAutoDiscoveryExtensions` scans the assembly on startup. Any class implementing `IToolModule` has its `ViewType`, `ViewModelType`, and co-located `I[ToolName]Service` -> `[ToolName]Service` automatically registered in DI and `IToolRegistryService`. **Do NOT edit `ServiceCollectionExtensions.cs` or `App.xaml.cs` when adding a module.**
+2. **`ToolViewModelBase` Inheritance**: Inherit from `ToolViewModelBase` instead of `ObservableObject` to get `IsBusy`, `IsNotBusy`, `StatusMessage`, `ErrorMessage`, `HasError`, and `RunSafeAsync(...)` out of the box.
+3. **`ToolHeaderControl` Reusable UI**: Use `<controls:ToolHeaderControl>` in XAML to render the title, subtitle, and fault-isolated `InfoBar` in 4 lines.
+4. **One-Command Scaffolding**: Always run `.agents/skills/winui3-module-generator/scripts/scaffold_module.ps1` to generate all 4 files + unit test in 1 tool call instead of writing 5 separate files manually.
 
 ---
 
-## Step-by-Step Scaffolding Procedure
+## Fast-Path Execution (Recommended for AI Agents)
 
-### Step 1: Create the Feature Directory
-Create directory `src/OmniForge.App/Modules/[ToolName]/`.
+Run the scaffolding script directly:
 
-### Step 2: Implement `[ToolName]Service.cs`
-Handles the core business logic, decoupled from UI.
-
-```csharp
-namespace OmniForge.App.Modules.[ToolName];
-
-public interface I[ToolName]Service
-{
-    Task<Result<string>> ExecuteOperationAsync(string input, CancellationToken cancellationToken = default);
-}
-
-public sealed class [ToolName]Service : I[ToolName]Service
-{
-    public async Task<Result<string>> ExecuteOperationAsync(string input, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return Result<string>.Failure(new Error("[ToolName].InvalidInput", "Input cannot be empty."));
-            }
-
-            // Simulate or execute non-blocking business logic
-            await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-            var output = $"Processed: {input}";
-
-            return Result<string>.Success(output);
-        }
-        catch (OperationCanceledException)
-        {
-            return Result<string>.Failure(new Error("[ToolName].Cancelled", "Operation was cancelled by the user."));
-        }
-        catch (Exception ex)
-        {
-            return Result<string>.Failure(new Error("[ToolName].ExecutionError", ex.Message));
-        }
-    }
-}
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File .agents/skills/winui3-module-generator/scripts/scaffold_module.ps1 `
+  -ModuleName "HashValidator" `
+  -DisplayName "Hash Validator" `
+  -Category "Security & Cryptography" `
+  -IconGlyph "\uE8D7" `
+  -IncludeUnitTest
 ```
 
-### Step 3: Implement `[ToolName]ViewModel.cs`
-Derives from `ObservableObject` and uses MVVM source generators.
+Then verify immediately:
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File .agents/scripts/verify-all.ps1
+```
 
+---
+
+## Compact Reference Templates
+
+### 1. `[ToolName]Service.cs`
 ```csharp
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using OmniForge.Core.Common;
 
 namespace OmniForge.App.Modules.[ToolName];
 
-public partial class [ToolName]ViewModel(I[ToolName]Service service) : ObservableObject
+public interface I[ToolName]Service
+{
+    Task<Result<string>> ProcessAsync(string input, CancellationToken cancellationToken = default);
+}
+
+public sealed class [ToolName]Service : I[ToolName]Service
+{
+    public async Task<Result<string>> ProcessAsync(string input, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Result.Failure<string>("[ToolName].InvalidInput", "Input cannot be empty.");
+
+        await Task.Delay(10, cancellationToken).ConfigureAwait(false);
+        return Result.Success($"Processed: {input}");
+    }
+}
+```
+
+### 2. `[ToolName]ViewModel.cs` (Using `ToolViewModelBase` & Primary Constructor)
+```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OmniForge.Core.Models;
+
+namespace OmniForge.App.Modules.[ToolName];
+
+public partial class [ToolName]ViewModel(I[ToolName]Service service) : ToolViewModelBase
 {
     private readonly I[ToolName]Service _service = service ?? throw new ArgumentNullException(nameof(service));
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RunOperationCommand))]
-    private string _inputData = string.Empty;
+    [NotifyCanExecuteChangedFor(nameof(ExecuteActionCommand))]
+    public partial string InputText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _outputResult = string.Empty;
+    public partial string OutputResult { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    private string? _errorMessage;
+    private bool CanExecuteAction => !string.IsNullOrWhiteSpace(InputText) && IsNotBusy;
 
-    [ObservableProperty]
-    private bool _isBusy;
-
-    private bool CanRunOperation => !string.IsNullOrWhiteSpace(InputData) && !IsBusy;
-
-    [RelayCommand(CanExecute = nameof(CanRunOperation))]
-    private async Task RunOperationAsync(CancellationToken cancellationToken)
+    [RelayCommand(CanExecute = nameof(CanExecuteAction))]
+    private async Task ExecuteActionAsync(CancellationToken cancellationToken)
     {
-        IsBusy = true;
-        ErrorMessage = null;
+        var output = await RunSafeAsync(
+            ct => _service.ProcessAsync(InputText, ct),
+            busyStatus: "Processing...",
+            successStatus: "Completed.",
+            cancellationToken: cancellationToken);
 
-        try
+        if (output is not null)
         {
-            var result = await _service.ExecuteOperationAsync(InputData, cancellationToken);
-            if (result.IsSuccess)
-            {
-                OutputResult = result.Value!;
-            }
-            else
-            {
-                ErrorMessage = result.Error.Message;
-            }
-        }
-        finally
-        {
-            IsBusy = false;
+            OutputResult = output;
         }
     }
 }
 ```
 
-### Step 4: Implement `[ToolName]Page.xaml`
-Fluent design with zero code-behind logic.
-
+### 3. `[ToolName]Page.xaml` & `[ToolName]Page.xaml.cs`
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="OmniForge.App.Modules.[ToolName].[ToolName]Page"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="using:OmniForge.App.Modules.[ToolName]"
-    mc:Ignorable="d">
+    xmlns:controls="using:OmniForge.App.Controls">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,24,32,24">
         <StackPanel Spacing="16" MaxWidth="800" HorizontalAlignment="Left">
-            <TextBlock Text="[Tool Display Name]" Style="{ThemeResource TitleTextBlockStyle}" />
-            <TextBlock Text="Detailed description of what this tool performs."
-                       Style="{ThemeResource BodyTextBlockStyle}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <controls:ToolHeaderControl
+                Title="[DisplayName]"
+                Subtitle="Modular utility tool for OmniForge Suite."
+                HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
-            <InfoBar IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToBoolConverter}}"
-                     Severity="Error"
-                     Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+            <TextBox Header="Input Payload"
+                     Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBox Header="Input Data"
-                     PlaceholderText="Enter data to process..."
-                     Text="{x:Bind ViewModel.InputData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="12">
                 <Button Content="Execute"
                         Style="{ThemeResource AccentButtonStyle}"
-                        Command="{x:Bind ViewModel.RunOperationCommand}" />
-                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
-                              Width="24" Height="24" />
+                        Command="{x:Bind ViewModel.ExecuteActionCommand}" />
+                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="20" Height="20" />
             </StackPanel>
 
-            <TextBox Header="Result"
+            <TextBox Header="Output Result"
                      IsReadOnly="True"
                      TextWrapping="Wrap"
                      MinHeight="120"
@@ -164,7 +137,6 @@ Fluent design with zero code-behind logic.
 </Page>
 ```
 
-And in `[ToolName]Page.xaml.cs`:
 ```csharp
 using Microsoft.UI.Xaml.Controls;
 
@@ -172,20 +144,17 @@ namespace OmniForge.App.Modules.[ToolName];
 
 public sealed partial class [ToolName]Page : Page
 {
-    public [ToolName]ViewModel ViewModel { get; }
+    public [ToolName]ViewModel ViewModel { get; } = App.GetService<[ToolName]ViewModel>();
 
     public [ToolName]Page()
     {
-        ViewModel = App.GetService<[ToolName]ViewModel>();
         DataContext = ViewModel;
         InitializeComponent();
     }
 }
 ```
 
-### Step 5: Implement `[ToolName]Module.cs`
-Implements `IToolModule` contract.
-
+### 4. `[ToolName]Module.cs`
 ```csharp
 using OmniForge.Core.Contracts;
 
@@ -194,21 +163,12 @@ namespace OmniForge.App.Modules.[ToolName];
 public sealed class [ToolName]Module : IToolModule
 {
     public string Id => "omniforge.[toolname]";
-    public string DisplayName => "[Tool Display Name]";
+    public string DisplayName => "[DisplayName]";
     public string Description => "Short summary of tool capabilities";
-    public string IconGlyph => "\uE8B7"; // Use appropriate Segoe Fluent Icon glyph
+    public string IconGlyph => "\uE8B7";
+    public string Category => "Developer Tools";
     public Type ViewType => typeof([ToolName]Page);
     public Type ViewModelType => typeof([ToolName]ViewModel);
-    public int Priority => 10;
-    public bool IsEnabled => true;
+    public int Priority => 50;
 }
 ```
-
-### Step 6: Register in DI Container
-In `src/OmniForge.App/Extensions/ServiceCollectionExtensions.cs`:
-1. Register `services.AddSingleton<I[ToolName]Service, [ToolName]Service>();`
-2. Register `services.AddTransient<[ToolName]ViewModel>();`
-3. Register `services.AddTransient<[ToolName]Page>();`
-4. Register the module in `IToolRegistryService`:
-   `registry.RegisterModule(new [ToolName]Module());`
-

@@ -1,17 +1,19 @@
 <#
 .SYNOPSIS
-    Automated scaffolding script for generating new OmniForge WinUI 3 tool modules.
+    Zero-touch automated scaffolding script for generating new OmniForge WinUI 3 tool modules.
 .DESCRIPTION
-    Generates a production-ready module following Clean Architecture, MVVM source generators,
-    and IToolModule registration standards.
+    Generates a token-efficient module using ToolViewModelBase, ToolHeaderControl, and automatic
+    IToolModule discovery (no manual ServiceCollectionExtensions edits required).
 .PARAMETER ModuleName
     PascalCase name for the module (e.g. TextDiff, HashValidator).
 .PARAMETER DisplayName
     Human-readable title displayed in the NavigationView.
 .PARAMETER Category
-    Logical category (e.g. FileSystem, Developer, Graphics, System).
+    Logical category (from ToolCategory constants).
 .PARAMETER IconGlyph
     Segoe Fluent Icon Unicode hex code (e.g. \uE8B7).
+.PARAMETER IncludeUnitTest
+    When set, also generates a ready-to-run xUnit test file in tests/OmniForge.Tests/Modules/.
 #>
 param(
     [Parameter(Mandatory = $true)]
@@ -21,10 +23,13 @@ param(
     [string]$DisplayName,
 
     [Parameter(Mandatory = $false)]
-    [string]$Category = "Developer",
+    [string]$Category = "Developer Tools",
 
     [Parameter(Mandatory = $false)]
-    [string]$IconGlyph = "\uE8B7"
+    [string]$IconGlyph = "\uE8B7",
+
+    [Parameter(Mandatory = $false)]
+    [switch]$IncludeUnitTest
 )
 
 if ([string]::IsNullOrWhiteSpace($DisplayName)) {
@@ -40,7 +45,6 @@ if (Test-Path $targetDir) {
 }
 
 New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-Write-Host "Creating module folder: $targetDir" -ForegroundColor Cyan
 
 # 1. Generate Service
 $serviceFile = Join-Path $targetDir "${ModuleName}Service.cs"
@@ -60,29 +64,28 @@ public sealed class ${ModuleName}Service : I${ModuleName}Service
     {
         if (string.IsNullOrWhiteSpace(input))
         {
-            return Result<string>.Failure(new Error("${ModuleName}.InvalidInput", "Input payload cannot be empty."));
+            return Result.Failure<string>("${ModuleName}.InvalidInput", "Input payload cannot be empty.");
         }
 
-        await Task.Delay(50, cancellationToken).ConfigureAwait(false);
-        return Result<string>.Success($"Processed '${input}' successfully at {DateTimeOffset.UtcNow:u}.");
+        await Task.Delay(25, cancellationToken).ConfigureAwait(false);
+        return Result.Success($"Processed '{input}' successfully at {DateTimeOffset.UtcNow:u}.");
     }
 }
 "@
 Set-Content -Path $serviceFile -Value $serviceContent -Encoding utf8
-Write-Host "Created: $serviceFile" -ForegroundColor Green
 
-# 2. Generate ViewModel
+# 2. Generate ViewModel (inheriting from ToolViewModelBase)
 $viewModelFile = Join-Path $targetDir "${ModuleName}ViewModel.cs"
 $viewModelContent = @"
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using OmniForge.Core.Common;
+using OmniForge.Core.Models;
 
 namespace OmniForge.App.Modules.$ModuleName;
 
-public partial class ${ModuleName}ViewModel : ObservableObject
+public partial class ${ModuleName}ViewModel(I${ModuleName}Service service) : ToolViewModelBase
 {
-    private readonly I${ModuleName}Service _service;
+    private readonly I${ModuleName}Service _service = service ?? throw new ArgumentNullException(nameof(service));
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ExecuteActionCommand))]
@@ -91,56 +94,27 @@ public partial class ${ModuleName}ViewModel : ObservableObject
     [ObservableProperty]
     public partial string OutputResult { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    public partial string? ErrorMessage { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsBusy { get; set; }
-
-    public ${ModuleName}ViewModel(I${ModuleName}Service service)
-    {
-        _service = service ?? throw new ArgumentNullException(nameof(service));
-    }
-
-    private bool CanExecuteAction => !string.IsNullOrWhiteSpace(InputText) && !IsBusy;
+    private bool CanExecuteAction => !string.IsNullOrWhiteSpace(InputText) && IsNotBusy;
 
     [RelayCommand(CanExecute = nameof(CanExecuteAction))]
     private async Task ExecuteActionAsync(CancellationToken cancellationToken)
     {
-        IsBusy = true;
-        ErrorMessage = null;
+        var output = await RunSafeAsync(
+            ct => _service.ProcessAsync(InputText, ct),
+            busyStatus: "Processing payload...",
+            successStatus: "Completed.",
+            cancellationToken: cancellationToken);
 
-        try
+        if (output is not null)
         {
-            var result = await _service.ProcessAsync(InputText, cancellationToken);
-            if (result.IsSuccess)
-            {
-                OutputResult = result.Value;
-            }
-            else
-            {
-                ErrorMessage = result.Error.Message;
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            ErrorMessage = "Operation was cancelled.";
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Unhandled failure: {ex.Message}";
-        }
-        finally
-        {
-            IsBusy = false;
+            OutputResult = output;
         }
     }
 }
 "@
 Set-Content -Path $viewModelFile -Value $viewModelContent -Encoding utf8
-Write-Host "Created: $viewModelFile" -ForegroundColor Green
 
-# 3. Generate View XAML
+# 3. Generate View XAML (using ToolHeaderControl)
 $xamlFile = Join-Path $targetDir "${ModuleName}Page.xaml"
 $xamlContent = @"
 <?xml version="1.0" encoding="utf-8" ?>
@@ -150,18 +124,16 @@ $xamlContent = @"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:OmniForge.App.Controls"
     mc:Ignorable="d">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,24,32,24">
         <StackPanel Spacing="16" MaxWidth="800" HorizontalAlignment="Left">
-            <TextBlock Text="$DisplayName" Style="{ThemeResource TitleTextBlockStyle}" />
-            <TextBlock Text="Modular utility tool for OmniForge Suite."
-                       Style="{ThemeResource BodyTextBlockStyle}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-
-            <InfoBar IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToBoolConverter}}"
-                     Severity="Error"
-                     Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+            <controls:ToolHeaderControl
+                Title="$DisplayName"
+                Subtitle="Modular $DisplayName utility tool for OmniForge Suite."
+                HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
             <TextBox Header="Input Payload"
                      PlaceholderText="Type or paste payload here..."
@@ -185,7 +157,6 @@ $xamlContent = @"
 </Page>
 "@
 Set-Content -Path $xamlFile -Value $xamlContent -Encoding utf8
-Write-Host "Created: $xamlFile" -ForegroundColor Green
 
 # 4. Generate View Code-Behind
 $xamlCsFile = Join-Path $targetDir "${ModuleName}Page.xaml.cs"
@@ -196,18 +167,16 @@ namespace OmniForge.App.Modules.$ModuleName;
 
 public sealed partial class ${ModuleName}Page : Page
 {
-    public ${ModuleName}ViewModel ViewModel { get; }
+    public ${ModuleName}ViewModel ViewModel { get; } = App.GetService<${ModuleName}ViewModel>();
 
     public ${ModuleName}Page()
     {
-        ViewModel = App.GetService<${ModuleName}ViewModel>();
         DataContext = ViewModel;
         InitializeComponent();
     }
 }
 "@
 Set-Content -Path $xamlCsFile -Value $xamlCsContent -Encoding utf8
-Write-Host "Created: $xamlCsFile" -ForegroundColor Green
 
 # 5. Generate Module Descriptor
 $moduleFile = Join-Path $targetDir "${ModuleName}Module.cs"
@@ -218,7 +187,7 @@ namespace OmniForge.App.Modules.$ModuleName;
 
 public sealed class ${ModuleName}Module : IToolModule
 {
-    public string Id => "omniforge.${ModuleName.ToLowerInvariant()}";
+    public string Id => "omniforge.$($ModuleName.ToLowerInvariant())";
     public string DisplayName => "$DisplayName";
     public string Description => "Modular $DisplayName utility tool.";
     public string IconGlyph => "$IconGlyph";
@@ -226,11 +195,8 @@ public sealed class ${ModuleName}Module : IToolModule
     public Type ViewType => typeof(${ModuleName}Page);
     public Type ViewModelType => typeof(${ModuleName}ViewModel);
     public int Priority => 50;
-    public bool IsEnabled => true;
 }
 "@
 Set-Content -Path $moduleFile -Value $moduleContent -Encoding utf8
-Write-Host "Created: $moduleFile" -ForegroundColor Green
 
-Write-Host "Scaffolding complete! Don't forget to register the services in ServiceCollectionExtensions.cs." -ForegroundColor Yellow
-
+Write-Host "[OK] Scaffolded module '$ModuleName' in $targetDir (Auto-registered via IToolModule discovery)." -ForegroundColor Green

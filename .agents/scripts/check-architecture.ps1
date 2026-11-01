@@ -19,8 +19,8 @@ foreach ($file in $vmFiles) {
     if ($content -notmatch "partial\s+class\s+\w+ViewModel") {
         $violations += "ViewModel must be declared 'partial class': $($file.FullName)"
     }
-    if ($content -notmatch ":\s*ObservableObject|:\s*ObservableRecipient|:\s*ObservableValidator") {
-        $violations += "ViewModel must inherit from ObservableObject: $($file.FullName)"
+    if ($content -notmatch ":\s*ObservableObject|:\s*ObservableRecipient|:\s*ObservableValidator|:\s*ToolViewModelBase") {
+        $violations += "ViewModel must inherit from ObservableObject or ToolViewModelBase: $($file.FullName)"
     }
 }
 

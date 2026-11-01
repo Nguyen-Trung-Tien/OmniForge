@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using OmniForge.App.Extensions;
 using OmniForge.App.Modules.Dashboard;
-using OmniForge.App.Modules.FileTools;
 using OmniForge.App.Views;
 using OmniForge.Core.Contracts;
 using OmniForge.Services;
@@ -60,7 +59,7 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Composition Root configuring all IoC services, view models, and modular tools.
+    /// Composition Root configuring all IoC services, view models, and auto-discovered modular tools.
     /// </summary>
     private static ServiceProvider ConfigureServices()
     {
@@ -69,21 +68,25 @@ public partial class App : Application
         // 1. Core & Infrastructure Services (ToolRegistry, FileSystem, LocalSettings, Navigation, Logging)
         services.AddOmniForgeServices();
 
-        // 2. Application Presentation Layer (Dispatcher, ViewModels, Views, Shell)
+        // 2. Application Presentation Layer & Auto-Discovered Modules
         services.AddAppServices();
 
         var provider = services.BuildServiceProvider();
 
-        // 3. Register Built-in Modular Utility Plugins
+        // 3. Populate ToolRegistry from all auto-discovered IToolModule singletons
         var registry = provider.GetRequiredService<IToolRegistryService>();
-        registry.RegisterModule(new DashboardModule());
-        registry.RegisterModule(new FileToolsModule());
+        var discoveredModules = provider.GetServices<IToolModule>();
+        registry.RegisterModules(discoveredModules);
 
         // 4. Pre-configure Navigation Routes
         if (provider.GetRequiredService<INavigationService>() is NavigationService navService)
         {
             navService.Configure("Settings", typeof(SettingsPage));
             navService.Configure("Dashboard", typeof(DashboardPage));
+            foreach (var module in registry.Modules)
+            {
+                navService.Configure(module.Id, module.ViewType);
+            }
         }
 
         return provider;
@@ -101,7 +104,6 @@ public partial class App : Application
     private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
         _logger.LogCritical(e.Exception, "WinUI 3 Unhandled Exception: {Message}", e.Message);
-        // Prevent immediate termination when error can be isolated
         e.Handled = true;
     }
 

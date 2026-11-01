@@ -5,23 +5,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="using:OmniForge.App.Modules.FileTools"
+    xmlns:controls="using:OmniForge.App.Controls"
     mc:Ignorable="d">
 
     <ScrollViewer Padding="36,24,36,24">
         <StackPanel Spacing="20" MaxWidth="900" HorizontalAlignment="Left">
-            <StackPanel Spacing="6">
-                <TextBlock Text="File Inspector &amp; Storage Utilities"
-                           Style="{ThemeResource TitleTextBlockStyle}" />
-                <TextBlock Text="Asynchronous non-blocking file operations powered by IFileSystemService"
-                           Style="{ThemeResource BodyTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
-
-            <InfoBar IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
-                     Severity="Error"
-                     Title="File Inspection Error"
-                     Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+            <controls:ToolHeaderControl
+                Title="File Inspector &amp; Storage Utilities"
+                Subtitle="Asynchronous non-blocking file operations powered by IFileSystemService"
+                HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>

@@ -37,10 +37,10 @@ OmniForge is structured into strictly decoupled layers with unidirectional depen
      - Window chrome and title bar interoperability (`ExtendsContentIntoTitleBar`, `AppWindow.TitleBar`).
 2. **Compile-Time Data Binding**:
    - Always use `{x:Bind}` with explicit `Mode` (`OneWay` for read-only observables, `TwoWay` for interactive controls like `TextBox.Text`).
-3. **Source Generators Only**:
-   - All ViewModels must derive from `ObservableObject` and be declared `public partial class`.
-   - Never write boilerplate `INotifyPropertyChanged` implementations or manual backing fields with `SetProperty`. Use `[ObservableProperty]`.
-   - Never use raw `ICommand` implementations. Use `[RelayCommand]` on synchronous or asynchronous methods.
+3. **Source Generators & Base Class Discipline**:
+   - All ViewModels must derive from `ToolViewModelBase` (for utility modules) or `ObservableObject` (for shell items) and be declared `public partial class`.
+   - Never write boilerplate `INotifyPropertyChanged` implementations, manual `IsBusy`/`ErrorMessage` properties, or raw `ICommand` implementations. Use `[ObservableProperty]`, `[RelayCommand]`, and `ToolViewModelBase.RunSafeAsync(...)`.
+   - New `IToolModule` plugins are automatically discovered and registered by `ModuleAutoDiscoveryExtensions.AddDiscoveredToolModules`—do not hardcode module registrations in `ServiceCollectionExtensions.cs`.
 
 ---
 

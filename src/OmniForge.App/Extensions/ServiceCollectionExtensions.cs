@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using OmniForge.App.Helpers;
-using OmniForge.App.Modules.Dashboard;
-using OmniForge.App.Modules.FileTools;
 using OmniForge.App.ViewModels;
 using OmniForge.App.Views;
 using OmniForge.Core.Contracts;
@@ -14,7 +12,7 @@ namespace OmniForge.App.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers all presentation components: Dispatcher, ViewModels, Pages, and Shell Window.
+    /// Registers all presentation components: Dispatcher, Shell ViewModels/Views, and auto-discovered <see cref="IToolModule"/> plugins.
     /// </summary>
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
@@ -22,17 +20,14 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<DispatcherService>();
         services.AddSingleton<IDispatcherService>(sp => sp.GetRequiredService<DispatcherService>());
 
-        // 2. Shell & Feature ViewModels
+        // 2. Shell Window & Core Pages
         services.AddSingleton<MainWindowViewModel>();
-        services.AddTransient<DashboardViewModel>();
-        services.AddTransient<FileToolsViewModel>();
         services.AddTransient<SettingsViewModel>();
-
-        // 3. Shell & Feature Views
         services.AddSingleton<MainWindow>();
-        services.AddTransient<DashboardPage>();
-        services.AddTransient<FileToolsPage>();
         services.AddTransient<SettingsPage>();
+
+        // 3. Auto-discover and register all IToolModule plugins, their ViewModels, Views, and Module Services
+        services.AddDiscoveredToolModules(typeof(App).Assembly);
 
         return services;
     }

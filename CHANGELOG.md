@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Token-Efficient & Zero-Touch Plugin Architecture**:
+  - `ToolViewModelBase` in `OmniForge.Core.Models` centralizing `IsBusy`, `IsNotBusy`, `StatusMessage`, `ErrorMessage`, `HasError`, and `RunSafeAsync(...)` execution helpers (reducing ViewModel code size by ~50%).
+  - `ModuleAutoDiscoveryExtensions.AddDiscoveredToolModules` in `OmniForge.App.Extensions` automatically discovering and registering `IToolModule` plugins, Views, ViewModels, and co-located module Services without manual DI edits.
+  - Reusable `ToolHeaderControl` (`OmniForge.App.Controls`) unifying module header typography and fault-isolated `InfoBar` error display.
+  - 4 new AI Agent Skills: `token-efficient-coding`, `unit-test-scaffolder`, `crypto-hash-engine`, and `fluent-ui-design-system`.
 - **Production Agentic Coding Infrastructure**:
   - Central Package Management (`Directory.Packages.props`) and root `.editorconfig` enforcing C# naming and style rules at compile time.
   - Automated Test & Architecture Verification suite (`tests/OmniForge.Tests`) using `xUnit` and `NetArchTest.Rules`.
