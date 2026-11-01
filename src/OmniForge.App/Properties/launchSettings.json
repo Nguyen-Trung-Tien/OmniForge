@@ -1,10 +1,10 @@
 {
   "profiles": {
-    "OmniForge.App (Package)": {
-      "commandName": "MsixPackage"
-    },
     "OmniForge.App (Unpackaged)": {
       "commandName": "Project"
+    },
+    "OmniForge.App (Package)": {
+      "commandName": "MsixPackage"
     }
   }
 }
