@@ -213,6 +213,13 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             {
                 // Normal when typing rapidly
             }
+            catch (Exception ex)
+            {
+                _dispatcherService.TryEnqueue(() =>
+                {
+                    ErrorMessage = $"Preview calculation error: {ex.Message}";
+                });
+            }
         }, token);
     }
 
@@ -266,18 +273,13 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
         var result = dryRunResult.Value;
         _lastPlannedItems = result.AllItems;
 
-        var treeNodes = new List<FolderPreviewNode>(result.RootNodes.Count);
-        foreach (var rootModel in result.RootNodes)
-        {
-            treeNodes.Add(FolderPreviewNode.FromModel(rootModel));
-        }
-
+        // TreeViewNode is a WinUI DependencyObject and MUST be created on the UI thread
         _dispatcherService.TryEnqueue(() =>
         {
             PreviewTreeNodes.Clear();
-            foreach (var node in treeNodes)
+            foreach (var rootModel in result.RootNodes)
             {
-                PreviewTreeNodes.Add(node);
+                PreviewTreeNodes.Add(FolderPreviewNode.FromModel(rootModel));
             }
 
             TotalFoldersCount = result.TotalCount;
@@ -392,8 +394,7 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     [RelayCommand]
     private void RefreshPreview()
     {
-        _debounceCts?.Cancel();
-        _ = RecomputePreviewAsync(CancellationToken.None);
+        TriggerDebouncedPreview();
     }
 
     [RelayCommand(CanExecute = nameof(CanCreate))]

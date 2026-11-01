@@ -52,7 +52,11 @@ public sealed partial class MainWindow : Window
         {
             if (t.IsCompletedSuccessfully)
             {
-                DispatcherQueue.TryEnqueue(() => ApplyTheme(t.Result));
+                DispatcherQueue?.TryEnqueue(() => ApplyTheme(t.Result));
+            }
+            else
+            {
+                _ = t.Exception;
             }
         });
 
@@ -65,7 +69,11 @@ public sealed partial class MainWindow : Window
                 {
                     if (t.IsCompletedSuccessfully)
                     {
-                        DispatcherQueue.TryEnqueue(() => ApplyTheme(t.Result));
+                        DispatcherQueue?.TryEnqueue(() => ApplyTheme(t.Result));
+                    }
+                    else
+                    {
+                        _ = t.Exception;
                     }
                 });
             }
@@ -79,11 +87,15 @@ public sealed partial class MainWindow : Window
                 var (width, height) = t.Result;
                 if (width >= 600 && height >= 400)
                 {
-                    DispatcherQueue.TryEnqueue(() =>
+                    DispatcherQueue?.TryEnqueue(() =>
                     {
                         AppWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
                     });
                 }
+            }
+            else
+            {
+                _ = t.Exception;
             }
         });
 
@@ -93,7 +105,7 @@ public sealed partial class MainWindow : Window
             var size = AppWindow.Size;
             if (size.Width >= 600 && size.Height >= 400)
             {
-                _ = _settingsService.SetWindowSizeAsync(size.Width, size.Height);
+                _ = _settingsService.SetWindowSizeAsync(size.Width, size.Height).ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
             }
         };
     }

@@ -105,6 +105,13 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
             {
                 // Debounce cancelled by newer edit
             }
+            catch (Exception ex)
+            {
+                _dispatcherService?.TryEnqueue(() =>
+                {
+                    ErrorMessage = $"Preview calculation error: {ex.Message}";
+                });
+            }
         }, token);
     }
 

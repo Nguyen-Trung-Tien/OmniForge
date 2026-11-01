@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Thread Marshaling & Unobserved Task Exception (COMException 0x8001010E)**:
+  - Fixed `RPC_E_WRONG_THREAD` fault in [FolderCreatorViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/BatchFolder/FolderCreatorViewModel.cs) caused by instantiating `FolderPreviewNode` (`TreeViewNode` / WinUI `DependencyObject`) on a background worker thread (`Task.Run`). Moved tree node construction inside `_dispatcherService.TryEnqueue(...)` onto the UI thread.
+  - Added global error guarding with `try/catch` in `TriggerDebouncedPreview()` and `TriggerDebouncePreview()` ([BatchRenameViewModel.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/BatchRename/BatchRenameViewModel.cs)) to catch and marshal any operational errors, eliminating unobserved task exceptions rethrown by the finalizer thread.
+  - Hardened fire-and-forget continuations in [MainWindow.xaml.cs](file:///d:/Tools/OmniForge/src/OmniForge.App/Views/MainWindow.xaml.cs) by explicitly observing `t.Exception` on faulted tasks.
 - **UI Layout & Alignment Symmetry Across All Pages**:
   - Removed restrictive `MaxWidth="1040"` from `PageRootStackPanelStyle` in [SharedStyles.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Styles/SharedStyles.xaml) and `MaxWidth="1280"` from [LuckyWheelPage.xaml](file:///d:/Tools/OmniForge/src/OmniForge.App/Modules/LuckyWheel/LuckyWheelPage.xaml). This eliminates the asymmetrical layout issue where pages were constrained to 1040px and left-aligned with a massive dead void on the right, allowing all pages to symmetrically stretch with uniform `OmniPagePadding` (`36,24,36,24`).
   - Added `HorizontalScrollBarVisibility="Disabled"` to `PageScrollViewerStyle` to prevent unbounded horizontal measurement and enforce responsive horizontal stretching across all display resolutions.
