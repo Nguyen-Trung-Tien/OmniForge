@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **File Hash & Integrity Validator Tool Module**:
+  - `StreamHashEngine` (`OmniForge.Core.Modules.Checksum`): Zero-allocation streaming cryptographic checksum computation using `IncrementalHash` and `ArrayPool<byte>.Shared` supporting MD5, SHA-1, SHA-256, SHA-384, and SHA-512 with `CancellationToken` and progress reporting.
+  - `IChecksumService` & `ChecksumService` (`OmniForge.App.Modules.Checksum`): Clean service abstraction auto-discovered by `ModuleAutoDiscoveryExtensions`.
+  - `ChecksumViewModel` & `ChecksumPage.xaml` (`OmniForge.App.Modules.Checksum`): Fluent UI with drag-and-drop file ingestion, file size formatting, lower-case hex digest presentation, and real-time hash comparison verification.
+  - Unit test suite (`StreamHashEngineTests`) validating known test vectors, multi-buffer streams (>64 KB), zero-byte files, and match/mismatch comparisons.
+- **Text & Payload Inspector Tool Module**:
+  - `TextPayloadEngine` (`OmniForge.Core.Modules.TextInspector`): High-speed streamed JSON formatting & minification via `Utf8JsonWriter` / `JsonDocument`, XML indentation formatting via `XDocument`, Base64 & URL codecs, JWT token header/payload decoding, and line-by-line diff computation.
+  - `ITextInspectorService` & `TextInspectorService` (`OmniForge.App.Modules.TextInspector`): Presentation service abstraction auto-discovered by `ModuleAutoDiscoveryExtensions`.
+  - `TextInspectorViewModel` & `TextInspectorPage.xaml` (`OmniForge.App.Modules.TextInspector`): Multi-mode workspace with segmented tool switching, input/output monospaced editors, clipboard copy/paste, and visual diff viewer.
+  - Unit test suite (`TextPayloadEngineTests`) validating JSON formatting/minification, XML formatting, Base64 roundtrip, URL encoding, JWT parsing, and line diff detection.
+- **Interactive Dashboard Available Utilities**:
+  - `DashboardViewModel` & `DashboardPage.xaml`: Added quick-launch module cards displaying icon, title, category, description, and direct launch button for all discovered utility modules.
 - **Production Settings & Preferences Architecture**:
   - `ISettingsService` contract (`OmniForge.Core.Contracts`) & `SettingsService` implementation (`OmniForge.Services`):
     - Persistent configuration stored in `%LocalAppData%/OmniForge/settings.json`.
@@ -132,6 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Standardized `ToolModuleBase` to C# 13 `public partial` observable properties and upgraded `DashboardViewModel` / `DashboardPage.xaml` to use `ToolViewModelBase` and `ToolHeaderControl`.
 
 ### Fixed
+- Fixed WinUI 3 cross-thread marshalling fault (`RPC_E_WRONG_THREAD`) in `BatchRenameViewModel.TriggerDebouncePreview()` by injecting `IDispatcherService` and dispatching `PreviewItems.ReplaceAll(...)` updates safely to the UI thread.
+- Wrapped drag-and-drop `OnDrop` handler in `BatchRenamePage.xaml.cs` in defensive `try/catch` to prevent unhandled application crash on corrupted or restricted file drop operations.
 - Fixed runtime `NullReferenceException` on `DashboardPage` and `FileToolsPage` navigation by resolving ViewModels via `App.GetService<T>()` in page constructors.
 - Fixed duplicate singleton registrations of `NavigationService` and `LocalSettingsService` across DI setup extensions.
 - Updated `winui3-module-generator` skill and `scaffold_module.ps1` to generate WinUI `Frame.Navigate`-compatible parameterless page constructors.

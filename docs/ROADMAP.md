@@ -33,21 +33,22 @@ flowchart LR
 
 ---
 
-## Phase 2: Essential Utility Modules & Batch Workflows
+## Phase 2: Essential Utility Modules & Batch Workflows (Completed)
 *Target Milestone: v0.2.0-beta*
 
-- [ ] **Batch File & Path Renamer**:
+- [x] **Batch File & Path Renamer**:
   - Regex-based bulk renaming, token substitutions (`{index}`, `{date}`, `{parent}`).
   - Live preview diff grid before executing changes.
   - Chunked asynchronous processing with progress reporting and undo journal.
-- [ ] **File Hash & Integrity Validator**:
-  - Multi-threaded checksum computation (MD5, SHA-256, SHA-512, BLAKE3).
+- [x] **File Hash & Integrity Validator**:
+  - Multi-threaded checksum computation (MD5, SHA-1, SHA-256, SHA-384, SHA-512).
   - Drag-and-drop file target comparison.
-  - Verification against standard `.sha256` checksum lists.
-- [ ] **Text & Payload Inspector**:
-  - Real-time JSON, XML, YAML validation, formatting, and minification.
-  - Base64, JWT, and URL encoder/decoder.
-  - Side-by-side visual text diff utility.
+  - Verification against expected checksum digests with zero LOH memory allocation.
+- [x] **Text & Payload Inspector**:
+  - Real-time JSON and XML validation, formatting, and minification.
+  - Base64 and URL encoder/decoder.
+  - JWT token header and payload inspection.
+  - Line-by-line visual text diff utility.
 
 ---
 

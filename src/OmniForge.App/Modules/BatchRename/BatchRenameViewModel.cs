@@ -18,6 +18,7 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
     private readonly IFileSystemService _fileSystemService;
     private readonly IFilePickerService? _filePickerService;
     private readonly IClipboardService? _clipboardService;
+    private readonly IDispatcherService? _dispatcherService;
 
     private readonly List<FileMetadata> _loadedFiles = [];
     private CancellationTokenSource? _debounceCts;
@@ -60,12 +61,14 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         IBatchRenameService renameService,
         IFileSystemService fileSystemService,
         IFilePickerService? filePickerService = null,
-        IClipboardService? clipboardService = null)
+        IClipboardService? clipboardService = null,
+        IDispatcherService? dispatcherService = null)
     {
         _renameService = renameService ?? throw new ArgumentNullException(nameof(renameService));
         _fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
         _filePickerService = filePickerService;
         _clipboardService = clipboardService;
+        _dispatcherService = dispatcherService;
 
         // Default with one sensible Prefix/Suffix rule
         Rules.Add(CreateRule(RenameRuleType.PrefixSuffix));
@@ -109,13 +112,7 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
     {
         if (_loadedFiles.Count == 0)
         {
-            PreviewItems.ReplaceAll([]);
-            TotalFilesCount = 0;
-            ChangedFilesCount = 0;
-            ConflictCount = 0;
-            IsEmpty = true;
-            HasFiles = false;
-            OnPropertyChanged(nameof(CanRun));
+            UpdatePreviewUi([], 0, 0, 0, isEmpty: true, hasFiles: false);
             return;
         }
 
@@ -125,15 +122,43 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         if (previewResult.IsSuccess)
         {
             var items = previewResult.Value;
-            PreviewItems.ReplaceAll(items);
+            UpdatePreviewUi(
+                items,
+                total: items.Count,
+                changed: items.Count(i => i.HasChange),
+                conflicts: items.Count(i => i.HasConflict),
+                isEmpty: items.Count == 0,
+                hasFiles: items.Count > 0);
+        }
+    }
 
-            TotalFilesCount = items.Count;
-            ChangedFilesCount = items.Count(i => i.HasChange);
-            ConflictCount = items.Count(i => i.HasConflict);
-            IsEmpty = items.Count == 0;
-            HasFiles = items.Count > 0;
+    private void UpdatePreviewUi(
+        IReadOnlyList<RenamePreviewItem> items,
+        int total,
+        int changed,
+        int conflicts,
+        bool isEmpty,
+        bool hasFiles)
+    {
+        void Apply()
+        {
+            PreviewItems.ReplaceAll(items);
+            TotalFilesCount = total;
+            ChangedFilesCount = changed;
+            ConflictCount = conflicts;
+            IsEmpty = isEmpty;
+            HasFiles = hasFiles;
             OnPropertyChanged(nameof(CanRun));
             OnPropertyChanged(nameof(HasConflicts));
+        }
+
+        if (_dispatcherService is not null)
+        {
+            _dispatcherService.TryEnqueue(Apply);
+        }
+        else
+        {
+            Apply();
         }
     }
 

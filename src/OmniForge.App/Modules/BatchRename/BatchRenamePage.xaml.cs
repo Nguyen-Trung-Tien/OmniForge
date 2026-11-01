@@ -25,11 +25,18 @@ public sealed partial class BatchRenamePage : Page
 
     private async void OnDrop(object sender, DragEventArgs e)
     {
-        if (e.DataView.Contains(StandardDataFormats.StorageItems))
+        try
         {
-            var items = await e.DataView.GetStorageItemsAsync();
-            var paths = items.Select(i => i.Path).ToList();
-            await ViewModel.ImportPathsAsync(paths);
+            if (e.DataView.Contains(StandardDataFormats.StorageItems))
+            {
+                var items = await e.DataView.GetStorageItemsAsync();
+                var paths = items.Select(i => i.Path).ToList();
+                await ViewModel.ImportPathsAsync(paths);
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel.ErrorMessage = $"Error importing dropped items: {ex.Message}";
         }
     }
 }
