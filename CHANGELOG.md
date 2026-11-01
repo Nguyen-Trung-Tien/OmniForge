@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Central Package Management (Directory.Packages.props) Dependency Upgrades**:
+  - Upgraded `Microsoft.Extensions.DependencyInjection`, `Logging`, `Logging.Abstractions`, `Logging.Debug` from `9.0.2` to `10.0.14`.
+  - Upgraded `Microsoft.Graphics.Win2D` from `1.3.2` to `1.4.0`.
+  - Upgraded `Microsoft.NET.Test.Sdk` from `17.12.0` to `18.11.0`.
+  - Upgraded `xunit.runner.visualstudio` from `3.0.2` to `4.0.1`.
+  - Upgraded `coverlet.collector` from `6.0.4` to `10.1.0`.
+  - Verified 100% build compatibility and all 87 automated unit & architecture tests passing with 0 warnings.
+
 ### Added
 - **Standardized Agent Skills Architecture**:
   - Restructured all 15 workspace skills under `.agents/skills/` to strictly comply with the standard 4-component specification: `SKILL.md`, `scripts/`, `examples/`, and `resources/`.
