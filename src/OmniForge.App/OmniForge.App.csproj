@@ -60,4 +60,9 @@
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed>False</PublishTrimmed>
   </PropertyGroup>
+
+  <!-- Pre-build hook: Kill running app instance to prevent MSB3026/MSB3027 file lock warnings -->
+  <Target Name="KillRunningAppBeforeBuild" BeforeTargets="BeforeBuild;BeforeRebuild">
+    <Exec Command="taskkill /F /IM OmniForge.App.exe 2&gt;nul || exit 0" ContinueOnError="true" />
+  </Target>
 </Project>
