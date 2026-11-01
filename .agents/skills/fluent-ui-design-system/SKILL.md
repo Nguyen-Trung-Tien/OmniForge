@@ -36,19 +36,51 @@ Use this skill whenever authoring or styling XAML pages and controls in **OmniFo
 
 ---
 
-## 3. Standard Card Container Snippet
+## 3. Shared Styles & Reusable Custom Controls (`OmniForge.App.Controls`)
 
-```xml
-<Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1"
-        CornerRadius="8"
-        Padding="20">
-    <StackPanel Spacing="12">
-        <!-- Card Content -->
-    </StackPanel>
-</Border>
-```
+Never repeat raw `<Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" ...>` or manual status bars across pages. Always use the shared styles from `Styles/SharedStyles.xaml` and controls from `OmniForge.App.Controls`:
+
+### 3.1 Page Container & Shared Styles (`SharedStyles.xaml`)
+- `<ScrollViewer Style="{StaticResource PageScrollViewerStyle}">`
+- `<StackPanel Style="{StaticResource PageRootStackPanelStyle}">`
+- `<Border Style="{StaticResource FluentCardBorderStyle}">`
+- `<TextBox Style="{StaticResource MonospaceCodeTextBoxStyle}" />` (Cascadia Code / Consolas for JSON, XML, Hashes, Regex)
+
+### 3.2 Reusable XAML Controls (`xmlns:controls="using:OmniForge.App.Controls"`)
+
+1. **`<controls:ToolHeaderControl>`** — Page title, subtitle, and fault-isolated `InfoBar`:
+   ```xml
+   <controls:ToolHeaderControl
+       Title="Tool Title"
+       Subtitle="Concise description of utility."
+       HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
+       ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+   ```
+2. **`<controls:SectionCardControl>`** — Elevated Fluent card with `Title`, `Subtitle`, `IconGlyph`, `HeaderAction`, and direct child content:
+   ```xml
+   <controls:SectionCardControl Title="Input Settings" Subtitle="Configure options" IconGlyph="&#xE8B7;">
+       <StackPanel Spacing="12">
+           <!-- Card body controls -->
+       </StackPanel>
+   </controls:SectionCardControl>
+   ```
+3. **`<controls:StatusFooterControl>`** — Progress bar, status text, and execution duration pill badge:
+   ```xml
+   <controls:StatusFooterControl
+       IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+       IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
+       ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+       StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+       DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
+   ```
+4. **`<controls:EmptyStateControl>`** — Placeholder when a `ListView` or result grid is empty:
+   ```xml
+   <controls:EmptyStateControl
+       IconGlyph="&#xE8B7;"
+       Title="No items loaded"
+       Subtitle="Select a folder or drop files to begin."
+       IsEmpty="{x:Bind ViewModel.IsEmpty, Mode=OneWay}" />
+   ```
 
 ---
 

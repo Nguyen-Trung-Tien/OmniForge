@@ -126,16 +126,21 @@ public sealed class LocalSettingsService : ILocalSettingsService, IDisposable
             }
 
             var snapshot = new Dictionary<string, JsonElement>(_cache, StringComparer.OrdinalIgnoreCase);
+            var tempFilePath = _settingsFilePath + ".tmp";
 
-            await using var stream = new FileStream(
-                _settingsFilePath,
+            await using (var stream = new FileStream(
+                tempFilePath,
                 FileMode.Create,
                 FileAccess.Write,
                 FileShare.None,
                 bufferSize: 4096,
-                useAsync: true);
+                useAsync: true))
+            {
+                await JsonSerializer.SerializeAsync(stream, snapshot, SerializerOptions, cancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
 
-            await JsonSerializer.SerializeAsync(stream, snapshot, SerializerOptions, cancellationToken).ConfigureAwait(false);
+            File.Move(tempFilePath, _settingsFilePath, overwrite: true);
         }
         finally
         {

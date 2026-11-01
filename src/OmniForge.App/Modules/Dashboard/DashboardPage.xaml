@@ -5,18 +5,17 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:OmniForge.App.Controls"
     xmlns:vm="using:OmniForge.App.Modules.Dashboard"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="36,24,36,24">
-        <StackPanel Spacing="24" MaxWidth="1000" HorizontalAlignment="Left">
-            <StackPanel Spacing="6">
-                <TextBlock Text="OmniForge Dashboard"
-                           Style="{ThemeResource TitleTextBlockStyle}" />
-                <TextBlock Text="Centralized workspace &amp; modular utility hub"
-                           Style="{ThemeResource BodyTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+    <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
+        <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
+            <controls:ToolHeaderControl
+                Title="OmniForge Dashboard"
+                Subtitle="Centralized workspace &amp; modular utility hub"
+                HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
             <Grid ColumnSpacing="16" RowSpacing="16">
                 <Grid.ColumnDefinitions>
@@ -24,18 +23,13 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Active Modules Card -->
-                <Border Grid.Column="0"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="20">
-                    <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE74C;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock Text="Modular System Status" Style="{ThemeResource SubtitleTextBlockStyle}" />
-                        </StackPanel>
+                <!-- Active Modules Card (Using Reusable SectionCardControl) -->
+                <controls:SectionCardControl
+                    Grid.Column="0"
+                    Title="Modular System Status"
+                    Subtitle="Zero-touch auto-discovered IToolModule plugins"
+                    IconGlyph="&#xE74C;">
+                    <StackPanel Spacing="10">
                         <TextBlock Text="{x:Bind ViewModel.WelcomeMessage, Mode=OneWay}"
                                    Style="{ThemeResource BodyTextBlockStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -44,27 +38,21 @@
                                        Style="{ThemeResource BodyTextBlockStyle}" />
                         </StackPanel>
                     </StackPanel>
-                </Border>
+                </controls:SectionCardControl>
 
-                <!-- Architectural Overview Card -->
-                <Border Grid.Column="1"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="20">
-                    <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE943;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock Text="Foundation Highlights" Style="{ThemeResource SubtitleTextBlockStyle}" />
-                        </StackPanel>
+                <!-- Architectural Overview Card (Using Reusable SectionCardControl) -->
+                <controls:SectionCardControl
+                    Grid.Column="1"
+                    Title="Foundation Highlights"
+                    Subtitle="Clean Architecture &amp; Fluent Design System"
+                    IconGlyph="&#xE943;">
+                    <StackPanel Spacing="8">
                         <TextBlock Text="• Windows App SDK &amp; WinUI 3 with MicaAlt Backdrop" />
-                        <TextBlock Text="• MVVM Toolkit source generators ([ObservableProperty], [RelayCommand])" />
-                        <TextBlock Text="• Fully decoupled DI-driven plugin &amp; navigation architecture" />
+                        <TextBlock Text="• Shared Controls (ToolHeader, SectionCard, StatusFooter, EmptyState)" />
+                        <TextBlock Text="• Decoupled DI services (FilePicker, Clipboard, FileSystem, Settings)" />
                     </StackPanel>
-                </Border>
+                </controls:SectionCardControl>
             </Grid>
         </StackPanel>
     </ScrollViewer>
 </Page>
-

@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Reusable Fluent UI Component Library & Design System**:
+  - Centralized `Styles/SharedStyles.xaml` defining `PageScrollViewerStyle`, `PageRootStackPanelStyle`, `FluentCardBorderStyle`, `StatusBadgeBorderStyle`, and `MonospaceCodeTextBoxStyle`.
+  - `SectionCardControl` (`OmniForge.App.Controls`) providing a reusable Fluent card container with header icon, title, subtitle, action slot, and `[ContentProperty(Name = nameof(InnerContent))]`.
+  - `StatusFooterControl` (`OmniForge.App.Controls`) binding directly to `IsBusy`, `IsIndeterminate`, `ProgressPercent`, `StatusMessage`, and `LastDurationText` with a duration pill badge.
+  - `EmptyStateControl` (`OmniForge.App.Controls`) providing a reusable empty-state placeholder for lists and data grids.
+- **Standardized Shared Services & Functional Utilities**:
+  - `IFilePickerService` & `FilePickerService` abstracting WinUI 3 `FileOpenPicker` and `FolderPicker` with automatic `MainWindow` HWND initialization.
+  - `IClipboardService` & `ClipboardService` abstracting system clipboard read/write operations for 100% ViewModel testability.
+  - `ByteSizeFormatter` (`OmniForge.Core.Common`) providing culture-invariant byte size (`1.5 MB`) and execution duration (`14 ms`) formatting.
+  - `SecurityGuard` (`OmniForge.Core.Common`) enforcing Path Traversal defense, reserved Windows device name blocking, and payload DoS size limits.
+  - `BulkObservableCollection<T>` (`OmniForge.Core.Common`) enabling batch UI updates (`ReplaceAll`, `AddRange`) in a single `Reset` notification to prevent UI freezes.
+  - `ResultExtensions` (`OmniForge.Core.Common`) adding `Ensure`, `Tap`, `MapAsync`, and `BindAsync` functional combinators.
+  - Upgraded `ToolViewModelBase` with built-in high-resolution `Stopwatch.GetTimestamp()` execution timing (`LastDurationText`) and `ReportProgress(percent, status)`.
+- **Unified Root CLI Task Runner (`.\forge.ps1` & `.\forge.cmd`)**:
+  - Single-entrypoint terminal CLI at workspace root supporting `build`, `run`, `test`, `verify`, `arch`, `new-module`, `new-test`, `learn`, `logs`, `doctor`, `clean`, and `publish` without navigating into subdirectories.
+  - Persistent institutional memory store (`.agents/MEMORY.md`) integrated with `.\forge learn "<insight>"`.
+  - Root `global.json` SDK configuration and `.vscode/tasks.json` IDE task bindings.
+  - 8 new AI Agent Skills: `cli-task-runner`, `security-and-input-hardening`, `performance-and-memory-optimization`, `crash-resilience-and-fault-isolation`, `reusable-code-and-ui-architecture`, `text-payload-inspector`, `regex-bulk-renamer`, and `msix-release-packager` (bringing the total to 15 specialized skills).
 - **Token-Efficient & Zero-Touch Plugin Architecture**:
   - `ToolViewModelBase` in `OmniForge.Core.Models` centralizing `IsBusy`, `IsNotBusy`, `StatusMessage`, `ErrorMessage`, `HasError`, and `RunSafeAsync(...)` execution helpers (reducing ViewModel code size by ~50%).
   - `ModuleAutoDiscoveryExtensions.AddDiscoveredToolModules` in `OmniForge.App.Extensions` automatically discovering and registering `IToolModule` plugins, Views, ViewModels, and co-located module Services without manual DI edits.
@@ -27,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Consolidated all domain service interfaces into `OmniForge.Core.Contracts` (removed redundant `OmniForge.Core.Interfaces` namespace).
 - Upgraded `IFileSystemService` and `FileSystemService` to return functional `Result` and `Result<T>` envelopes and use `EnumerationOptions` (`IgnoreInaccessible = true`).
+- Hardened `LocalSettingsService` with atomic write-through (`settings.json.tmp` + `File.Move(..., overwrite: true)`) to prevent settings corruption on abrupt termination.
+- Optimized `FileLoggerProvider` background queue draining to batch multiple queued log entries per file stream flush cycle.
+- Standardized `ToolModuleBase` to C# 13 `public partial` observable properties and upgraded `DashboardViewModel` / `DashboardPage.xaml` to use `ToolViewModelBase` and `ToolHeaderControl`.
 
 ### Fixed
 - Fixed runtime `NullReferenceException` on `DashboardPage` and `FileToolsPage` navigation by resolving ViewModels via `App.GetService<T>()` in page constructors.

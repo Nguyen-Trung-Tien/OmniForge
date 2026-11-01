@@ -74,6 +74,12 @@ public sealed class FileLoggerProvider : ILoggerProvider
                         useAsync: true);
                     await using var writer = new StreamWriter(stream);
                     await writer.WriteLineAsync(entry).ConfigureAwait(false);
+
+                    while (_messageQueue.TryTake(out var batchedEntry))
+                    {
+                        await writer.WriteLineAsync(batchedEntry).ConfigureAwait(false);
+                    }
+                    await writer.FlushAsync(_cts.Token).ConfigureAwait(false);
                 }
                 catch (IOException)
                 {

@@ -8,53 +8,78 @@
     xmlns:controls="using:OmniForge.App.Controls"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="36,24,36,24">
-        <StackPanel Spacing="20" MaxWidth="900" HorizontalAlignment="Left">
+    <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
+        <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
             <controls:ToolHeaderControl
                 Title="File Inspector &amp; Storage Utilities"
-                Subtitle="Asynchronous non-blocking file operations powered by IFileSystemService"
+                Subtitle="Asynchronous non-blocking file operations powered by IFileSystemService, IFilePickerService, and IClipboardService"
                 HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
                 ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0"
-                         Text="{x:Bind ViewModel.TargetDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="Enter folder path to scan..." />
-                <Button Grid.Column="1"
-                        Content="Scan Files"
-                        Command="{x:Bind ViewModel.ScanDirectoryCommand}"
-                        Style="{ThemeResource AccentButtonStyle}" />
-            </Grid>
+            <controls:SectionCardControl
+                Title="Target Directory"
+                Subtitle="Select or enter a local folder path to inspect top-level files and compute total size."
+                IconGlyph="&#xE8B7;">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-            <ProgressBar IsIndeterminate="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
-                         Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <TextBox Grid.Column="0"
+                             Text="{x:Bind ViewModel.TargetDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Enter folder path to scan..." />
 
-            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                       Style="{ThemeResource CaptionTextBlockStyle}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <Button Grid.Column="1"
+                            Content="Browse..."
+                            Command="{x:Bind ViewModel.BrowseFolderCommand}" />
 
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="16"
-                    MinHeight="300">
-                <ListView ItemsSource="{x:Bind ViewModel.DiscoveredFiles, Mode=OneWay}"
-                          MaxHeight="400">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="x:String">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE8B7;" />
-                                <TextBlock Text="{x:Bind}" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Border>
+                    <Button Grid.Column="2"
+                            ToolTipService.ToolTip="Copy path to clipboard"
+                            Command="{x:Bind ViewModel.CopyTargetPathCommand}">
+                        <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                    </Button>
+
+                    <Button Grid.Column="3"
+                            Content="Scan Files"
+                            Command="{x:Bind ViewModel.ScanDirectoryCommand}"
+                            Style="{ThemeResource AccentButtonStyle}" />
+                </Grid>
+            </controls:SectionCardControl>
+
+            <controls:StatusFooterControl
+                IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
+                ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
+
+            <controls:SectionCardControl
+                Title="Discovered Files"
+                Subtitle="Top 100 items in the target directory"
+                IconGlyph="&#xE8A5;">
+                <Grid MinHeight="260">
+                    <controls:EmptyStateControl
+                        IconGlyph="&#xE8B7;"
+                        Title="No files scanned yet"
+                        Subtitle="Click 'Scan Files' or 'Browse...' above to enumerate directory contents asynchronously."
+                        IsEmpty="{x:Bind ViewModel.IsEmpty, Mode=OneWay}" />
+
+                    <ListView ItemsSource="{x:Bind ViewModel.DiscoveredFiles, Mode=OneWay}"
+                              MaxHeight="400">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8A5;" FontSize="14" />
+                                    <TextBlock Text="{x:Bind}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </controls:SectionCardControl>
         </StackPanel>
     </ScrollViewer>
 </Page>

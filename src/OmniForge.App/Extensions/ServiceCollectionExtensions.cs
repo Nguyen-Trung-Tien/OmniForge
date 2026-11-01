@@ -16,9 +16,11 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
-        // 1. UI Thread Dispatcher Abstraction
+        // 1. UI Thread Dispatcher & Native Interop Services (Clipboard, File/Folder Pickers)
         services.AddSingleton<DispatcherService>();
         services.AddSingleton<IDispatcherService>(sp => sp.GetRequiredService<DispatcherService>());
+        services.AddSingleton<IClipboardService, ClipboardService>();
+        services.AddSingleton<IFilePickerService, FilePickerService>();
 
         // 2. Shell Window & Core Pages
         services.AddSingleton<MainWindowViewModel>();

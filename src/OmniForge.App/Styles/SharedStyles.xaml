@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ======================================================================= -->
+    <!-- OmniForge Standardized Fluent UI Design Tokens & Reusable Control Styles -->
+    <!-- ======================================================================= -->
+
+    <Thickness x:Key="OmniPagePadding">36,24,36,24</Thickness>
+    <CornerRadius x:Key="OmniCardCornerRadius">8</CornerRadius>
+    <Thickness x:Key="OmniCardPadding">20</Thickness>
+
+    <!-- Standard ScrollViewer for all Tool Pages -->
+    <Style x:Key="PageScrollViewerStyle" TargetType="ScrollViewer">
+        <Setter Property="Padding" Value="{StaticResource OmniPagePadding}" />
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
+
+    <!-- Standard Root StackPanel for all Tool Pages -->
+    <Style x:Key="PageRootStackPanelStyle" TargetType="StackPanel">
+        <Setter Property="Spacing" Value="20" />
+        <Setter Property="MaxWidth" Value="1040" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- Reusable Fluent Surface Card Border -->
+    <Style x:Key="FluentCardBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource OmniCardCornerRadius}" />
+        <Setter Property="Padding" Value="{StaticResource OmniCardPadding}" />
+    </Style>
+
+    <!-- Subtle Status / Metric Pill Badge -->
+    <Style x:Key="StatusBadgeBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <!-- Developer Monospace Code / Payload TextBox Style (JSON, XML, Hashes, Regex) -->
+    <Style x:Key="MonospaceCodeTextBoxStyle" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="Cascadia Code, Consolas, Courier New" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="IsSpellCheckEnabled" Value="False" />
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+</ResourceDictionary>
+

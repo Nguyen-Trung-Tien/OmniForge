@@ -127,31 +127,46 @@ $xamlContent = @"
     xmlns:controls="using:OmniForge.App.Controls"
     mc:Ignorable="d">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,24,32,24">
-        <StackPanel Spacing="16" MaxWidth="800" HorizontalAlignment="Left">
+    <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
+        <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
             <controls:ToolHeaderControl
                 Title="$DisplayName"
                 Subtitle="Modular $DisplayName utility tool for OmniForge Suite."
                 HasError="{x:Bind ViewModel.HasError, Mode=OneWay}"
                 ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
-            <TextBox Header="Input Payload"
-                     PlaceholderText="Type or paste payload here..."
-                     Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <controls:SectionCardControl
+                Title="Input Configuration"
+                Subtitle="Provide the source payload to process"
+                IconGlyph="$($IconGlyph.Replace('\u', '&#x'))`;">
+                <StackPanel Spacing="12">
+                    <TextBox Header="Input Payload"
+                             PlaceholderText="Type or paste payload here..."
+                             Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                             Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <Button Content="Execute"
-                        Style="{ThemeResource AccentButtonStyle}"
-                        Command="{x:Bind ViewModel.ExecuteActionCommand}" />
-                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
-                              Width="20" Height="20" />
-            </StackPanel>
+                    <Button Content="Execute"
+                            Style="{ThemeResource AccentButtonStyle}"
+                            Command="{x:Bind ViewModel.ExecuteActionCommand}" />
+                </StackPanel>
+            </controls:SectionCardControl>
 
-            <TextBox Header="Output Result"
-                     IsReadOnly="True"
-                     TextWrapping="Wrap"
-                     MinHeight="120"
-                     Text="{x:Bind ViewModel.OutputResult, Mode=OneWay}" />
+            <controls:StatusFooterControl
+                IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
+                ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
+
+            <controls:SectionCardControl
+                Title="Output Result"
+                Subtitle="Generated diagnostic or transformed output"
+                IconGlyph="&#xE8A5;">
+                <TextBox IsReadOnly="True"
+                         MinHeight="140"
+                         Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                         Text="{x:Bind ViewModel.OutputResult, Mode=OneWay}" />
+            </controls:SectionCardControl>
         </StackPanel>
     </ScrollViewer>
 </Page>

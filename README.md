@@ -66,36 +66,55 @@ To build and run OmniForge on Windows 11 / Windows 10 (version 1809 / build 1776
 
 ---
 
-## CLI Build & Run Commands
+## Unified CLI Workflow (`.\forge` — Zero Directory Hopping)
 
-Execute the following commands from the solution root:
+Run all build, execution, test, scaffolding, diagnostic, and learning commands directly from the solution root using `.\forge`:
 
-### Restore Dependencies
 ```powershell
-dotnet restore OmniForge.sln
-```
+# 1. Full Verification Pipeline (Static Arch Guardrails + Build + xUnit & NetArchTest)
+.\forge verify
 
-### Build Solution (Strict Zero-Warning Enforcement)
-```powershell
-dotnet build OmniForge.sln -c Debug
-```
+# 2. Build or Launch the WinUI 3 Application
+.\forge build
+.\forge run
 
-### Run the Application (Unpackaged / Packaged target)
-```powershell
-dotnet run --project src/OmniForge.App/OmniForge.App.csproj
-```
+# 3. Run Automated Tests (All or Filtered)
+.\forge test
+.\forge test -Filter "ResultTests"
 
-### Publish Self-Contained Release for Windows x64
-```powershell
-dotnet publish src/OmniForge.App/OmniForge.App.csproj -c Release -r win-x64 --self-contained true
+# 4. One-Command Module & Unit Test Scaffolding
+.\forge new-module -Name "HashValidator" -DisplayName "Hash Validator" -Category "Security"
+.\forge new-test -Name "HashValidator" -SubFolder "Modules"
+
+# 5. Record or Inspect Institutional Agent Memory (.agents/MEMORY.md)
+.\forge learn "WinUI 3 Frame.Navigate requires parameterless Page constructors" -Category "WinUI3"
+.\forge learn
+
+# 6. Inspect Runtime JSONL Logs & Environment Health
+.\forge logs -Tail 30
+.\forge doctor
+.\forge clean
+.\forge publish -Platform x64
 ```
 
 ---
 
-## Agent & Automation Skills
+## Agent & Automation Skills (`.agents/skills/`)
 
-OmniForge includes pre-configured AI Agent skills in `.agents/skills/`:
-- **`winui3-module-generator`**: Scaffolds a new utility plugin end-to-end (`Service`, `ViewModel`, `Page.xaml`, and `IToolModule`).
-- **`batch-io-processor`**: Templates and guidelines for chunked, cancellable file operations.
-- **`win2d-canvas-renderer`**: High-performance Win2D canvas rendering and device resource management.
+OmniForge includes 15 specialized AI Agent skills in `.agents/skills/`:
+- **`cli-task-runner`**: Single-command root terminal workflow (`.\forge`) avoiding subdirectory traversal.
+- **`security-and-input-hardening`**: Mandatory security workflow (`SecurityGuard`, Path Traversal defense, ReDoS timeout, XML/JSON DoS limits).
+- **`performance-and-memory-optimization`**: 60+ FPS UI and zero-allocation workflow (`BulkObservableCollection<T>`, `ArrayPool<byte>`, `Span<T>`).
+- **`crash-resilience-and-fault-isolation`**: WinUI 3 anti-crash workflow (zero `async void`, thread marshaling, `COMException` shielding).
+- **`reusable-code-and-ui-architecture`**: Master DRY inventory of shared C# helpers, services, and reusable XAML controls.
+- **`token-efficient-coding`**: High-density C# 13 and XAML patterns cutting token usage by 40–65%.
+- **`winui3-module-generator`**: Zero-touch `IToolModule` scaffolding (`Service`, `ViewModel`, `Page.xaml`, `Module`, and `Tests`).
+- **`unit-test-scaffolder`**: Rapid deterministic `xUnit` and `NetArchTest` generation without heavy mocking libraries.
+- **`batch-io-processor`**: Chunked, cancellable batch file processing with `IAsyncEnumerable<T>` and `BatchProgressReport`.
+- **`crypto-hash-engine`**: Zero-allocation async file hashing (`SHA-256`, `SHA-512`, `MD5`) using `ArrayPool<byte>.Shared`.
+- **`text-payload-inspector`**: Streamed `Utf8JsonWriter` JSON/XML formatting, Base64/JWT inspection, and line diffing.
+- **`regex-bulk-renamer`**: ReDoS-safe Regex bulk file renaming, token interpolation, collision preview, and Undo Journal rollback.
+- **`fluent-ui-design-system`**: WinUI 3 Fluent theme brushes, typography, and Segoe Fluent Icons cheat-sheet.
+- **`win2d-canvas-renderer`**: High-FPS Win2D `CanvasControl` rendering and GPU resource lifecycle management.
+- **`msix-release-packager`**: Trimming-safe WinUI 3 MSIX and self-contained portable release packaging.
 

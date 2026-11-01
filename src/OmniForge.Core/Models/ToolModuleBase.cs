@@ -18,12 +18,13 @@ public abstract partial class ToolModuleBase : ObservableObject, IToolModule
     public abstract Type ViewModelType { get; }
 
     [ObservableProperty]
-    private int _priority;
+    [NotifyPropertyChangedFor(nameof(Order))]
+    public partial int Priority { get; set; }
 
     public int Order => Priority;
 
     [ObservableProperty]
-    private bool _isEnabled = true;
+    public partial bool IsEnabled { get; set; } = true;
 
     public virtual Task InitializeAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 }

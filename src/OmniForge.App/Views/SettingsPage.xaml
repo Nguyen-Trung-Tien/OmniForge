@@ -5,23 +5,20 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:OmniForge.App.Controls"
     xmlns:vm="using:OmniForge.App.ViewModels"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="36,24,36,24">
-        <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
-            <StackPanel Spacing="6">
-                <TextBlock Text="Settings" Style="{ThemeResource TitleTextBlockStyle}" />
-                <TextBlock Text="Application preferences and environment configurations"
-                           Style="{ThemeResource BodyTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+    <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
+        <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
+            <controls:ToolHeaderControl
+                Title="Settings"
+                Subtitle="Application preferences and environment configurations" />
 
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="20">
+            <controls:SectionCardControl
+                Title="Appearance &amp; System Backdrop"
+                Subtitle="Customize Fluent MicaAlt window chrome and visual preferences"
+                IconGlyph="&#xE790;">
                 <StackPanel Spacing="16">
                     <ToggleSwitch Header="Enable MicaAlt System Backdrop"
                                   IsOn="{x:Bind ViewModel.EnableMicaAlt, Mode=TwoWay}" />
@@ -40,7 +37,7 @@
                                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                                Visibility="{x:Bind ViewModel.HasStatusNotice, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
-            </Border>
+            </controls:SectionCardControl>
         </StackPanel>
     </ScrollViewer>
 </Page>

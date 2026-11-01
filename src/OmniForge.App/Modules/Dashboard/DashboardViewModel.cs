@@ -1,10 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OmniForge.Core.Contracts;
+using OmniForge.Core.Models;
 
 namespace OmniForge.App.Modules.Dashboard;
 
-public partial class DashboardViewModel : ObservableObject
+public partial class DashboardViewModel : ToolViewModelBase
 {
     private readonly IToolRegistryService _toolRegistry;
 
@@ -25,5 +26,6 @@ public partial class DashboardViewModel : ObservableObject
     private void RefreshStatistics()
     {
         RegisteredModuleCount = _toolRegistry.Modules.Count;
+        StatusMessage = $"Refreshed ({RegisteredModuleCount} active modules).";
     }
 }
