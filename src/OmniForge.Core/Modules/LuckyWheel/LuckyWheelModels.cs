@@ -66,3 +66,22 @@ public sealed record SpinTarget(
     double TargetAngle,
     int RotationsCount,
     double DurationSeconds);
+
+/// <summary>
+/// Import modes when bringing items in from file or raw text.
+/// </summary>
+public enum ImportMode
+{
+    Replace,
+    Append
+}
+
+/// <summary>
+/// Historical record of a previous winning spin.
+/// </summary>
+public sealed record WinnerHistoryEntry(
+    string Name,
+    double Weight,
+    double Percentage,
+    string ColorHex,
+    DateTime WonAt);

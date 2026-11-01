@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using OmniForge.App.Extensions;
+using OmniForge.App.Helpers;
 using OmniForge.App.Modules.Dashboard;
 using OmniForge.App.Views;
 using OmniForge.Core.Contracts;
@@ -58,6 +59,10 @@ public partial class App : Application
 
         Services = ConfigureServices();
         _logger = Services.GetRequiredService<ILogger<App>>();
+
+        var locService = Services.GetRequiredService<ILocalizationService>();
+        LocalizationManager.Current?.AttachService(locService);
+
         _logger.LogInformation("OmniForge Utility Suite host initialized.");
     }
 

@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OmniForge.Core.Common;
@@ -11,24 +12,31 @@ namespace OmniForge.App.Modules.LuckyWheel;
 
 /// <summary>
 /// Production ViewModel governing Lucky Wheel configuration, item management,
-/// physics spin calculation, audio tick events, and celebratory victory presentation.
+/// physics spin calculation, smart Excel/TXT/CSV importing, audio tick events,
+/// winner history, and celebratory victory presentation.
 /// </summary>
 public partial class LuckyWheelViewModel : ToolViewModelBase
 {
     private readonly ILuckyWheelService _wheelService;
     private readonly IClipboardService _clipboardService;
+    private readonly IFilePickerService _filePickerService;
+    private readonly ILocalizationService? _localizationService;
 
     private double _spinStartAngle;
     private double _spinTargetAngle;
     private double _spinElapsedTime;
     private double _previousFrameAngle;
     private SpinTarget? _activeTarget;
+    private List<WheelItem> _cachedParsedFileItems = [];
 
     public event Action<double>? WheelAngleUpdated;
     public event Action? DividerTickOccurred;
     public event Action<WheelItemViewModel>? SpinCompleted;
 
     public BulkObservableCollection<WheelItemViewModel> Items { get; } = [];
+    public BulkObservableCollection<WheelItemViewModel> FilteredItems { get; } = [];
+    public BulkObservableCollection<WinnerHistoryEntryViewModel> History { get; } = [];
+    public BulkObservableCollection<WheelItemViewModel> ImportPreviewItems { get; } = [];
 
     [ObservableProperty]
     public partial double CurrentAngle { get; set; }
@@ -51,7 +59,10 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
     [NotifyPropertyChangedFor(nameof(WinningProbabilityText))]
     public partial WheelItemViewModel? WinningItem { get; set; }
 
-    public string WinningProbabilityText => WinningItem is not null ? $"Probability: {WinningItem.Percentage:F1}%" : string.Empty;
+    [ObservableProperty]
+    public partial string WinningTimestampText { get; set; } = string.Empty;
+
+    public string WinningProbabilityText => WinningItem is not null ? $"Tỉ lệ trúng: {WinningItem.Percentage.ToString("F1", CultureInfo.InvariantCulture)}%" : string.Empty;
 
     [ObservableProperty]
     public partial bool IsResultModalOpen { get; set; }
@@ -59,29 +70,135 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
     [ObservableProperty]
     public partial string NewItemText { get; set; } = string.Empty;
 
+    private double _newItemWeight = 1.0;
+
+    public double NewItemWeight
+    {
+        get => _newItemWeight;
+        set
+        {
+            double sanitized = double.IsNaN(value) || double.IsInfinity(value) || value <= 0.0
+                ? 1.0
+                : Math.Round(Math.Clamp(value, 0.1, 100.0), 2);
+
+            if (SetProperty(ref _newItemWeight, sanitized))
+            {
+                OnPropertyChanged(nameof(NewItemWeightText));
+            }
+        }
+    }
+
+    public string NewItemWeightText
+    {
+        get => NewItemWeight.ToString("0.##", CultureInfo.InvariantCulture);
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                OnPropertyChanged(nameof(NewItemWeightText));
+                return;
+            }
+
+            string normalized = value.Trim().Replace(',', '.');
+            if (double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && parsed > 0)
+            {
+                NewItemWeight = parsed;
+            }
+            else
+            {
+                OnPropertyChanged(nameof(NewItemWeightText));
+            }
+        }
+    }
+
+    [RelayCommand]
+    public void IncreaseNewItemWeight()
+    {
+        NewItemWeight = Math.Round(Math.Min(100.0, NewItemWeight + 0.5), 2);
+    }
+
+    [RelayCommand]
+    public void DecreaseNewItemWeight()
+    {
+        NewItemWeight = Math.Round(Math.Max(0.1, NewItemWeight - 0.5), 2);
+    }
+
     [ObservableProperty]
-    public partial double NewItemWeight { get; set; } = 1.0;
+    public partial string SearchQuery { get; set; } = string.Empty;
+
+    // Smart Import Modal Properties
+    [ObservableProperty]
+    public partial bool IsImportModalOpen { get; set; }
+
+    [ObservableProperty]
+    public partial int ImportTabIndex { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsReplaceMode { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsAppendMode { get; set; }
+
+    [ObservableProperty]
+    public partial string SelectedImportFilePath { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string ImportFileStatusText { get; set; } = "Chưa chọn file nào. Hỗ trợ .xlsx, .csv, .tsv, .txt";
 
     [ObservableProperty]
     public partial string ImportPayloadText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial bool IsImportDialogOpen { get; set; }
+    public partial bool HasImportPreview { get; set; }
 
+    [ObservableProperty]
+    public partial string ImportPreviewSummary { get; set; } = string.Empty;
+
+    // Status & Count Summaries
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveItemsText))]
     public partial int ActiveItemsCount { get; set; }
 
-    public string ActiveItemsText => $"Active: {ActiveItemsCount}";
+    public string ActiveItemsText =>
+        _localizationService?.GetFormattedString(LocalizationKeys.LuckyWheel_Badge_Active, ActiveItemsCount)
+        ?? $"Đang bật: {ActiveItemsCount}";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TotalWeightText))]
     public partial double TotalWeight { get; set; }
 
-    public string TotalWeightText => $"Weight: {TotalWeight:F1}";
+    public string TotalWeightText =>
+        _localizationService?.GetFormattedString(LocalizationKeys.LuckyWheel_Badge_Weight, TotalWeight.ToString("F1", CultureInfo.InvariantCulture))
+        ?? $"Trọng số: {TotalWeight.ToString("F1", CultureInfo.InvariantCulture)}";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ItemsCountSummaryText))]
+    public partial int TotalItemsCount { get; set; }
+
+    public string ItemsCountSummaryText =>
+        _localizationService?.GetFormattedString(LocalizationKeys.LuckyWheel_Badge_Count, FilteredItems.Count, Items.Count)
+        ?? $"{FilteredItems.Count} / {Items.Count} mục";
 
     public bool IsOptionsEmpty => Items.Count == 0;
     public bool HasOptions => Items.Count > 0;
+
+    // Winner History & Drawer
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasHistory))]
+    [NotifyPropertyChangedFor(nameof(HistoryButtonText))]
+    public partial bool IsHistoryDrawerOpen { get; set; }
+
+    public bool HasHistory => History.Count > 0;
+    public string HistoryButtonText =>
+        _localizationService?.GetFormattedString(LocalizationKeys.LuckyWheel_HistoryBtn, History.Count)
+        ?? $"Lịch sử ({History.Count})";
+
+    // Audio & Effects Settings
+    [ObservableProperty]
+    public partial bool IsSoundEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsConfettiEnabled { get; set; } = true;
 
     [ObservableProperty]
     public partial string SelectedPreset { get; set; } = "Decision Maker";
@@ -90,15 +207,39 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
 
     public IReadOnlyList<WheelSlice> Slices { get; private set; } = [];
 
-    public LuckyWheelViewModel(ILuckyWheelService wheelService, IClipboardService clipboardService)
+    public LuckyWheelViewModel(
+        ILuckyWheelService wheelService,
+        IClipboardService clipboardService,
+        IFilePickerService filePickerService,
+        ILocalizationService? localizationService = null)
     {
         _wheelService = wheelService ?? throw new ArgumentNullException(nameof(wheelService));
         _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
+        _filePickerService = filePickerService ?? throw new ArgumentNullException(nameof(filePickerService));
+        _localizationService = localizationService;
+
+        if (_localizationService is not null)
+        {
+            _localizationService.LanguageChanged += OnLanguageChanged;
+            ImportFileStatusText = _localizationService.GetString(LocalizationKeys.LuckyWheel_Import_NoFile);
+        }
 
         Items.CollectionChanged += OnItemsCollectionChanged;
 
         // Load initial default preset
         LoadPreset("Decision Maker");
+    }
+
+    private void OnLanguageChanged(object? sender, AppLanguage newLanguage)
+    {
+        OnPropertyChanged(nameof(ActiveItemsText));
+        OnPropertyChanged(nameof(TotalWeightText));
+        OnPropertyChanged(nameof(ItemsCountSummaryText));
+        OnPropertyChanged(nameof(HistoryButtonText));
+        if (string.IsNullOrEmpty(SelectedImportFilePath))
+        {
+            ImportFileStatusText = _localizationService?.GetString(LocalizationKeys.LuckyWheel_Import_NoFile) ?? ImportFileStatusText;
+        }
     }
 
     private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -119,6 +260,8 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
             }
         }
 
+        TotalItemsCount = Items.Count;
+        ApplyFilter();
         RecalculateSlices();
     }
 
@@ -131,6 +274,29 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         {
             RecalculateSlices();
         }
+    }
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            FilteredItems.Clear();
+            FilteredItems.AddRange(Items);
+        }
+        else
+        {
+            string query = SearchQuery.Trim();
+            var matched = Items.Where(i => i.Text.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+            FilteredItems.Clear();
+            FilteredItems.AddRange(matched);
+        }
+
+        OnPropertyChanged(nameof(ItemsCountSummaryText));
     }
 
     public void RecalculateSlices()
@@ -151,6 +317,7 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         StartSpinCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(IsOptionsEmpty));
         OnPropertyChanged(nameof(HasOptions));
+        OnPropertyChanged(nameof(ItemsCountSummaryText));
         WheelAngleUpdated?.Invoke(CurrentAngle);
     }
 
@@ -181,11 +348,11 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
 
             IsSpinning = true;
             IsBusy = true;
-            StatusMessage = "Wheel is spinning...";
+            StatusMessage = "Vòng quay đang quay...";
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Unable to start spin: {ex.Message}";
+            ErrorMessage = $"Không thể khởi động vòng quay: {ex.Message}";
             IsSpinning = false;
             IsBusy = false;
         }
@@ -200,7 +367,7 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
 
         _spinElapsedTime += deltaSeconds;
         double progress = Math.Clamp(_spinElapsedTime / _activeTarget.DurationSeconds, 0.0, 1.0);
-        ReportProgress(progress * 100.0, $"Wheel is spinning... ({progress * 100.0:F0}%)");
+        ReportProgress(progress * 100.0, $"Vòng quay đang quay... ({progress * 100.0:F0}%)");
 
         double evaluatedAngle = LuckyWheelEngine.EvaluateAngle(
             _spinStartAngle,
@@ -209,12 +376,15 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
             DecelerationProfile);
 
         // Detect ticker collision with dividers
-        int crossings = LuckyWheelEngine.DetectDividerCrossings(_previousFrameAngle, evaluatedAngle, Slices);
-        if (crossings > 0)
+        if (IsSoundEnabled)
         {
-            for (int i = 0; i < crossings; i++)
+            int crossings = LuckyWheelEngine.DetectDividerCrossings(_previousFrameAngle, evaluatedAngle, Slices);
+            if (crossings > 0)
             {
-                DividerTickOccurred?.Invoke();
+                for (int i = 0; i < crossings; i++)
+                {
+                    DividerTickOccurred?.Invoke();
+                }
             }
         }
 
@@ -234,14 +404,14 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         if (!IsSpinning) return;
         IsSpinning = false;
         IsBusy = false;
-        StatusMessage = "Wheel spin cancelled by user.";
+        StatusMessage = "Vòng quay đã được dừng.";
     }
 
     private void CompleteSpin()
     {
         IsSpinning = false;
         IsBusy = false;
-        StatusMessage = "Spin complete!";
+        StatusMessage = "Quay hoàn tất!";
 
         if (_activeTarget is not null)
         {
@@ -249,32 +419,81 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
             if (winnerVm is not null)
             {
                 WinningItem = winnerVm;
+                WinningTimestampText = $"Thời gian: {DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture)}";
                 IsResultModalOpen = true;
+
+                // Record into history
+                var historyItem = new WinnerHistoryEntryViewModel(
+                    winnerVm.Text,
+                    winnerVm.Weight,
+                    winnerVm.Percentage,
+                    winnerVm.ColorHex,
+                    DateTime.Now);
+
+                History.Insert(0, historyItem);
+                OnPropertyChanged(nameof(HasHistory));
+                OnPropertyChanged(nameof(HistoryButtonText));
+
                 SpinCompleted?.Invoke(winnerVm);
             }
         }
     }
 
+    /// <summary>
+    /// Smart quick-add supporting single or multi-item entry separated by commas or newlines.
+    /// </summary>
     [RelayCommand]
     public void AddNewItem()
     {
         if (string.IsNullOrWhiteSpace(NewItemText))
         {
-            NewItemText = $"Option {Items.Count + 1}";
+            NewItemText = $"Mục {Items.Count + 1}";
         }
 
-        int colorIdx = Items.Count % _wheelService.PaletteColors.Count;
-        string color = _wheelService.PaletteColors[colorIdx];
+        string raw = NewItemText.Trim();
+        char[] separators = [',', ';', '\r', '\n'];
+        var tokens = raw.Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        var newItem = new WheelItemViewModel
+        if (tokens.Length > 1)
         {
-            Text = NewItemText.Trim(),
-            Weight = Math.Max(0.1, NewItemWeight),
-            ColorHex = color,
-            IsEnabled = true
-        };
+            var toAdd = new List<WheelItemViewModel>(tokens.Length);
+            int baseColorIdx = Items.Count;
 
-        Items.Add(newItem);
+            foreach (var token in tokens)
+            {
+                if (string.IsNullOrWhiteSpace(token)) continue;
+                string color = _wheelService.PaletteColors[baseColorIdx % _wheelService.PaletteColors.Count];
+                baseColorIdx++;
+
+                toAdd.Add(new WheelItemViewModel
+                {
+                    Text = token,
+                    Weight = Math.Max(0.1, NewItemWeight),
+                    ColorHex = color,
+                    IsEnabled = true
+                });
+            }
+
+            Items.AddRange(toAdd);
+            StatusMessage = $"Đã thêm nhanh {toAdd.Count} đối tượng.";
+        }
+        else
+        {
+            int colorIdx = Items.Count % _wheelService.PaletteColors.Count;
+            string color = _wheelService.PaletteColors[colorIdx];
+
+            var newItem = new WheelItemViewModel
+            {
+                Text = raw,
+                Weight = Math.Max(0.1, NewItemWeight),
+                ColorHex = color,
+                IsEnabled = true
+            };
+
+            Items.Add(newItem);
+            StatusMessage = $"Đã thêm: \"{raw}\".";
+        }
+
         NewItemText = string.Empty;
         NewItemWeight = 1.0;
     }
@@ -292,13 +511,13 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         if (IsSpinning || Items.Count == 0) return;
 
         RequestConfirmation(
-            title: "Confirm Clear All Wheel Options",
-            message: $"Remove all {Items.Count} option(s) from the wheel?",
+            title: "Xác nhận xóa danh sách",
+            message: $"Bạn có chắc muốn xóa toàn bộ {Items.Count} đối tượng trên vòng quay?",
             onConfirmedAction: _ =>
             {
                 Items.Clear();
-                StatusMessage = "Cleared all wheel options.";
-                SuccessMessage = "Cleared all wheel options.";
+                StatusMessage = "Đã xóa toàn bộ đối tượng.";
+                SuccessMessage = "Đã làm trống vòng quay.";
                 return Task.CompletedTask;
             });
     }
@@ -312,7 +531,7 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
             item.Weight = 1.0;
         }
         RecalculateSlices();
-        StatusMessage = "Reset all option weights to equal (1.0).";
+        StatusMessage = "Đã đặt lại toàn bộ trọng số về 1.0 (tỉ lệ đều nhau).";
     }
 
     [RelayCommand]
@@ -326,6 +545,51 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         {
             Items.Add(new WheelItemViewModel(item));
         }
+        StatusMessage = "Đã xáo trộn ngẫu nhiên thứ tự các ô.";
+    }
+
+    [RelayCommand]
+    public void SortByName()
+    {
+        if (Items.Count <= 1 || IsSpinning) return;
+        var sorted = Items.OrderBy(i => i.Text, StringComparer.CurrentCultureIgnoreCase).ToList();
+        Items.Clear();
+        Items.AddRange(sorted);
+        StatusMessage = "Đã sắp xếp danh sách theo bảng chữ cái A-Z.";
+    }
+
+    [RelayCommand]
+    public void SortByWeight()
+    {
+        if (Items.Count <= 1 || IsSpinning) return;
+        var sorted = Items.OrderByDescending(i => i.Weight).ToList();
+        Items.Clear();
+        Items.AddRange(sorted);
+        StatusMessage = "Đã sắp xếp danh sách theo trọng số giảm dần.";
+    }
+
+    [RelayCommand]
+    public void EnableAllItems()
+    {
+        if (IsSpinning || Items.Count == 0) return;
+        foreach (var item in Items)
+        {
+            item.IsEnabled = true;
+        }
+        RecalculateSlices();
+        StatusMessage = "Đã bật tất cả đối tượng.";
+    }
+
+    [RelayCommand]
+    public void DisableAllItems()
+    {
+        if (IsSpinning || Items.Count == 0) return;
+        foreach (var item in Items)
+        {
+            item.IsEnabled = false;
+        }
+        RecalculateSlices();
+        StatusMessage = "Đã tắt tất cả đối tượng.";
     }
 
     [RelayCommand]
@@ -341,6 +605,123 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         {
             Items.Add(new WheelItemViewModel(item));
         }
+        StatusMessage = $"Đã tải mẫu: {target}.";
+    }
+
+    // =========================================================================
+    // SMART IMPORT MODAL & FILE PICKING
+    // =========================================================================
+
+    [RelayCommand]
+    public void OpenImportModal()
+    {
+        if (IsSpinning) return;
+        SelectedImportFilePath = string.Empty;
+        ImportFileStatusText = "Chưa chọn file nào. Hỗ trợ .xlsx, .csv, .tsv, .txt";
+        ImportPayloadText = string.Empty;
+        HasImportPreview = false;
+        ImportPreviewSummary = string.Empty;
+        ImportPreviewItems.Clear();
+        _cachedParsedFileItems.Clear();
+        IsImportModalOpen = true;
+    }
+
+    [RelayCommand]
+    public void CloseImportModal()
+    {
+        IsImportModalOpen = false;
+    }
+
+    [RelayCommand]
+    public async Task PickImportFileAsync()
+    {
+        if (IsSpinning) return;
+
+        ClearError();
+        var pickResult = await _filePickerService.PickSingleFileAsync(
+            [".xlsx", ".xls", ".csv", ".tsv", ".txt"]);
+
+        if (!pickResult.IsSuccess || string.IsNullOrWhiteSpace(pickResult.Value))
+        {
+            return;
+        }
+
+        string filePath = pickResult.Value;
+        SelectedImportFilePath = filePath;
+        ImportFileStatusText = $"Đang đọc file: {Path.GetFileName(filePath)}...";
+
+        var parseResult = await _wheelService.ImportFromFileAsync(filePath);
+        if (parseResult.IsSuccess && parseResult.Value is { Count: > 0 } parsedItems)
+        {
+            _cachedParsedFileItems = [.. parsedItems];
+            ImportPreviewItems.Clear();
+
+            // Show preview of first 8 items
+            foreach (var item in parsedItems.Take(8))
+            {
+                ImportPreviewItems.Add(new WheelItemViewModel(item));
+            }
+
+            HasImportPreview = true;
+            ImportPreviewSummary = $"Tìm thấy {parsedItems.Count} đối tượng hợp lệ trong file (xem trước {ImportPreviewItems.Count} mục đầu).";
+            ImportFileStatusText = $"Đã đọc thành công: {Path.GetFileName(filePath)} ({parsedItems.Count} mục)";
+        }
+        else
+        {
+            HasImportPreview = false;
+            _cachedParsedFileItems.Clear();
+            ImportPreviewItems.Clear();
+            ImportFileStatusText = $"Lỗi đọc file: {parseResult.Error.Message}";
+            ErrorMessage = parseResult.Error.Message;
+        }
+    }
+
+    [RelayCommand]
+    public void ExecuteImport()
+    {
+        if (IsSpinning) return;
+
+        IReadOnlyList<WheelItem>? itemsToImport = null;
+
+        // If user is on File tab (tab 0) and has cached parsed items from picked file
+        if (ImportTabIndex == 0 && _cachedParsedFileItems.Count > 0)
+        {
+            itemsToImport = _cachedParsedFileItems;
+        }
+        else
+        {
+            // Raw text tab (tab 1)
+            var textResult = _wheelService.ParseItemsFromText(ImportPayloadText);
+            if (textResult.IsSuccess && textResult.Value is { Count: > 0 } parsedList)
+            {
+                itemsToImport = parsedList;
+            }
+            else
+            {
+                ErrorMessage = textResult.Error.Message;
+                return;
+            }
+        }
+
+        if (itemsToImport is null || itemsToImport.Count == 0)
+        {
+            ErrorMessage = "Không tìm thấy dữ liệu đối tượng nào hợp lệ để nhập.";
+            return;
+        }
+
+        if (IsReplaceMode)
+        {
+            Items.Clear();
+        }
+
+        var newVms = itemsToImport.Select(item => new WheelItemViewModel(item)).ToList();
+        Items.AddRange(newVms);
+
+        IsImportModalOpen = false;
+        ImportPayloadText = string.Empty;
+        _cachedParsedFileItems.Clear();
+        StatusMessage = $"Đã nhập thành công {itemsToImport.Count} đối tượng vào vòng quay.";
+        SuccessMessage = $"Đã nhập {itemsToImport.Count} mục!";
     }
 
     [RelayCommand]
@@ -352,36 +733,46 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Value))
         {
             ImportPayloadText = result.Value;
-            ExecuteImport();
+            ImportTabIndex = 1;
+            IsImportModalOpen = true;
         }
         else
         {
-            ErrorMessage = "Clipboard contains no text data.";
+            ErrorMessage = "Bộ nhớ tạm (Clipboard) không chứa dữ liệu văn bản.";
         }
     }
 
     [RelayCommand]
-    public void ExecuteImport()
+    public void ExportToClipboard()
     {
-        if (IsSpinning) return;
+        if (Items.Count == 0) return;
+        string csv = _wheelService.ExportItemsToCsv(Items.Select(vm => vm.ToModel()));
+        _clipboardService.CopyText(csv);
+        StatusMessage = $"Đã sao chép danh sách {Items.Count} đối tượng dạng CSV vào Clipboard.";
+        SuccessMessage = "Đã chép danh sách CSV!";
+    }
 
-        var parseResult = _wheelService.ParseItemsFromText(ImportPayloadText);
-        if (parseResult.IsSuccess && parseResult.Value is { Count: > 0 } parsedList)
-        {
-            Items.Clear();
-            foreach (var item in parsedList)
-            {
-                Items.Add(new WheelItemViewModel(item));
-            }
+    // =========================================================================
+    // WINNER MODAL & ACTIONS
+    // =========================================================================
 
-            IsImportDialogOpen = false;
-            ImportPayloadText = string.Empty;
-            StatusMessage = $"Imported {parsedList.Count} items.";
-        }
-        else
+    [RelayCommand]
+    public void SpinAgain()
+    {
+        IsResultModalOpen = false;
+        StartSpin();
+    }
+
+    [RelayCommand]
+    public void RemoveWinnerAndSpin()
+    {
+        if (WinningItem is not null)
         {
-            ErrorMessage = parseResult.Error.Message;
+            Items.Remove(WinningItem);
+            WinningItem = null;
         }
+        IsResultModalOpen = false;
+        StartSpin();
     }
 
     [RelayCommand]
@@ -392,6 +783,7 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
             Items.Remove(WinningItem);
             WinningItem = null;
             IsResultModalOpen = false;
+            StatusMessage = "Đã loại người trúng khỏi vòng quay.";
         }
     }
 
@@ -407,7 +799,36 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         if (WinningItem is not null)
         {
             _clipboardService.CopyText(WinningItem.Text);
-            StatusMessage = $"Copied \"{WinningItem.Text}\" to clipboard.";
+            StatusMessage = $"Đã sao chép: \"{WinningItem.Text}\" vào Clipboard.";
         }
+    }
+
+    // =========================================================================
+    // WINNER HISTORY
+    // =========================================================================
+
+    [RelayCommand]
+    public void ToggleHistory()
+    {
+        IsHistoryDrawerOpen = !IsHistoryDrawerOpen;
+    }
+
+    [RelayCommand]
+    public void ClearHistory()
+    {
+        History.Clear();
+        OnPropertyChanged(nameof(HasHistory));
+        OnPropertyChanged(nameof(HistoryButtonText));
+        StatusMessage = "Đã xóa toàn bộ lịch sử trúng thưởng.";
+    }
+
+    [RelayCommand]
+    public void CopyHistory()
+    {
+        if (History.Count == 0) return;
+        var lines = History.Select(h => $"{h.FormattedTime}: {h.Name} ({h.FormattedOdds})");
+        string text = string.Join(Environment.NewLine, lines);
+        _clipboardService.CopyText(text);
+        StatusMessage = "Đã sao chép toàn bộ lịch sử vào Clipboard.";
     }
 }

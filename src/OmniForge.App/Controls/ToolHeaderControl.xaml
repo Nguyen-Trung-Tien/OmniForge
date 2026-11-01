@@ -24,10 +24,10 @@
                  Message="{x:Bind ConfirmationMessage, Mode=OneWay}">
             <InfoBar.Content>
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,12">
-                    <Button Content="Confirm &amp; Execute"
+                    <Button Content="{Binding Source={StaticResource Loc}, Path=[Control_ToolHeader_ConfirmAndExecute]}"
                             Style="{ThemeResource AccentButtonStyle}"
                             Click="ConfirmActionButton_Click" />
-                    <Button Content="Cancel"
+                    <Button Content="{Binding Source={StaticResource Loc}, Path=[Control_ToolHeader_Cancel]}"
                             Click="DismissConfirmationButton_Click" />
                 </StackPanel>
             </InfoBar.Content>
@@ -37,7 +37,7 @@
         <InfoBar IsOpen="{x:Bind HasSuccessMessage, Mode=TwoWay}"
                  Severity="Success"
                  IsClosable="True"
-                 Title="Action Completed"
+                 Title="{Binding Source={StaticResource Loc}, Path=[Control_ToolHeader_ActionCompleted]}"
                  Message="{x:Bind SuccessMessage, Mode=OneWay}" />
 
         <!-- Error / Fault Isolation Banner -->

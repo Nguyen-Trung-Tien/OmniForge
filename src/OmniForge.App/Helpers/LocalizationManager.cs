@@ -60,6 +60,7 @@ public sealed partial class LocalizationManager : ObservableObject
         _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
         _localizationService.LanguageChanged += OnLanguageChanged;
         OnPropertyChanged(string.Empty);
+        OnPropertyChanged("Item[]");
     }
 
     private void TryAttachService()
@@ -99,6 +100,7 @@ public sealed partial class LocalizationManager : ObservableObject
     {
         // Notifies XAML that all properties including indexers have updated
         OnPropertyChanged(string.Empty);
+        OnPropertyChanged("Item[]");
         OnPropertyChanged(nameof(CurrentLanguage));
         OnPropertyChanged(nameof(CurrentCultureTag));
     }

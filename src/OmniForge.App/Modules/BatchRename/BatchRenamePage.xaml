@@ -46,8 +46,8 @@
         <!-- Tool Header -->
         <controls:ToolHeaderControl
             Grid.Row="0"
-            Title="Batch File &amp; Path Renamer"
-            Subtitle="Chained transformation rules, live collision detection, and non-blocking batch renaming"
+            Title="{Binding Source={StaticResource Loc}, Path=[BatchRename_Title]}"
+            Subtitle="{Binding Source={StaticResource Loc}, Path=[BatchRename_Subtitle]}"
             HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
             ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
 

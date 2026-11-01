@@ -44,12 +44,14 @@
                 <Button Grid.Column="3"
                         Padding="10,4"
                         FontSize="12"
-                        ToolTipService.ToolTip="Cancel the currently running task (Esc)"
+                        ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[Control_StatusFooter_CancelTaskToolTip]}"
                         Click="CancelTaskButton_Click"
                         VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
-                        <TextBlock Text="Cancel Task" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[Control_StatusFooter_CancelTask]}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                     </StackPanel>
                     <Button.KeyboardAccelerators>
                         <KeyboardAccelerator Key="Escape" />

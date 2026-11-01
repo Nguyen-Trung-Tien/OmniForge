@@ -13,7 +13,13 @@ public interface ILuckyWheelService
 
     Result<IReadOnlyList<WheelItem>> ParseItemsFromText(string rawText);
 
+    Task<Result<IReadOnlyList<WheelItem>>> ParseItemsFromExcelStreamAsync(Stream stream, CancellationToken cancellationToken = default);
+
+    Task<Result<IReadOnlyList<WheelItem>>> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default);
+
     IReadOnlyList<WheelItem> ShuffleItems(IEnumerable<WheelItem> items);
+
+    string ExportItemsToCsv(IEnumerable<WheelItem> items);
 }
 
 public sealed class LuckyWheelService : ILuckyWheelService
@@ -27,6 +33,36 @@ public sealed class LuckyWheelService : ILuckyWheelService
     public IReadOnlyList<WheelItem> GetPreset(string presetName) => LuckyWheelCatalog.GetPreset(presetName);
 
     public Result<IReadOnlyList<WheelItem>> ParseItemsFromText(string rawText) => LuckyWheelCatalog.ParseItemsFromText(rawText);
+
+    public Task<Result<IReadOnlyList<WheelItem>>> ParseItemsFromExcelStreamAsync(Stream stream, CancellationToken cancellationToken = default) =>
+        LuckyWheelCatalog.ParseFromExcelStreamAsync(stream, cancellationToken);
+
+    public async Task<Result<IReadOnlyList<WheelItem>>> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return Result.Failure<IReadOnlyList<WheelItem>>("LuckyWheel.InvalidPath", "Đường dẫn file không được để trống.");
+        }
+
+        if (!File.Exists(filePath))
+        {
+            return Result.Failure<IReadOnlyList<WheelItem>>("LuckyWheel.FileNotFound", $"Không tìm thấy file: {filePath}");
+        }
+
+        string ext = Path.GetExtension(filePath).ToLowerInvariant();
+        if (ext == ".xlsx")
+        {
+            await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+            return await LuckyWheelCatalog.ParseFromExcelStreamAsync(stream, cancellationToken);
+        }
+
+        // Plain text formats: .csv, .tsv, .txt
+        string text = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return LuckyWheelCatalog.ParseItemsFromText(text);
+    }
+
+    public string ExportItemsToCsv(IEnumerable<WheelItem> items) =>
+        LuckyWheelCatalog.ExportItemsToCsv(items);
 
     public IReadOnlyList<WheelItem> ShuffleItems(IEnumerable<WheelItem> items)
     {

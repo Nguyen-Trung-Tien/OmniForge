@@ -12,7 +12,7 @@
             <VisualStateGroup x:Name="ResponsiveStates">
                 <VisualState x:Name="WideState">
                     <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="980" />
+                        <AdaptiveTrigger MinWindowWidth="1020" />
                     </VisualState.StateTriggers>
                 </VisualState>
                 <VisualState x:Name="NarrowState">
@@ -23,7 +23,7 @@
                         <Setter Target="RootScrollViewer.Padding" Value="{StaticResource OmniCompactPagePadding}" />
                         <Setter Target="WheelCol.Width" Value="*" />
                         <Setter Target="WheelCol.MinWidth" Value="0" />
-                        <Setter Target="ConfigCol.Width" Value="0" />
+                        <Setter Target="ConfigCol.Width" Value="*" />
                         <Setter Target="ConfigPanel.(Grid.Row)" Value="1" />
                         <Setter Target="ConfigPanel.(Grid.Column)" Value="0" />
                         <Setter Target="ConfigPanel.Margin" Value="0,16,0,0" />
@@ -38,8 +38,8 @@
             <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
                 <!-- Header Control -->
                 <controls:ToolHeaderControl
-                    Title="Lucky Wheel"
-                    Subtitle="Interactive physics-driven decision wheel with customizable weights and 60/120 FPS Win2D rendering."
+                    Title="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Title]}"
+                    Subtitle="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Subtitle]}"
                     HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
                     ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
 
@@ -50,15 +50,15 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition x:Name="WheelCol" Width="1.15*" MinWidth="360" />
-                        <ColumnDefinition x:Name="ConfigCol" Width="430" />
+                        <ColumnDefinition x:Name="WheelCol" Width="1.15*" MinWidth="380" />
+                        <ColumnDefinition x:Name="ConfigCol" Width="480" />
                     </Grid.ColumnDefinitions>
 
                     <!-- Left Column: Wheel Canvas & Spin Controls -->
                     <StackPanel Grid.Row="0" Grid.Column="0" Spacing="14">
                         <!-- Canvas Card Container -->
                         <Border Style="{StaticResource FluentCardBorderStyle}" Padding="12" CornerRadius="12">
-                            <Grid x:Name="CanvasContainer" Height="460" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="8">
+                            <Grid x:Name="CanvasContainer" Height="470" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="8">
                                 <canvas:CanvasControl
                                     x:Name="WheelCanvas"
                                     HorizontalAlignment="Stretch"
@@ -72,100 +72,244 @@
 
                         <!-- Wheel Action Bar -->
                         <Border Style="{StaticResource FluentCardBorderStyle}" Padding="14">
-                            <Grid ColumnSpacing="14">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
+                            <StackPanel Spacing="12">
                                 <!-- Big Spin Action Button -->
-                                <Button Grid.Column="0"
-                                        Style="{ThemeResource AccentButtonStyle}"
+                                <Button Style="{ThemeResource AccentButtonStyle}"
                                         HorizontalAlignment="Stretch"
-                                        Height="46"
+                                        Height="48"
                                         Command="{x:Bind ViewModel.StartSpinCommand}"
                                         IsEnabled="{x:Bind ViewModel.CanSpin, Mode=OneWay}">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <FontIcon Glyph="&#xE768;" FontSize="18" />
-                                        <TextBlock Text="SPIN WHEEL" FontSize="15" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_SpinBtn]}" FontSize="15" FontWeight="Bold" />
                                     </StackPanel>
                                 </Button>
 
-                                <!-- Spin Duration Preset -->
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <TextBlock Text="Duration:" VerticalAlignment="Center" Style="{ThemeResource CaptionTextBlockStyle}" />
-                                    <ComboBox SelectedIndex="1" Width="105" SelectionChanged="DurationComboBox_SelectionChanged"
-                                              IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
-                                        <ComboBoxItem Content="3s Fast" Tag="3.0" />
-                                        <ComboBoxItem Content="4.5s Normal" Tag="4.5" />
-                                        <ComboBoxItem Content="7s Drama" Tag="7.0" />
-                                        <ComboBoxItem Content="10s Epic" Tag="10.0" />
-                                    </ComboBox>
-                                </StackPanel>
+                                <!-- Secondary Wheel Controls Grid -->
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                <!-- Deceleration Profile -->
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <TextBlock Text="Profile:" VerticalAlignment="Center" Style="{ThemeResource CaptionTextBlockStyle}" />
-                                    <ComboBox SelectedIndex="0" Width="125" SelectionChanged="ProfileComboBox_SelectionChanged"
-                                              IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
-                                        <ComboBoxItem Content="Ease-Out Cubic" />
-                                        <ComboBoxItem Content="Exponential" />
-                                    </ComboBox>
-                                </StackPanel>
-                            </Grid>
+                                    <!-- Duration Selector -->
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xED5A;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <ComboBox SelectedIndex="1" SelectionChanged="DurationComboBox_SelectionChanged"
+                                                  HorizontalAlignment="Stretch"
+                                                  IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
+                                            <ComboBoxItem Content="3.0s" Tag="3.0" />
+                                            <ComboBoxItem Content="4.5s" Tag="4.5" />
+                                            <ComboBoxItem Content="7.0s" Tag="7.0" />
+                                            <ComboBoxItem Content="10.0s" Tag="10.0" />
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- Physics Profile -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE777;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <ComboBox SelectedIndex="0" Width="110" SelectionChanged="ProfileComboBox_SelectionChanged"
+                                                  IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
+                                            <ComboBoxItem Content="Ease-Out" />
+                                            <ComboBoxItem Content="Expo" />
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- Sound Toggle Button -->
+                                    <ToggleButton Grid.Column="2"
+                                                  IsChecked="{x:Bind ViewModel.IsSoundEnabled, Mode=TwoWay}"
+                                                  ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Sound]}"
+                                                  Padding="8,6">
+                                        <FontIcon Glyph="&#xE767;" FontSize="14" />
+                                    </ToggleButton>
+
+                                    <!-- Winner History Flyout Button -->
+                                    <Button Grid.Column="3"
+                                            Padding="10,6"
+                                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_History_Title]}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE81C;" FontSize="13" />
+                                            <TextBlock Text="{x:Bind ViewModel.HistoryButtonText, Mode=OneWay}" FontSize="12" />
+                                        </StackPanel>
+                                        <Button.Flyout>
+                                            <Flyout Placement="BottomEdgeAlignedRight">
+                                                <Grid Width="340" MaxHeight="380" RowSpacing="10">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+
+                                                    <Grid Grid.Row="0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_History_Title]}" Style="{ThemeResource BodyStrongTextBlockStyle}" VerticalAlignment="Center" />
+                                                        <Button Grid.Column="1" Content="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_History_Clear]}" Padding="6,2" FontSize="11" Command="{x:Bind ViewModel.ClearHistoryCommand}" />
+                                                    </Grid>
+
+                                                    <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.History, Mode=OneWay}" SelectionMode="None">
+                                                        <ListView.ItemTemplate>
+                                                            <DataTemplate x:DataType="lucky:WinnerHistoryEntryViewModel">
+                                                                <Grid ColumnSpacing="8" Padding="0,4">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="16" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{x:Bind Brush, Mode=OneWay}" VerticalAlignment="Center" />
+                                                                    <TextBlock Grid.Column="1" Text="{x:Bind Name, Mode=OneWay}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Name, Mode=OneWay}" />
+                                                                    <TextBlock Grid.Column="2" Text="{x:Bind FormattedOdds, Mode=OneWay}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="6,0" />
+                                                                    <TextBlock Grid.Column="3" Text="{x:Bind FormattedTime, Mode=OneWay}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ListView.ItemTemplate>
+                                                    </ListView>
+
+                                                    <Button Grid.Row="2" HorizontalAlignment="Stretch" Command="{x:Bind ViewModel.CopyHistoryCommand}">
+                                                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                                            <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_History_CopyAll]}" FontSize="12" />
+                                                        </StackPanel>
+                                                    </Button>
+                                                </Grid>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
                         </Border>
                     </StackPanel>
 
                     <!-- Right Column: Configuration & Items Panel -->
                     <StackPanel x:Name="ConfigPanel" Grid.Row="0" Grid.Column="1" Spacing="14">
                         <controls:SectionCardControl
-                            Title="Wheel Options &amp; Rows"
-                            Subtitle="Add rows, adjust weights, or load presets."
+                            Title="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_ItemsListTitle]}"
+                            Subtitle="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_ItemsListSubtitle]}"
                             IconGlyph="&#xE8B7;">
                             <controls:SectionCardControl.HeaderAction>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Button ToolTipService.ToolTip="Shuffle Items"
-                                            Padding="8,5"
-                                            Command="{x:Bind ViewModel.ShuffleItemsCommand}"
+                                    <!-- Smart File & Batch Import Button -->
+                                    <Button Style="{ThemeResource AccentButtonStyle}"
+                                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_ImportFileToolTip]}"
+                                            Padding="10,5"
+                                            Command="{x:Bind ViewModel.OpenImportModalCommand}"
                                             IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
-                                        <FontIcon Glyph="&#xE8B1;" FontSize="13" />
-                                    </Button>
-
-                                    <Button ToolTipService.ToolTip="Equalize All Weights to 1.0"
-                                            Padding="8,5"
-                                            Command="{x:Bind ViewModel.EqualizeWeightsCommand}"
-                                            IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
-                                        <FontIcon Glyph="&#xE8EF;" FontSize="13" />
-                                    </Button>
-
-                                    <Button ToolTipService.ToolTip="Import / Paste From Clipboard"
-                                            Padding="8,5"
-                                            Command="{x:Bind ViewModel.ImportFromClipboardCommand}"
-                                            IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
-                                        <FontIcon Glyph="&#xE77F;" FontSize="13" />
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8E5;" FontSize="13" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_ImportFileBtn]}" FontSize="12" FontWeight="SemiBold" />
+                                        </StackPanel>
                                     </Button>
 
                                     <!-- Presets Flyout Button -->
-                                    <DropDownButton Content="Presets"
-                                                    Padding="8,5"
+                                    <DropDownButton Padding="8,5"
                                                     FontSize="12"
                                                     IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE71D;" FontSize="12" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Presets]}" />
+                                        </StackPanel>
                                         <DropDownButton.Flyout>
                                             <MenuFlyout Placement="BottomEdgeAlignedRight">
-                                                <MenuFlyoutItem Text="Decision Maker (Yes/No/Maybe)"
-                                                                Click="PresetItem_Click" Tag="Decision Maker" />
-                                                <MenuFlyoutItem Text="Lunch Chooser"
-                                                                Click="PresetItem_Click" Tag="Lunch Chooser" />
-                                                <MenuFlyoutItem Text="Prize Raffle"
-                                                                Click="PresetItem_Click" Tag="Prize Raffle" />
-                                                <MenuFlyoutItem Text="Team Standup"
-                                                                Click="PresetItem_Click" Tag="Team Standup" />
-                                                <MenuFlyoutItem Text="Dice Roll (1-6)"
-                                                                Click="PresetItem_Click" Tag="Dice Roll (1-6)" />
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Preset_Decision]}"
+                                                                Click="PresetItem_Click" Tag="Decision Maker">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8AB;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Preset_Lunch]}"
+                                                                Click="PresetItem_Click" Tag="Lunch Chooser">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xEC32;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Preset_Raffle]}"
+                                                                Click="PresetItem_Click" Tag="Prize Raffle">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE735;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Preset_Standup]}"
+                                                                Click="PresetItem_Click" Tag="Team Standup">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE716;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Preset_Dice]}"
+                                                                Click="PresetItem_Click" Tag="Dice Roll (1-6)">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE734;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </DropDownButton.Flyout>
+                                    </DropDownButton>
+
+                                    <!-- Actions Dropdown Button -->
+                                    <DropDownButton Padding="8,5"
+                                                    FontSize="12"
+                                                    IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE712;" FontSize="12" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Actions]}" />
+                                        </StackPanel>
+                                        <DropDownButton.Flyout>
+                                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_SortName]}"
+                                                                Command="{x:Bind ViewModel.SortByNameCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8CB;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_SortWeight]}"
+                                                                Command="{x:Bind ViewModel.SortByWeightCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8EB;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_Shuffle]}"
+                                                                Command="{x:Bind ViewModel.ShuffleItemsCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8B1;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_Equalize]}"
+                                                                Command="{x:Bind ViewModel.EqualizeWeightsCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8EF;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
                                                 <MenuFlyoutSeparator />
-                                                <MenuFlyoutItem Text="Clear All Options"
-                                                                Command="{x:Bind ViewModel.ClearItemsCommand}" />
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_EnableAll]}"
+                                                                Command="{x:Bind ViewModel.EnableAllItemsCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE73A;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_DisableAll]}"
+                                                                Command="{x:Bind ViewModel.DisableAllItemsCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE739;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_CopyCsv]}"
+                                                                Command="{x:Bind ViewModel.ExportToClipboardCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8C8;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Action_ClearAll]}"
+                                                                Command="{x:Bind ViewModel.ClearItemsCommand}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
                                             </MenuFlyout>
                                         </DropDownButton.Flyout>
                                     </DropDownButton>
@@ -174,7 +318,7 @@
 
                             <controls:SectionCardControl.InnerContent>
                                 <StackPanel Spacing="12">
-                                    <!-- Quick Add New Option Row -->
+                                    <!-- Quick Multi-Add New Option Bar -->
                                     <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                             BorderThickness="1"
@@ -183,34 +327,117 @@
                                         <Grid ColumnSpacing="8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="78" />
+                                                <ColumnDefinition Width="92" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
                                             <TextBox Grid.Column="0"
-                                                     PlaceholderText="Option name (Press Enter to add)..."
+                                                     PlaceholderText="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_QuickAdd_Placeholder]}"
                                                      Text="{x:Bind ViewModel.NewItemText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      KeyDown="NewItemTextBox_KeyDown" />
 
-                                            <NumberBox Grid.Column="1"
-                                                       ToolTipService.ToolTip="Relative probability weight (default 1.0)"
-                                                       Value="{x:Bind ViewModel.NewItemWeight, Mode=TwoWay}"
-                                                       Minimum="0.1"
-                                                       Maximum="50.0"
-                                                       SmallChange="0.5"
-                                                       SpinButtonPlacementMode="Compact" />
+                                            <Border Grid.Column="1"
+                                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Height="32"
+                                                    VerticalAlignment="Center">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="26" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="26" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Button Grid.Column="0"
+                                                            Padding="0"
+                                                            Width="26" Height="30"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Command="{x:Bind ViewModel.DecreaseNewItemWeightCommand}"
+                                                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Stepper_Decrease]}">
+                                                        <FontIcon Glyph="&#xE738;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    </Button>
+
+                                                    <TextBox Grid.Column="1"
+                                                             Text="{x:Bind ViewModel.NewItemWeightText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                             TextAlignment="Center"
+                                                             Padding="0"
+                                                             Height="30"
+                                                             BorderThickness="0"
+                                                             Background="Transparent"
+                                                             VerticalAlignment="Center"
+                                                             ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Stepper_Tip]}" />
+
+                                                    <Button Grid.Column="2"
+                                                            Padding="0"
+                                                            Width="26" Height="30"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Command="{x:Bind ViewModel.IncreaseNewItemWeightCommand}"
+                                                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Stepper_Increase]}">
+                                                        <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
 
                                             <Button Grid.Column="2"
                                                     Style="{ThemeResource AccentButtonStyle}"
-                                                    ToolTipService.ToolTip="Add Option Row"
+                                                    ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_QuickAdd_AddToolTip]}"
                                                     Command="{x:Bind ViewModel.AddNewItemCommand}">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE710;" FontSize="12" />
-                                                    <TextBlock Text="Add Row" />
+                                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_QuickAdd_AddBtn]}" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
                                     </Border>
+
+                                    <!-- Search & Realtime Metrics Bar -->
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Filter Search Box -->
+                                        <TextBox Grid.Column="0"
+                                                 PlaceholderText="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Filter_Placeholder]}"
+                                                 Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBox.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,2">
+                                                    <FontIcon Glyph="&#xE721;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Filter_Header]}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                </StackPanel>
+                                            </TextBox.Header>
+                                        </TextBox>
+
+                                        <!-- Metric Badges -->
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
+                                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="&#xE8FD;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    <TextBlock Text="{x:Bind ViewModel.ItemsCountSummaryText, Mode=OneWay}"
+                                                               Style="{ThemeResource CaptionTextBlockStyle}" />
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                                    <TextBlock Text="{x:Bind ViewModel.ActiveItemsText, Mode=OneWay}"
+                                                               Style="{ThemeResource CaptionTextBlockStyle}" />
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="&#xE8EC;" FontSize="11" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                                    <TextBlock Text="{x:Bind ViewModel.TotalWeightText, Mode=OneWay}"
+                                                               Style="{ThemeResource CaptionTextBlockStyle}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
 
                                     <!-- Table Column Header -->
                                     <Grid Padding="12,4" ColumnSpacing="8"
@@ -218,31 +445,42 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="22" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="68" />
-                                            <ColumnDefinition Width="46" />
+                                            <ColumnDefinition Width="92" />
+                                            <ColumnDefinition Width="52" />
                                             <ColumnDefinition Width="28" />
                                             <ColumnDefinition Width="28" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="1" Text="Option Label" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Grid.Column="2" Text="Weight" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Grid.Column="3" Text="Odds" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Right" />
-                                        <TextBlock Grid.Column="4" Text="On" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
+                                        <FontIcon Grid.Column="0" Glyph="&#xEB9F;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Color]}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE8D2;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Name]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE8EC;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Weight]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                                            <FontIcon Glyph="&#xE9D9;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Odds]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                        <FontIcon Grid.Column="4" Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Toggle]}" />
+                                        <FontIcon Grid.Column="5" Glyph="&#xE74D;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Delete]}" />
                                     </Grid>
 
                                     <!-- Items List Container -->
                                     <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                             BorderThickness="1"
                                             CornerRadius="6"
-                                            MinHeight="200"
-                                            MaxHeight="340">
+                                            MinHeight="220"
+                                            MaxHeight="360">
                                         <Grid>
                                             <controls:EmptyStateControl
                                                 IconGlyph="&#xE735;"
-                                                Title="No options on the wheel"
-                                                Subtitle="Type an option above and press Enter, or click 'Presets' / 'Batch Add...' to populate rows."
+                                                Title="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Empty_Title]}"
+                                                Subtitle="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Empty_Subtitle]}"
                                                 IsEmpty="{x:Bind ViewModel.IsOptionsEmpty, Mode=OneWay}" />
 
-                                            <ListView ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
+                                            <ListView ItemsSource="{x:Bind ViewModel.FilteredItems, Mode=OneWay}"
                                                       SelectionMode="None"
                                                       Visibility="{x:Bind ViewModel.HasOptions, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <ListView.ItemTemplate>
@@ -251,8 +489,8 @@
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="22" />
                                                                 <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="68" />
-                                                                <ColumnDefinition Width="46" />
+                                                                <ColumnDefinition Width="92" />
+                                                                <ColumnDefinition Width="52" />
                                                                 <ColumnDefinition Width="28" />
                                                                 <ColumnDefinition Width="28" />
                                                             </Grid.ColumnDefinitions>
@@ -269,16 +507,56 @@
                                                             <!-- Text Editor -->
                                                             <TextBox Grid.Column="1"
                                                                      Text="{x:Bind Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                     ToolTipService.ToolTip="{x:Bind Text, Mode=OneWay}"
+                                                                     TextWrapping="NoWrap"
                                                                      VerticalAlignment="Center" />
 
-                                                            <!-- Weight Box -->
-                                                            <NumberBox Grid.Column="2"
-                                                                       Value="{x:Bind Weight, Mode=TwoWay}"
-                                                                       Minimum="0.1"
-                                                                       Maximum="50.0"
-                                                                       SmallChange="0.5"
-                                                                       SpinButtonPlacementMode="Compact"
-                                                                       VerticalAlignment="Center" />
+                                                            <!-- Weight Stepper: [-] [ 1.0 ] [+] -->
+                                                            <Border Grid.Column="2"
+                                                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="4"
+                                                                    Height="30"
+                                                                    VerticalAlignment="Center">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="26" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="26" />
+                                                                    </Grid.ColumnDefinitions>
+
+                                                                    <Button Grid.Column="0"
+                                                                            Padding="0"
+                                                                            Width="26" Height="28"
+                                                                            Background="Transparent"
+                                                                            BorderThickness="0"
+                                                                            Command="{x:Bind DecreaseWeightCommand}"
+                                                                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Stepper_Decrease]}">
+                                                                        <FontIcon Glyph="&#xE738;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                                    </Button>
+
+                                                                    <TextBox Grid.Column="1"
+                                                                             Text="{x:Bind WeightText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                                             TextAlignment="Center"
+                                                                             Padding="0"
+                                                                             Height="28"
+                                                                             BorderThickness="0"
+                                                                             Background="Transparent"
+                                                                             VerticalAlignment="Center"
+                                                                             ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Stepper_Tip]}" />
+
+                                                                    <Button Grid.Column="2"
+                                                                            Padding="0"
+                                                                            Width="26" Height="28"
+                                                                            Background="Transparent"
+                                                                            BorderThickness="0"
+                                                                            Command="{x:Bind IncreaseWeightCommand}"
+                                                                            ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Stepper_Increase]}">
+                                                                        <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                                    </Button>
+                                                                </Grid>
+                                                            </Border>
 
                                                             <!-- Percentage Display -->
                                                             <TextBlock Grid.Column="3"
@@ -302,7 +580,7 @@
                                                                     BorderThickness="0"
                                                                     Click="DeleteItemButton_Click"
                                                                     Tag="{x:Bind}"
-                                                                    ToolTipService.ToolTip="Delete Option">
+                                                                    ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Delete]}">
                                                                 <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                                                             </Button>
                                                         </Grid>
@@ -311,43 +589,6 @@
                                             </ListView>
                                         </Grid>
                                     </Border>
-
-                                    <!-- Bottom Summary Info & Batch Multi-Line Trigger -->
-                                    <Grid ColumnSpacing="8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
-                                                <TextBlock Text="{x:Bind ViewModel.ActiveItemsText, Mode=OneWay}"
-                                                           Style="{ThemeResource CaptionTextBlockStyle}" />
-                                            </Border>
-                                            <Border Style="{StaticResource StatusBadgeBorderStyle}">
-                                                <TextBlock Text="{x:Bind ViewModel.TotalWeightText, Mode=OneWay}"
-                                                           Style="{ThemeResource CaptionTextBlockStyle}" />
-                                            </Border>
-                                        </StackPanel>
-
-                                        <Button Grid.Column="1"
-                                                Content="Clear All"
-                                                Padding="8,5"
-                                                Command="{x:Bind ViewModel.ClearItemsCommand}"
-                                                IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}" />
-
-                                        <!-- Multi-Line Import Dialog Trigger -->
-                                        <Button Grid.Column="2"
-                                                Padding="10,5"
-                                                Click="OpenImportDialogButton_Click"
-                                                IsEnabled="{x:Bind ViewModel.IsNotSpinning, Mode=OneWay}">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <FontIcon Glyph="&#xE8FD;" FontSize="12" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                                <TextBlock Text="Batch Add..." />
-                                            </StackPanel>
-                                        </Button>
-                                    </Grid>
                                 </StackPanel>
                             </controls:SectionCardControl.InnerContent>
                         </controls:SectionCardControl>
@@ -365,24 +606,26 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Celebratory Winner Modal / Dialog Overlay -->
-        <Grid Background="#80000000"
+        <!-- ========================================================================= -->
+        <!-- POPUP 1: CELEBRATORY WINNER MODAL DIALOG                                   -->
+        <!-- ========================================================================= -->
+        <Grid Background="#CC000000"
               Visibility="{x:Bind ViewModel.IsResultModalOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch">
-            <Border Style="{StaticResource FluentCardBorderStyle}"
+            <Border Style="{StaticResource FluentDialogBorderStyle}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Width="440"
+                    Width="480"
                     Padding="28"
                     CornerRadius="16"
                     BorderThickness="2"
                     BorderBrush="{ThemeResource AccentFillColorDefaultBrush}">
                 <StackPanel Spacing="20" HorizontalAlignment="Stretch">
-                    <!-- Header Icon & Title -->
+                    <!-- Header Trophy Icon & Title -->
                     <StackPanel Spacing="6" HorizontalAlignment="Center">
-                        <FontIcon Glyph="&#xE735;" FontSize="36" Foreground="{ThemeResource SystemFillColorCautionBrush}" HorizontalAlignment="Center" />
-                        <TextBlock Text="WE HAVE A WINNER!"
+                        <FontIcon Glyph="&#xE735;" FontSize="40" Foreground="{ThemeResource SystemFillColorCautionBrush}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Winner_Title]}"
                                    Style="{ThemeResource TitleTextBlockStyle}"
                                    FontWeight="Bold"
                                    HorizontalAlignment="Center" />
@@ -391,25 +634,37 @@
                     <!-- Winning Item Card Banner -->
                     <Border CornerRadius="12"
                             Background="{x:Bind ViewModel.WinningItem.Brush, Mode=OneWay}"
-                            Padding="20,16"
+                            Padding="22,18"
                             HorizontalAlignment="Stretch">
-                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                        <StackPanel Spacing="6" HorizontalAlignment="Center">
                             <TextBlock Text="{x:Bind ViewModel.WinningItem.Text, Mode=OneWay}"
-                                       FontSize="24"
+                                       FontSize="28"
                                        FontWeight="Bold"
                                        Foreground="{x:Bind ViewModel.WinningItem.ContrastForegroundBrush, Mode=OneWay}"
                                        HorizontalAlignment="Center"
                                        TextWrapping="Wrap"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxHeight="120"
+                                       ToolTipService.ToolTip="{x:Bind ViewModel.WinningItem.Text, Mode=OneWay}"
                                        TextAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.WinningProbabilityText, Mode=OneWay}"
-                                       FontSize="13"
-                                       Foreground="{x:Bind ViewModel.WinningItem.ContrastForegroundBrush, Mode=OneWay}"
-                                       Opacity="0.85"
-                                       HorizontalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.WinningProbabilityText, Mode=OneWay}"
+                                           FontSize="13"
+                                           Foreground="{x:Bind ViewModel.WinningItem.ContrastForegroundBrush, Mode=OneWay}"
+                                           Opacity="0.9" />
+                                <TextBlock Text="•"
+                                           FontSize="13"
+                                           Foreground="{x:Bind ViewModel.WinningItem.ContrastForegroundBrush, Mode=OneWay}"
+                                           Opacity="0.7" />
+                                <TextBlock Text="{x:Bind ViewModel.WinningTimestampText, Mode=OneWay}"
+                                           FontSize="13"
+                                           Foreground="{x:Bind ViewModel.WinningItem.ContrastForegroundBrush, Mode=OneWay}"
+                                           Opacity="0.9" />
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 
-                    <!-- Action Buttons -->
+                    <!-- Primary Actions: Spin Again & Remove Winner -->
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -419,25 +674,27 @@
                         <Button Grid.Column="0"
                                 Style="{ThemeResource AccentButtonStyle}"
                                 HorizontalAlignment="Stretch"
-                                Height="40"
-                                Command="{x:Bind ViewModel.StartSpinCommand}">
+                                Height="42"
+                                Command="{x:Bind ViewModel.SpinAgainCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE768;" FontSize="14" />
-                                <TextBlock Text="Spin Again" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Winner_SpinAgain]}" FontWeight="SemiBold" />
                             </StackPanel>
                         </Button>
 
                         <Button Grid.Column="1"
                                 HorizontalAlignment="Stretch"
-                                Height="40"
-                                Command="{x:Bind ViewModel.RemoveWinnerCommand}">
+                                Height="42"
+                                ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Winner_RemoveTip]}"
+                                Command="{x:Bind ViewModel.RemoveWinnerAndSpinCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE74D;" FontSize="14" />
-                                <TextBlock Text="Remove Winner" />
+                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Winner_RemoveAndSpin]}" />
                             </StackPanel>
                         </Button>
                     </Grid>
 
+                    <!-- Secondary Actions: Copy & Close -->
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -449,48 +706,177 @@
                                 Command="{x:Bind ViewModel.CopyWinnerToClipboardCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8C8;" FontSize="14" />
-                                <TextBlock Text="Copy Winner" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Winner_CopyName]}" />
                             </StackPanel>
                         </Button>
 
                         <Button Grid.Column="1"
                                 HorizontalAlignment="Stretch"
-                                Command="{x:Bind ViewModel.CloseResultModalCommand}"
-                                Content="Close" />
+                                Command="{x:Bind ViewModel.CloseResultModalCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE711;" FontSize="13" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Winner_Close]}" />
+                            </StackPanel>
+                        </Button>
                     </Grid>
                 </StackPanel>
             </Border>
         </Grid>
 
-        <!-- Import Multi-Line Dialog Overlay -->
-        <Grid Background="#80000000"
-              Visibility="{x:Bind ViewModel.IsImportDialogOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+        <!-- ========================================================================= -->
+        <!-- POPUP 2: SMART IMPORT MODAL (EXCEL .XLSX, CSV, TXT & BATCH PASTE)          -->
+        <!-- ========================================================================= -->
+        <Grid Background="#CC000000"
+              Visibility="{x:Bind ViewModel.IsImportModalOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch">
-            <Border Style="{StaticResource FluentCardBorderStyle}"
+            <Border Style="{StaticResource FluentDialogBorderStyle}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Width="480"
-                    Padding="24"
-                    CornerRadius="12">
+                    Width="580"
+                    Padding="28"
+                    CornerRadius="14">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Batch Add / Import Options"
-                               Style="{ThemeResource SubtitleTextBlockStyle}" />
-                    <TextBlock Text="Paste one option per line. Optionally append weight: 'Option Name: 2' or 'Option (3)'."
-                               Style="{ThemeResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <!-- Title & Subtitle -->
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8FD;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_Title]}"
+                                       Style="{ThemeResource SubtitleTextBlockStyle}"
+                                       FontWeight="Bold" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_Subtitle]}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
 
-                    <TextBox Text="{x:Bind ViewModel.ImportPayloadText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource MonospaceCodeTextBoxStyle}"
-                             Height="180"
-                             AcceptsReturn="True"
-                             PlaceholderText="Option A&#x0a;Option B: 2.0&#x0a;Option C (3)" />
+                    <!-- Segmented Tabs for Import Source -->
+                    <Pivot SelectedIndex="{x:Bind ViewModel.ImportTabIndex, Mode=TwoWay}">
+                        <!-- Tab 1: File Import -->
+                        <PivotItem>
+                            <PivotItem.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8E5;" FontSize="13" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_TabFile]}" />
+                                </StackPanel>
+                            </PivotItem.Header>
+                            <StackPanel Spacing="12" Margin="0,10,0,0">
+                                <!-- File Selector Card -->
+                                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="18">
+                                    <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE8E5;" FontSize="28" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{x:Bind ViewModel.ImportFileStatusText, Mode=OneWay}"
+                                                   Style="{ThemeResource BodyTextBlockStyle}"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap" />
+                                        <Button Style="{ThemeResource AccentButtonStyle}"
+                                                HorizontalAlignment="Center"
+                                                Command="{x:Bind ViewModel.PickImportFileCommand}">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <FontIcon Glyph="&#xE838;" FontSize="14" />
+                                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_ChooseFile]}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
 
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                        <Button Content="Cancel" Click="CancelImportButton_Click" />
-                        <Button Content="Import Rows"
-                                Style="{ThemeResource AccentButtonStyle}"
-                                Command="{x:Bind ViewModel.ExecuteImportCommand}" />
+                                <!-- Parsed Items Preview -->
+                                <StackPanel Spacing="6" Visibility="{x:Bind ViewModel.HasImportPreview, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <TextBlock Text="{x:Bind ViewModel.ImportPreviewSummary, Mode=OneWay}"
+                                               Style="{ThemeResource CaptionTextBlockStyle}"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+
+                                    <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                            MaxHeight="140">
+                                        <ListView ItemsSource="{x:Bind ViewModel.ImportPreviewItems, Mode=OneWay}" SelectionMode="None">
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate x:DataType="lucky:WheelItemViewModel">
+                                                    <Grid ColumnSpacing="8" Padding="2,3">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="16" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{x:Bind Brush, Mode=OneWay}" VerticalAlignment="Center" />
+                                                        <TextBlock Grid.Column="1" Text="{x:Bind Text, Mode=OneWay}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Text, Mode=OneWay}" />
+                                                        <TextBlock Grid.Column="2" Text="{x:Bind Weight, Mode=OneWay}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
+                                        </ListView>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </PivotItem>
+
+                        <!-- Tab 2: Raw Text Paste -->
+                        <PivotItem>
+                            <PivotItem.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_TabPaste]}" />
+                                </StackPanel>
+                            </PivotItem.Header>
+                            <StackPanel Spacing="8" Margin="0,10,0,0">
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_PasteTip]}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                <TextBox Text="{x:Bind ViewModel.ImportPayloadText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource MonospaceCodeTextBoxStyle}"
+                                         Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                         Height="160"
+                                         AcceptsReturn="True"
+                                         PlaceholderText="Nguyễn Văn A&#x0a;Trần Thị B: 2.5&#x0a;Lê Văn C (1.5)&#x0a;Phạm Văn D, 3.0" />
+                            </StackPanel>
+                        </PivotItem>
+                    </Pivot>
+
+                    <!-- Import Mode: Replace vs Append -->
+                    <StackPanel Spacing="6" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_Mode]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <RadioButton IsChecked="{x:Bind ViewModel.IsReplaceMode, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_Replace]}" />
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton IsChecked="{x:Bind ViewModel.IsAppendMode, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE710;" FontSize="12" />
+                                    <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_Append]}" />
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Command="{x:Bind ViewModel.CloseImportModalCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE711;" FontSize="12" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_Cancel]}" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{ThemeResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.ExecuteImportCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE73E;" FontSize="13" />
+                                <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Import_Confirm]}" FontWeight="SemiBold" />
+                            </StackPanel>
+                            <Button.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="Enter" />
+                            </Button.KeyboardAccelerators>
+                        </Button>
                     </StackPanel>
                 </StackPanel>
             </Border>

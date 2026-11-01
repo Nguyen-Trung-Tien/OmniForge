@@ -37,8 +37,8 @@
 
         <controls:ToolHeaderControl
             Grid.Row="0"
-            Title="File Inspector &amp; Storage Utilities"
-            Subtitle="Inspect directory contents, sort by file size, filter by extension, and analyze storage usage"
+            Title="{Binding Source={StaticResource Loc}, Path=[FileTools_Title]}"
+            Subtitle="{Binding Source={StaticResource Loc}, Path=[FileTools_Subtitle]}"
             HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
             ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
 

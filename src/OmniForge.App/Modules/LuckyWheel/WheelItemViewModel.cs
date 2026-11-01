@@ -1,4 +1,6 @@
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
 using OmniForge.Core.Modules.LuckyWheel;
@@ -17,8 +19,59 @@ public partial class WheelItemViewModel : ObservableObject
     [ObservableProperty]
     public partial string Text { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    public partial double Weight { get; set; } = 1.0;
+    private double _weight = 1.0;
+
+    public double Weight
+    {
+        get => _weight;
+        set
+        {
+            double sanitized = double.IsNaN(value) || double.IsInfinity(value) || value <= 0.0
+                ? 1.0
+                : Math.Round(Math.Clamp(value, 0.1, 100.0), 2);
+
+            if (SetProperty(ref _weight, sanitized))
+            {
+                OnPropertyChanged(nameof(WeightText));
+                OnPropertyChanged(nameof(PercentageText));
+            }
+        }
+    }
+
+    public string WeightText
+    {
+        get => Weight.ToString("0.##", CultureInfo.InvariantCulture);
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                OnPropertyChanged(nameof(WeightText));
+                return;
+            }
+
+            string normalized = value.Trim().Replace(',', '.');
+            if (double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && parsed > 0)
+            {
+                Weight = parsed;
+            }
+            else
+            {
+                OnPropertyChanged(nameof(WeightText));
+            }
+        }
+    }
+
+    [RelayCommand]
+    public void IncreaseWeight()
+    {
+        Weight = Math.Round(Math.Min(100.0, Weight + 0.5), 2);
+    }
+
+    [RelayCommand]
+    public void DecreaseWeight()
+    {
+        Weight = Math.Round(Math.Max(0.1, Weight - 0.5), 2);
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WindowsColor))]
@@ -61,6 +114,16 @@ public partial class WheelItemViewModel : ObservableObject
         Weight = Math.Max(0.01, Weight),
         Color = ColorHex,
         IsEnabled = IsEnabled
+    };
+
+    public WheelItemViewModel Clone() => new()
+    {
+        Id = Guid.NewGuid(),
+        Text = Text,
+        Weight = Weight,
+        ColorHex = ColorHex,
+        IsEnabled = IsEnabled,
+        Percentage = Percentage
     };
 
     public static Color ParseHexColor(string? hex)

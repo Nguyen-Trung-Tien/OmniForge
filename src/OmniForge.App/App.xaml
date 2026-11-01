@@ -4,7 +4,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:OmniForge.App"
-    xmlns:converters="using:OmniForge.App.Converters">
+    xmlns:converters="using:OmniForge.App.Converters"
+    xmlns:helpers="using:OmniForge.App.Helpers">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -15,6 +16,9 @@
             <!-- Global Value Converters -->
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+            <!-- Global Localization Manager for Hot-Reloadable XAML Binding -->
+            <helpers:LocalizationManager x:Key="Loc" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

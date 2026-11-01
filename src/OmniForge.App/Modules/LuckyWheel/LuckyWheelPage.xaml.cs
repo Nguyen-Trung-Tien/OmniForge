@@ -85,7 +85,7 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         double dt = (now - _lastFrameTime).TotalSeconds;
         _lastFrameTime = now;
 
-        // Clamp delta time to avoid physics explosions during debugging or pauses
+        // Clamp delta time to avoid physics explosions during pauses
         dt = Math.Clamp(dt, 0.001, 0.05);
 
         bool needsRedraw = false;
@@ -157,7 +157,10 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
 
     private void OnSpinCompleted(WheelItemViewModel winner)
     {
-        SpawnConfettiBurst();
+        if (ViewModel.IsConfettiEnabled)
+        {
+            SpawnConfettiBurst();
+        }
         StartRenderLoop();
     }
 
@@ -169,7 +172,7 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         Vector2 center = new(width / 2.0f, height / 2.0f);
 
         var rng = Random.Shared;
-        for (int i = 0; i < 70; i++)
+        for (int i = 0; i < 75; i++)
         {
             float angle = (float)(rng.NextDouble() * Math.PI * 2.0);
             float speed = 180.0f + (float)(rng.NextDouble() * 340.0);
@@ -227,20 +230,20 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         float outerRadius = Math.Min(width, height) * 0.44f;
         var slices = ViewModel.Slices;
 
-        // 1. Draw Outer Drop Shadow & Metallic Rim
+        // 1. Outer Drop Shadow & Metallic Rim
         ds.DrawCircle(center, outerRadius + 8f, Color.FromArgb(40, 0, 0, 0), 12.0f);
         ds.DrawCircle(center, outerRadius + 4f, Color.FromArgb(255, 30, 41, 59), 8.0f);
         ds.DrawCircle(center, outerRadius, Color.FromArgb(255, 71, 85, 105), 2.0f);
 
         if (slices.Count == 0)
         {
-            ds.DrawText("Add options to spin", center, Color.FromArgb(160, 150, 150, 150), _centerHubFormat);
+            ds.DrawText("Thêm đối tượng để quay", center, Color.FromArgb(160, 150, 150, 150), _centerHubFormat);
             return;
         }
 
         var origTransform = ds.Transform;
 
-        // 2. Render Rotating Wheel Slices & Border Studs
+        // 2. Rotating Wheel Slices & Border Studs
         ds.Transform = Matrix3x2.CreateRotation((float)ViewModel.CurrentAngle, center) * origTransform;
 
         for (int i = 0; i < slices.Count; i++)
@@ -248,7 +251,6 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
             var slice = slices[i];
             Color sliceColor = WheelItemViewModel.ParseHexColor(slice.Item.Color);
 
-            // Create pie slice geometry
             using var path = new CanvasPathBuilder(sender.Device);
             path.BeginFigure(center);
             path.AddArc(center, outerRadius, outerRadius, (float)slice.StartAngle, (float)slice.SweepAngle);
@@ -267,15 +269,14 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
             ds.DrawCircle(studPos, 3.5f, Color.FromArgb(255, 255, 255, 255), 1.0f);
         }
 
-        // 3. Render Radial Slice Labels (Along bisector)
+        // 3. Radial Slice Labels
         for (int i = 0; i < slices.Count; i++)
         {
             var slice = slices[i];
-            if (slice.SweepAngle < 0.08f) continue; // Skip label if slice is too narrow
+            if (slice.SweepAngle < 0.08f) continue;
 
             float midAngle = (float)slice.MidAngle;
 
-            // Orient bisector horizontally along positive X
             ds.Transform = Matrix3x2.CreateRotation(midAngle, center) *
                            Matrix3x2.CreateRotation((float)ViewModel.CurrentAngle, center) *
                            origTransform;
@@ -291,10 +292,9 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
             ds.DrawText(slice.Item.Text, new Vector2(labelX, labelY), labelColor, _labelFormat);
         }
 
-        // Restore unrotated world transform for center hub & pointer
         ds.Transform = origTransform;
 
-        // 4. Render Static Center Hub
+        // 4. Static Center Hub
         float hubOuterR = outerRadius * 0.22f;
         float hubInnerR = outerRadius * 0.17f;
 
@@ -308,10 +308,10 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         ds.FillCircle(center, hubInnerR, hubButtonColor);
         ds.DrawCircle(center, hubInnerR, Color.FromArgb(200, 255, 255, 255), 1.5f);
 
-        string centerText = ViewModel.IsSpinning ? "SPINNING" : "SPIN";
+        string centerText = ViewModel.IsSpinning ? "QUAY" : "SPIN";
         ds.DrawText(centerText, center, Color.FromArgb(255, 255, 255, 255), _centerHubFormat);
 
-        // 5. Render Top Pointer / Ticker Needle with Spring Recoil
+        // 5. Top Pointer / Ticker Needle
         Vector2 tickerPivot = new(center.X, center.Y - outerRadius - 12f);
         ds.Transform = Matrix3x2.CreateRotation(_tickerAngle, tickerPivot) * origTransform;
 
@@ -319,21 +319,20 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         {
             needlePath.BeginFigure(new Vector2(center.X - 11f, center.Y - outerRadius - 16f));
             needlePath.AddLine(new Vector2(center.X + 11f, center.Y - outerRadius - 16f));
-            needlePath.AddLine(new Vector2(center.X, center.Y - outerRadius + 8f)); // Needle tip
+            needlePath.AddLine(new Vector2(center.X, center.Y - outerRadius + 8f));
             needlePath.EndFigure(CanvasFigureLoop.Closed);
             using var needleGeom = CanvasGeometry.CreatePath(needlePath);
 
-            ds.FillGeometry(needleGeom, Color.FromArgb(255, 239, 68, 68)); // Radiant Red
+            ds.FillGeometry(needleGeom, Color.FromArgb(255, 239, 68, 68));
             ds.DrawGeometry(needleGeom, Color.FromArgb(255, 255, 255, 255), 2.0f);
         }
 
-        // Ticker Pivot Pin
         ds.FillCircle(tickerPivot, 4.0f, Color.FromArgb(255, 245, 158, 11));
         ds.DrawCircle(tickerPivot, 4.0f, Color.FromArgb(255, 255, 255, 255), 1.0f);
 
         ds.Transform = origTransform;
 
-        // 6. Render Floating Confetti Particles
+        // 6. Confetti
         foreach (var p in _confetti)
         {
             Color c = Color.FromArgb((byte)(p.Opacity * 255), p.Color.R, p.Color.G, p.Color.B);
@@ -353,7 +352,6 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         float outerRadius = Math.Min(width, height) * 0.44f;
         float hubRadius = outerRadius * 0.22f;
 
-        // If user taps the center hub, trigger spin!
         float dx = (float)pt.X - center.X;
         float dy = (float)pt.Y - center.Y;
         if ((dx * dx) + (dy * dy) <= (hubRadius * hubRadius))
@@ -396,16 +394,6 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         {
             ViewModel.DecelerationProfile = idx == 1 ? DecelerationProfile.Exponential : DecelerationProfile.EaseOutCubic;
         }
-    }
-
-    private void OpenImportDialogButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.IsImportDialogOpen = true;
-    }
-
-    private void CancelImportButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.IsImportDialogOpen = false;
     }
 
     private void NewItemTextBox_KeyDown(object sender, KeyRoutedEventArgs e)

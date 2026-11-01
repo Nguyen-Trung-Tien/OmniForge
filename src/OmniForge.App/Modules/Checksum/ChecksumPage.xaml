@@ -33,8 +33,8 @@
 
         <StackPanel Style="{StaticResource PageRootStackPanelStyle}">
             <controls:ToolHeaderControl
-                Title="File Hash &amp; Integrity Validator"
-                Subtitle="Drag and drop any file to compute streaming cryptographic checksums and auto-verify integrity"
+                Title="{Binding Source={StaticResource Loc}, Path=[Checksum_Title]}"
+                Subtitle="{Binding Source={StaticResource Loc}, Path=[Checksum_Subtitle]}"
                 HasError="{x:Bind ViewModel.HasError, Mode=TwoWay}"
                 ErrorMessage="{x:Bind ViewModel.ErrorMessage, Mode=TwoWay}" />
 

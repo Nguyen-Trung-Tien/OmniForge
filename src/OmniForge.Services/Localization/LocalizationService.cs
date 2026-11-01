@@ -237,6 +237,109 @@ public sealed class LocalizationService : ILocalizationService
         _enStrings[LocalizationKeys.Dashboard_Available_Title] = "Available Utilities";
         _enStrings[LocalizationKeys.Dashboard_Available_Subtitle] = "Select a tool module to launch directly";
         _enStrings[LocalizationKeys.Dashboard_Launch] = "Launch";
+
+        // Shared Controls
+        _enStrings[LocalizationKeys.Control_ToolHeader_ConfirmAndExecute] = "Confirm & Execute";
+        _enStrings[LocalizationKeys.Control_ToolHeader_Cancel] = "Cancel";
+        _enStrings[LocalizationKeys.Control_ToolHeader_ActionCompleted] = "Action Completed";
+        _enStrings[LocalizationKeys.Control_ToolHeader_ActionConfirmation] = "Action Confirmation";
+        _enStrings[LocalizationKeys.Control_StatusFooter_CancelTask] = "Cancel Task";
+        _enStrings[LocalizationKeys.Control_StatusFooter_CancelTaskToolTip] = "Cancel the currently running task (Esc)";
+        _enStrings[LocalizationKeys.Control_StatusFooter_Ready] = "Ready.";
+        _enStrings[LocalizationKeys.Control_StatusFooter_Processing] = "Processing...";
+        _enStrings[LocalizationKeys.Control_EmptyState_NoData] = "No data available";
+
+        // Lucky Wheel Module
+        _enStrings[LocalizationKeys.LuckyWheel_Title] = "Lucky Wheel";
+        _enStrings[LocalizationKeys.LuckyWheel_Subtitle] = "Hardware-accelerated random selection decision wheel with physics easing";
+        _enStrings[LocalizationKeys.LuckyWheel_ItemsListTitle] = "Items List";
+        _enStrings[LocalizationKeys.LuckyWheel_ItemsListSubtitle] = "Manage wheel slices, adjust odds, or import from files";
+        _enStrings[LocalizationKeys.LuckyWheel_ImportFileBtn] = "Import File...";
+        _enStrings[LocalizationKeys.LuckyWheel_ImportFileToolTip] = "Import items from Excel (.xlsx), CSV, TXT";
+        _enStrings[LocalizationKeys.LuckyWheel_Presets] = "Presets";
+        _enStrings[LocalizationKeys.LuckyWheel_Actions] = "Actions";
+
+        _enStrings[LocalizationKeys.LuckyWheel_Preset_Decision] = "Decision Maker (Yes/No/Maybe)";
+        _enStrings[LocalizationKeys.LuckyWheel_Preset_Lunch] = "Lunch Chooser (Pizza, Pho, Sushi...)";
+        _enStrings[LocalizationKeys.LuckyWheel_Preset_Raffle] = "Prize Raffle (Prize 1, 2, 3...)";
+        _enStrings[LocalizationKeys.LuckyWheel_Preset_Standup] = "Team Standup";
+        _enStrings[LocalizationKeys.LuckyWheel_Preset_Dice] = "Lucky Dice (1-6)";
+
+        _enStrings[LocalizationKeys.LuckyWheel_Action_SortName] = "Sort by Name (A-Z)";
+        _enStrings[LocalizationKeys.LuckyWheel_Action_SortWeight] = "Sort by Weight Descending";
+        _enStrings[LocalizationKeys.LuckyWheel_Action_Shuffle] = "Shuffle Order";
+        _enStrings[LocalizationKeys.LuckyWheel_Action_Equalize] = "Equalize Weights (1.0)";
+        _enStrings[LocalizationKeys.LuckyWheel_Action_EnableAll] = "Enable All Items";
+        _enStrings[LocalizationKeys.LuckyWheel_Action_DisableAll] = "Disable All Items";
+        _enStrings[LocalizationKeys.LuckyWheel_Action_CopyCsv] = "Copy CSV List";
+        _enStrings[LocalizationKeys.LuckyWheel_Action_ClearAll] = "Clear All Items";
+
+        _enStrings[LocalizationKeys.LuckyWheel_QuickAdd_Placeholder] = "Enter item label (or multiple items separated by comma)...";
+        _enStrings[LocalizationKeys.LuckyWheel_QuickAdd_AddBtn] = "Add";
+        _enStrings[LocalizationKeys.LuckyWheel_QuickAdd_AddToolTip] = "Add item (Enter)";
+        _enStrings[LocalizationKeys.LuckyWheel_Filter_Placeholder] = "Quick search items in list...";
+        _enStrings[LocalizationKeys.LuckyWheel_Filter_Header] = "Filter list";
+        _enStrings[LocalizationKeys.LuckyWheel_Badge_Active] = "Active: {0}";
+        _enStrings[LocalizationKeys.LuckyWheel_Badge_Weight] = "Weight: {0}";
+        _enStrings[LocalizationKeys.LuckyWheel_Badge_Count] = "{0} / {1} items";
+
+        _enStrings[LocalizationKeys.LuckyWheel_Col_Color] = "Color";
+        _enStrings[LocalizationKeys.LuckyWheel_Col_Name] = "Item Label";
+        _enStrings[LocalizationKeys.LuckyWheel_Col_Weight] = "Weight";
+        _enStrings[LocalizationKeys.LuckyWheel_Col_Odds] = "Odds";
+        _enStrings[LocalizationKeys.LuckyWheel_Col_Toggle] = "Enabled";
+        _enStrings[LocalizationKeys.LuckyWheel_Col_Delete] = "Delete";
+        _enStrings[LocalizationKeys.LuckyWheel_Stepper_Decrease] = "Decrease weight (-0.5)";
+        _enStrings[LocalizationKeys.LuckyWheel_Stepper_Increase] = "Increase weight (+0.5)";
+        _enStrings[LocalizationKeys.LuckyWheel_Stepper_Tip] = "Enter numeric weight";
+
+        _enStrings[LocalizationKeys.LuckyWheel_Empty_Title] = "No items yet";
+        _enStrings[LocalizationKeys.LuckyWheel_Empty_Subtitle] = "Enter item names above and press Enter, or click 'Import File...' to load from Excel/TXT.";
+
+        _enStrings[LocalizationKeys.LuckyWheel_SpinBtn] = "SPIN";
+        _enStrings[LocalizationKeys.LuckyWheel_StopBtn] = "STOP";
+        _enStrings[LocalizationKeys.LuckyWheel_Duration] = "Spin Duration: {0:F1}s";
+        _enStrings[LocalizationKeys.LuckyWheel_Physics] = "Physics Profile";
+        _enStrings[LocalizationKeys.LuckyWheel_Sound] = "Sound Effects";
+        _enStrings[LocalizationKeys.LuckyWheel_Confetti] = "Celebration Confetti";
+        _enStrings[LocalizationKeys.LuckyWheel_HistoryBtn] = "History ({0})";
+
+        _enStrings[LocalizationKeys.LuckyWheel_History_Title] = "Winner History";
+        _enStrings[LocalizationKeys.LuckyWheel_History_Clear] = "Clear all";
+        _enStrings[LocalizationKeys.LuckyWheel_History_CopyAll] = "Copy full history";
+        _enStrings[LocalizationKeys.LuckyWheel_History_Empty] = "No winning history yet.";
+
+        _enStrings[LocalizationKeys.LuckyWheel_Winner_Title] = "WHEEL RESULT";
+        _enStrings[LocalizationKeys.LuckyWheel_Winner_SpinAgain] = "Spin Again";
+        _enStrings[LocalizationKeys.LuckyWheel_Winner_RemoveAndSpin] = "Remove & Spin";
+        _enStrings[LocalizationKeys.LuckyWheel_Winner_RemoveTip] = "Remove this winner from wheel and spin again for next round";
+        _enStrings[LocalizationKeys.LuckyWheel_Winner_CopyName] = "Copy Name";
+        _enStrings[LocalizationKeys.LuckyWheel_Winner_Close] = "Close";
+
+        _enStrings[LocalizationKeys.LuckyWheel_Import_Title] = "Import Items List";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_Subtitle] = "Supports Excel (.xlsx), CSV, Text (.txt) or batch raw text paste.";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_TabFile] = "From File (Excel / CSV / TXT)";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_NoFile] = "No file selected. Supports .xlsx, .csv, .tsv, .txt";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_ChooseFile] = "Choose file from computer...";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_TabPaste] = "Paste Text Directly";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_PasteTip] = "One item per line. Optional weight: 'Item: 2' or 'Item (3)' or 'Item, 1.5'.";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_Mode] = "Import mode:";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_Replace] = "Replace existing list (Replace)";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_Append] = "Append to current list (Append)";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_Cancel] = "Cancel";
+        _enStrings[LocalizationKeys.LuckyWheel_Import_Confirm] = "Confirm Import";
+
+        // Other Feature Modules
+        _enStrings[LocalizationKeys.BatchRename_Title] = "Batch File & Path Renamer";
+        _enStrings[LocalizationKeys.BatchRename_Subtitle] = "Chained transformation rules, live collision detection, and non-blocking batch renaming";
+        _enStrings[LocalizationKeys.BatchFolder_Title] = "Batch Folder Creator";
+        _enStrings[LocalizationKeys.BatchFolder_Subtitle] = "Scaffold complex folder structures from text paths, templates, or numbered series";
+        _enStrings[LocalizationKeys.Checksum_Title] = "Checksum & Hash Generator";
+        _enStrings[LocalizationKeys.Checksum_Subtitle] = "Asynchronous streaming file hash generation and checksum verification";
+        _enStrings[LocalizationKeys.FileTools_Title] = "File Utilities & Inspector";
+        _enStrings[LocalizationKeys.FileTools_Subtitle] = "Inspect metadata, update timestamps, and manage bulk file attributes";
+        _enStrings[LocalizationKeys.TextInspector_Title] = "Text & Payload Inspector";
+        _enStrings[LocalizationKeys.TextInspector_Subtitle] = "Zero-allocation JSON/XML validation, minification, Base64/JWT decoding, and diffing";
     }
 
     private void PopulateVietnameseCatalog()
@@ -338,5 +441,108 @@ public sealed class LocalizationService : ILocalizationService
         _viStrings[LocalizationKeys.Dashboard_Available_Title] = "Công cụ khả dụng";
         _viStrings[LocalizationKeys.Dashboard_Available_Subtitle] = "Chọn một công cụ để khởi chạy trực tiếp";
         _viStrings[LocalizationKeys.Dashboard_Launch] = "Khởi chạy";
+
+        // Shared Controls
+        _viStrings[LocalizationKeys.Control_ToolHeader_ConfirmAndExecute] = "Xác nhận & Thực thi";
+        _viStrings[LocalizationKeys.Control_ToolHeader_Cancel] = "Hủy";
+        _viStrings[LocalizationKeys.Control_ToolHeader_ActionCompleted] = "Hoàn thành tác vụ";
+        _viStrings[LocalizationKeys.Control_ToolHeader_ActionConfirmation] = "Xác nhận tác vụ";
+        _viStrings[LocalizationKeys.Control_StatusFooter_CancelTask] = "Hủy tác vụ";
+        _viStrings[LocalizationKeys.Control_StatusFooter_CancelTaskToolTip] = "Hủy bỏ tác vụ đang chạy (Phím Esc)";
+        _viStrings[LocalizationKeys.Control_StatusFooter_Ready] = "Sẵn sàng.";
+        _viStrings[LocalizationKeys.Control_StatusFooter_Processing] = "Đang xử lý...";
+        _viStrings[LocalizationKeys.Control_EmptyState_NoData] = "Chưa có dữ liệu";
+
+        // Lucky Wheel Module
+        _viStrings[LocalizationKeys.LuckyWheel_Title] = "Vòng quay may mắn";
+        _viStrings[LocalizationKeys.LuckyWheel_Subtitle] = "Vòng quay quyết định ngẫu nhiên hỗ trợ gia tốc phần cứng Win2D và vật lý mượt mà";
+        _viStrings[LocalizationKeys.LuckyWheel_ItemsListTitle] = "Danh Sách Đối Tượng";
+        _viStrings[LocalizationKeys.LuckyWheel_ItemsListSubtitle] = "Quản lý các ô trong vòng quay, chỉnh tỉ lệ hoặc nhập từ file";
+        _viStrings[LocalizationKeys.LuckyWheel_ImportFileBtn] = "Nhập File...";
+        _viStrings[LocalizationKeys.LuckyWheel_ImportFileToolTip] = "Nhập danh sách từ Excel (.xlsx), CSV, TXT";
+        _viStrings[LocalizationKeys.LuckyWheel_Presets] = "Mẫu sẵn";
+        _viStrings[LocalizationKeys.LuckyWheel_Actions] = "Thao tác";
+
+        _viStrings[LocalizationKeys.LuckyWheel_Preset_Decision] = "Vòng quay Quyết định (Yes/No/Maybe)";
+        _viStrings[LocalizationKeys.LuckyWheel_Preset_Lunch] = "Chọn món ăn trưa (Pizza, Phở, Sushi...)";
+        _viStrings[LocalizationKeys.LuckyWheel_Preset_Raffle] = "Bốc thăm trúng thưởng (Giải 1, 2, 3...)";
+        _viStrings[LocalizationKeys.LuckyWheel_Preset_Standup] = "Thành viên nhóm (Team Standup)";
+        _viStrings[LocalizationKeys.LuckyWheel_Preset_Dice] = "Xúc xắc may mắn (1-6)";
+
+        _viStrings[LocalizationKeys.LuckyWheel_Action_SortName] = "Sắp xếp theo tên (A-Z)";
+        _viStrings[LocalizationKeys.LuckyWheel_Action_SortWeight] = "Sắp xếp theo trọng số giảm dần";
+        _viStrings[LocalizationKeys.LuckyWheel_Action_Shuffle] = "Trộn ngẫu nhiên thứ tự";
+        _viStrings[LocalizationKeys.LuckyWheel_Action_Equalize] = "Đặt lại trọng số đều nhau (1.0)";
+        _viStrings[LocalizationKeys.LuckyWheel_Action_EnableAll] = "Bật tất cả đối tượng";
+        _viStrings[LocalizationKeys.LuckyWheel_Action_DisableAll] = "Tắt tất cả đối tượng";
+        _viStrings[LocalizationKeys.LuckyWheel_Action_CopyCsv] = "Sao chép danh sách CSV";
+        _viStrings[LocalizationKeys.LuckyWheel_Action_ClearAll] = "Xóa toàn bộ danh sách";
+
+        _viStrings[LocalizationKeys.LuckyWheel_QuickAdd_Placeholder] = "Nhập tên đối tượng (hoặc nhiều mục cách nhau bởi dấu phẩy)...";
+        _viStrings[LocalizationKeys.LuckyWheel_QuickAdd_AddBtn] = "Thêm";
+        _viStrings[LocalizationKeys.LuckyWheel_QuickAdd_AddToolTip] = "Thêm đối tượng (Enter)";
+        _viStrings[LocalizationKeys.LuckyWheel_Filter_Placeholder] = "Tìm kiếm nhanh trong danh sách...";
+        _viStrings[LocalizationKeys.LuckyWheel_Filter_Header] = "Lọc danh sách";
+        _viStrings[LocalizationKeys.LuckyWheel_Badge_Active] = "Đang bật: {0}";
+        _viStrings[LocalizationKeys.LuckyWheel_Badge_Weight] = "Trọng số: {0}";
+        _viStrings[LocalizationKeys.LuckyWheel_Badge_Count] = "{0} / {1} mục";
+
+        _viStrings[LocalizationKeys.LuckyWheel_Col_Color] = "Màu sắc";
+        _viStrings[LocalizationKeys.LuckyWheel_Col_Name] = "Tên đối tượng";
+        _viStrings[LocalizationKeys.LuckyWheel_Col_Weight] = "Trọng số";
+        _viStrings[LocalizationKeys.LuckyWheel_Col_Odds] = "Tỉ lệ";
+        _viStrings[LocalizationKeys.LuckyWheel_Col_Toggle] = "Bật / Tắt";
+        _viStrings[LocalizationKeys.LuckyWheel_Col_Delete] = "Xóa";
+        _viStrings[LocalizationKeys.LuckyWheel_Stepper_Decrease] = "Giảm trọng số (-0.5)";
+        _viStrings[LocalizationKeys.LuckyWheel_Stepper_Increase] = "Tăng trọng số (+0.5)";
+        _viStrings[LocalizationKeys.LuckyWheel_Stepper_Tip] = "Nhập trọng số trực tiếp";
+
+        _viStrings[LocalizationKeys.LuckyWheel_Empty_Title] = "Chưa có đối tượng nào";
+        _viStrings[LocalizationKeys.LuckyWheel_Empty_Subtitle] = "Nhập tên đối tượng ở trên và nhấn Enter, hoặc bấm 'Nhập File...' để tải danh sách từ Excel/TXT.";
+
+        _viStrings[LocalizationKeys.LuckyWheel_SpinBtn] = "QUAY";
+        _viStrings[LocalizationKeys.LuckyWheel_StopBtn] = "DỪNG";
+        _viStrings[LocalizationKeys.LuckyWheel_Duration] = "Thời gian quay: {0:F1}s";
+        _viStrings[LocalizationKeys.LuckyWheel_Physics] = "Hiệu ứng vật lý";
+        _viStrings[LocalizationKeys.LuckyWheel_Sound] = "Hiệu ứng âm thanh";
+        _viStrings[LocalizationKeys.LuckyWheel_Confetti] = "Pháo hoa chúc mừng";
+        _viStrings[LocalizationKeys.LuckyWheel_HistoryBtn] = "Lịch sử ({0})";
+
+        _viStrings[LocalizationKeys.LuckyWheel_History_Title] = "Lịch Sử Trúng Thưởng";
+        _viStrings[LocalizationKeys.LuckyWheel_History_Clear] = "Xóa hết";
+        _viStrings[LocalizationKeys.LuckyWheel_History_CopyAll] = "Sao chép toàn bộ lịch sử";
+        _viStrings[LocalizationKeys.LuckyWheel_History_Empty] = "Chưa có lượt quay trúng nào.";
+
+        _viStrings[LocalizationKeys.LuckyWheel_Winner_Title] = "KẾT QUẢ VÒNG QUAY";
+        _viStrings[LocalizationKeys.LuckyWheel_Winner_SpinAgain] = "Quay tiếp";
+        _viStrings[LocalizationKeys.LuckyWheel_Winner_RemoveAndSpin] = "Loại bỏ & Quay";
+        _viStrings[LocalizationKeys.LuckyWheel_Winner_RemoveTip] = "Loại bỏ người trúng này khỏi vòng quay và quay tiếp cho lượt sau";
+        _viStrings[LocalizationKeys.LuckyWheel_Winner_CopyName] = "Sao chép tên";
+        _viStrings[LocalizationKeys.LuckyWheel_Winner_Close] = "Đóng";
+
+        _viStrings[LocalizationKeys.LuckyWheel_Import_Title] = "Nhập Danh Sách Đối Tượng";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_Subtitle] = "Hỗ trợ file Excel (.xlsx), CSV, Text (.txt) hoặc dán văn bản hàng loạt.";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_TabFile] = "Từ File (Excel / CSV / TXT)";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_NoFile] = "Chưa chọn file nào. Hỗ trợ .xlsx, .csv, .tsv, .txt";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_ChooseFile] = "Chọn file từ máy tính...";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_TabPaste] = "Dán văn bản trực tiếp";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_PasteTip] = "Mỗi dòng là một đối tượng. Có thể kèm trọng số: 'Tên mục: 2' hoặc 'Tên (3)' hoặc 'Tên, 1.5'.";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_Mode] = "Chế độ nhập:";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_Replace] = "Thay thế danh sách cũ (Replace)";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_Append] = "Nối tiếp vào danh sách hiện tại (Append)";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_Cancel] = "Hủy";
+        _viStrings[LocalizationKeys.LuckyWheel_Import_Confirm] = "Xác nhận nhập";
+
+        // Other Feature Modules
+        _viStrings[LocalizationKeys.BatchRename_Title] = "Đổi tên tệp & thư mục hàng loạt";
+        _viStrings[LocalizationKeys.BatchRename_Subtitle] = "Quy tắc chuyển đổi linh hoạt, phát hiện xung đột trực tiếp và đổi tên hàng loạt không khóa giao diện";
+        _viStrings[LocalizationKeys.BatchFolder_Title] = "Tạo thư mục hàng loạt";
+        _viStrings[LocalizationKeys.BatchFolder_Subtitle] = "Tạo cấu trúc thư mục từ danh sách văn bản, mẫu cấu hình hoặc chuỗi số tăng dần";
+        _viStrings[LocalizationKeys.Checksum_Title] = "Mã băm & Toàn vẹn dữ liệu";
+        _viStrings[LocalizationKeys.Checksum_Subtitle] = "Tính toán mã băm luồng bất đồng bộ và kiểm tra tính toàn vẹn dữ liệu";
+        _viStrings[LocalizationKeys.FileTools_Title] = "Công cụ & Thuộc tính tệp tin";
+        _viStrings[LocalizationKeys.FileTools_Subtitle] = "Kiểm tra thuộc tính tệp, cập nhật mốc thời gian và quản lý tệp tin";
+        _viStrings[LocalizationKeys.TextInspector_Title] = "Kiểm tra & Định dạng văn bản";
+        _viStrings[LocalizationKeys.TextInspector_Subtitle] = "Định dạng JSON/XML chuẩn xác, nén gọn, giải mã Base64/JWT và so sánh khác biệt văn bản";
     }
 }

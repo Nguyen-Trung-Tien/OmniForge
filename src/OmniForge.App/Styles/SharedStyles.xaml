@@ -52,5 +52,14 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
+    <!-- Solid Opaque Modal Dialog Border for Overlay Popups (Zero Transparency Bleed-Through) -->
+    <Style x:Key="FluentDialogBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="24" />
+    </Style>
+
 </ResourceDictionary>
 
