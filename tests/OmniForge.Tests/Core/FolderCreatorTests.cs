@@ -547,4 +547,90 @@ public sealed class FolderCreatorTests : IDisposable
         Assert.Equal("Folder_Beta/Sub1", result.Value[1]);
         Assert.Equal("Folder_Gamma", result.Value[2]);
     }
+
+    [Fact]
+    public void FolderParser_ParseTreeHierarchy_HandlesAsciiTreeDiagram()
+    {
+        string input = """
+            Project
+            ├── src
+            │   ├── components
+            │   └── services
+            └── docs
+            """;
+        var result = FolderParser.Parse(input, FolderInputMode.TreeHierarchy);
+        Assert.True(result.IsSuccess);
+        var roots = result.Value;
+        Assert.Single(roots);
+        var project = roots[0];
+        Assert.Equal("Project", project.EvaluatedName);
+        Assert.Equal(2, project.Children.Count);
+        Assert.Equal("src", project.Children[0].EvaluatedName);
+        Assert.Equal("docs", project.Children[1].EvaluatedName);
+        Assert.Equal(2, project.Children[0].Children.Count);
+        Assert.Equal("components", project.Children[0].Children[0].EvaluatedName);
+        Assert.Equal("services", project.Children[0].Children[1].EvaluatedName);
+    }
+
+    [Fact]
+    public void FolderParser_ParseTreeHierarchy_HandlesMarkdownBulletList()
+    {
+        string input = """
+            - Project
+              - src
+                - components
+              - docs
+            """;
+        var result = FolderParser.Parse(input, FolderInputMode.TreeHierarchy);
+        Assert.True(result.IsSuccess);
+        var roots = result.Value;
+        Assert.Single(roots);
+        var project = roots[0];
+        Assert.Equal("Project", project.EvaluatedName);
+        Assert.Equal(2, project.Children.Count);
+        Assert.Equal("src", project.Children[0].EvaluatedName);
+        Assert.Equal("docs", project.Children[1].EvaluatedName);
+        Assert.Single(project.Children[0].Children);
+        Assert.Equal("components", project.Children[0].Children[0].EvaluatedName);
+    }
+
+    [Fact]
+    public void FolderParser_ParseTreeHierarchy_HandlesInlineSlashSubpaths()
+    {
+        string input = """
+            Project
+              src/components
+              docs
+            """;
+        var result = FolderParser.Parse(input, FolderInputMode.TreeHierarchy);
+        Assert.True(result.IsSuccess);
+        var roots = result.Value;
+        Assert.Single(roots);
+        var project = roots[0];
+        Assert.Equal("Project", project.EvaluatedName);
+        Assert.Equal(2, project.Children.Count);
+        Assert.Equal("src", project.Children[0].EvaluatedName);
+        Assert.Single(project.Children[0].Children);
+        Assert.Equal("components", project.Children[0].Children[0].EvaluatedName);
+    }
+
+    [Fact]
+    public void FolderParser_GenerateTreeDiagram_ProducesFormattedTree()
+    {
+        string input = """
+            Project
+              src
+                components
+              docs
+            """;
+        var parseResult = FolderParser.Parse(input, FolderInputMode.TreeHierarchy);
+        Assert.True(parseResult.IsSuccess);
+        string diagram = FolderParser.GenerateTreeDiagram("OmniForge", parseResult.Value, includeRoot: true);
+
+        Assert.Contains("📁 OmniForge/", diagram);
+        Assert.Contains("└── 📁 Project", diagram);
+        Assert.Contains("├── 📁 src", diagram);
+        Assert.Contains("└── 📁 components", diagram);
+        Assert.Contains("└── 📁 docs", diagram);
+    }
 }

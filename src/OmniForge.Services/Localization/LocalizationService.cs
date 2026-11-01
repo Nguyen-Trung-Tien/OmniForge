@@ -411,6 +411,10 @@ public sealed class LocalizationService : ILocalizationService
         _enStrings[LocalizationKeys.BatchFolder_PrefixLabel] = "Prefix (beginning of name):";
         _enStrings[LocalizationKeys.BatchFolder_SuffixLabel] = "Suffix (end of name):";
         _enStrings[LocalizationKeys.BatchFolder_ApplyBtn] = "Apply to Rows";
+        _enStrings[LocalizationKeys.BatchFolder_ViewVisualTree] = "Tree View";
+        _enStrings[LocalizationKeys.BatchFolder_ViewTextTree] = "Text Tree";
+        _enStrings[LocalizationKeys.BatchFolder_CopyDiagram] = "Copy Diagram";
+        _enStrings[LocalizationKeys.BatchFolder_Copied] = "Copied!";
         _enStrings[LocalizationKeys.Checksum_Title] = "Checksum & Hash Generator";
         _enStrings[LocalizationKeys.Checksum_Subtitle] = "Asynchronous streaming file hash generation and checksum verification";
         _enStrings[LocalizationKeys.FileTools_Title] = "File Utilities & Inspector";
@@ -692,6 +696,10 @@ public sealed class LocalizationService : ILocalizationService
         _viStrings[LocalizationKeys.BatchFolder_PrefixLabel] = "Tiền tố (đầu tên):";
         _viStrings[LocalizationKeys.BatchFolder_SuffixLabel] = "Hậu tố (cuối tên):";
         _viStrings[LocalizationKeys.BatchFolder_ApplyBtn] = "Áp dụng vào danh sách";
+        _viStrings[LocalizationKeys.BatchFolder_ViewVisualTree] = "Cây trực quan";
+        _viStrings[LocalizationKeys.BatchFolder_ViewTextTree] = "Sơ đồ Text";
+        _viStrings[LocalizationKeys.BatchFolder_CopyDiagram] = "Sao chép sơ đồ";
+        _viStrings[LocalizationKeys.BatchFolder_Copied] = "Đã sao chép!";
         _viStrings[LocalizationKeys.Checksum_Title] = "Mã băm & Toàn vẹn dữ liệu";
         _viStrings[LocalizationKeys.Checksum_Subtitle] = "Tính toán mã băm luồng bất đồng bộ và kiểm tra tính toàn vẹn dữ liệu";
         _viStrings[LocalizationKeys.FileTools_Title] = "Công cụ & Thuộc tính tệp tin";

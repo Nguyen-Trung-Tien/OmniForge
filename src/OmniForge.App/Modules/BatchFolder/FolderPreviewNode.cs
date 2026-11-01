@@ -53,6 +53,7 @@ public sealed class FolderPreviewNode : TreeViewNode
             ErrorMessage = model.ErrorMessage,
             IsExpanded = true
         };
+        node.Content = node;
 
         foreach (var child in model.Children)
         {

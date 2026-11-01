@@ -19,11 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive bilingual localization (English & Tiếng Việt) for all Batch Folder elements.
   - Fluent Segoe icon integration on all action buttons, pills, badges, tabs, and menus.
   - Additional domain templates: Web Full-Stack, Media & Video Production, and Business Office.
-  - 7 unit tests in `FolderCreatorTests` covering Excel parsing, CSV/delimiter handling, bulk add, and templates.
+  - View switcher for Directory Preview: Interactive Tree View (`TreeView`) and Formatted ASCII/Unicode Text Tree Diagram (`FormattedTreeDiagram`) with single-click "Copy Diagram".
+  - Attached property `TreeViewExtensions.RootNodesSource` for pure MVVM WinUI 3 tree hierarchy binding with zero code-behind.
+  - Intelligent tree line extraction in `FolderParser.ExtractTreeLine` supporting ASCII branch markers (`├──`, `└──`, `│`), Markdown bullets (`- `, `* `, `• `), and inline subpath slashes (`src/components`).
+  - Directory tree diagram generator `FolderParser.GenerateTreeDiagram` producing standard directory tree text with branch glyphs and status badges.
+  - 11 unit tests in `FolderCreatorTests` covering Excel parsing, CSV/delimiter handling, bulk add, ASCII tree parsing, Markdown list parsing, inline slashes, and diagram generation.
 
 ### Changed
 - Re-architected `BatchFolderPage.xaml` layout with streamlined card hierarchy (Target Path, Settings Bar, Tools & Editor, Tree Preview, Action Bar).
 - Grouped tool actions into clean categorized command menus (Import, Series, Templates, Tokens, Tools, Clear).
+- Fixed WinUI 3 `TreeView` hierarchy binding issue where nested child folders were ignored in `ItemsSource`, switching to `RootNodesSource` with `node.Content = node;` so multi-level folder structures render accurately matching user text indentation.
+- Removed noisy and cluttered `RelativePath` strings from preview tree rows, displaying clean folder names with full path in tooltips.
 - Overhauled `LuckyWheelPage.xaml` visual display:
   - Eliminated Title/Subtitle text truncation and multi-line wrapping in `SectionCardControl` by relocating action buttons to a dedicated full-width command toolbar.
   - Replaced misplaced folder icon with native list icon (`\uE8FD`).

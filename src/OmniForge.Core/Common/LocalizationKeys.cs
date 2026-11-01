@@ -251,6 +251,10 @@ public static class LocalizationKeys
     public const string BatchFolder_PrefixLabel = "BatchFolder_PrefixLabel";
     public const string BatchFolder_SuffixLabel = "BatchFolder_SuffixLabel";
     public const string BatchFolder_ApplyBtn = "BatchFolder_ApplyBtn";
+    public const string BatchFolder_ViewVisualTree = "BatchFolder_ViewVisualTree";
+    public const string BatchFolder_ViewTextTree = "BatchFolder_ViewTextTree";
+    public const string BatchFolder_CopyDiagram = "BatchFolder_CopyDiagram";
+    public const string BatchFolder_Copied = "BatchFolder_Copied";
     public const string Checksum_Title = "Checksum_Title";
     public const string Checksum_Subtitle = "Checksum_Subtitle";
     public const string FileTools_Title = "FileTools_Title";

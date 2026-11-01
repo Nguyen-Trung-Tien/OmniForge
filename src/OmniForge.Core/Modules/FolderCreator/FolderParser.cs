@@ -192,7 +192,8 @@ public static class FolderParser
     }
 
     /// <summary>
-    /// Mode B: Parses indented hierarchy where 2 spaces, 4 spaces, or Tabs define parent-child relationships.
+    /// Mode B: Parses indented hierarchy where 2 spaces, 4 spaces, Tabs, ASCII tree symbols,
+    /// or markdown bullets define parent-child relationships.
     /// </summary>
     private static Result<IReadOnlyList<FolderItemNode>> ParseTreeHierarchy(
         string[] lines,
@@ -211,27 +212,25 @@ public static class FolderParser
                 continue;
             }
 
-            int indentColumn = CalculateIndentColumn(rawLine);
-            string trimmedText = rawLine.Trim();
+            var (indentColumn, cleanLine) = ExtractTreeLine(rawLine);
+            if (string.IsNullOrWhiteSpace(cleanLine))
+            {
+                continue;
+            }
 
             // Interpolate dynamic tokens
-            string evaluatedText = TokenEvaluator.Evaluate(trimmedText, currentSequence, referenceTime);
-            if (TokenEvaluator.HasSequenceToken(trimmedText))
+            string evaluatedText = TokenEvaluator.Evaluate(cleanLine, currentSequence, referenceTime);
+            if (TokenEvaluator.HasSequenceToken(cleanLine))
             {
                 currentSequence++;
             }
 
-            // Sanitize segment name
-            string sanitizedName = SanitizeFolderName(evaluatedText);
-
-            var node = new FolderItemNode
+            // Split into subsegments if line contains forward or backward slashes (e.g. "src/components")
+            var segments = evaluatedText.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 0)
             {
-                RawText = rawLine,
-                EvaluatedName = sanitizedName,
-                IndentLevel = indentColumn,
-                LineNumber = lineIdx + 1,
-                Status = FolderItemStatus.Pending
-            };
+                continue;
+            }
 
             // Pop stack items that are deeper than or at the same indentation level
             while (stack.Count > 0 && stack.Peek().IndentColumn >= indentColumn)
@@ -239,17 +238,39 @@ public static class FolderParser
                 stack.Pop();
             }
 
-            if (stack.Count == 0)
-            {
-                rootNodes.Add(node);
-            }
-            else
-            {
-                var parent = stack.Peek().Node;
-                parent.AddChild(node);
-            }
+            FolderItemNode? currentParent = stack.Count > 0 ? stack.Peek().Node : null;
 
-            stack.Push((indentColumn, node));
+            for (int segIdx = 0; segIdx < segments.Length; segIdx++)
+            {
+                string sanitizedSeg = SanitizeFolderName(segments[segIdx]);
+                int effectiveIndent = indentColumn + (segIdx * 2);
+
+                var node = new FolderItemNode
+                {
+                    RawText = rawLine,
+                    EvaluatedName = sanitizedSeg,
+                    IndentLevel = effectiveIndent,
+                    LineNumber = lineIdx + 1,
+                    Status = FolderItemStatus.Pending
+                };
+
+                if (currentParent is null)
+                {
+                    rootNodes.Add(node);
+                }
+                else
+                {
+                    currentParent.AddChild(node);
+                }
+
+                currentParent = node;
+
+                // Push to stack only the last segment of this line at its effective indent
+                if (segIdx == segments.Length - 1)
+                {
+                    stack.Push((effectiveIndent, node));
+                }
+            }
         }
 
         return Result.Success<IReadOnlyList<FolderItemNode>>(rootNodes);
@@ -853,5 +874,198 @@ public static class FolderParser
             }
         }
         return column;
+    }
+
+    /// <summary>
+    /// Parses a raw line to determine its visual indentation column and extracts the clean folder name
+    /// by stripping ASCII/Unicode tree branch markers (├──, └──, │, |), markdown bullets (- , * , • ),
+    /// and folder emoji prefixes (📁, 📂).
+    /// </summary>
+    public static (int IndentColumn, string CleanName) ExtractTreeLine(string rawLine)
+    {
+        if (string.IsNullOrEmpty(rawLine))
+        {
+            return (0, string.Empty);
+        }
+
+        int column = 0;
+        int i = 0;
+        int len = rawLine.Length;
+
+        while (i < len)
+        {
+            char c = rawLine[i];
+
+            if (c == ' ')
+            {
+                column++;
+                i++;
+            }
+            else if (c == '\t')
+            {
+                column = (column / 4 + 1) * 4;
+                i++;
+            }
+            else if (c == '│' || c == '|')
+            {
+                // Vertical branch line - advance column
+                column += 4;
+                i++;
+                // Skip trailing spaces after branch pipe
+                while (i < len && rawLine[i] == ' ')
+                {
+                    i++;
+                }
+            }
+            else if (StartsWithBranchSymbol(rawLine, i, out int branchLen))
+            {
+                column += 4;
+                i += branchLen;
+                while (i < len && (rawLine[i] == ' ' || rawLine[i] == '\t'))
+                {
+                    i++;
+                }
+            }
+            else if (StartsWithBullet(rawLine, i, out int bulletLen))
+            {
+                i += bulletLen;
+                while (i < len && (rawLine[i] == ' ' || rawLine[i] == '\t'))
+                {
+                    i++;
+                }
+                break;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        string remaining = i < len ? rawLine[i..].Trim() : string.Empty;
+
+        // Strip folder emoji prefix if present (📁, 📂)
+        if (remaining.StartsWith("📁", StringComparison.Ordinal) || remaining.StartsWith("📂", StringComparison.Ordinal))
+        {
+            remaining = remaining[2..].TrimStart(); // emoji is surrogate pair (2 chars)
+        }
+
+        // Trim trailing slashes if present
+        remaining = remaining.TrimEnd('/', '\\');
+
+        return (column, remaining);
+    }
+
+    private static bool StartsWithBranchSymbol(string text, int index, out int length)
+    {
+        string[] symbols = ["├──", "└──", "+--", "\\--", "├--", "└--", "├", "└"];
+        foreach (var s in symbols)
+        {
+            if (index + s.Length <= text.Length && text.AsSpan(index, s.Length).SequenceEqual(s))
+            {
+                length = s.Length;
+                return true;
+            }
+        }
+        length = 0;
+        return false;
+    }
+
+    private static bool StartsWithBullet(string text, int index, out int length)
+    {
+        if (index < text.Length)
+        {
+            char c = text[index];
+            if (c == '-' || c == '*' || c == '•')
+            {
+                if (index + 1 == text.Length || text[index + 1] == ' ')
+                {
+                    length = (index + 1 < text.Length && text[index + 1] == ' ') ? 2 : 1;
+                    return true;
+                }
+            }
+        }
+        length = 0;
+        return false;
+    }
+
+    /// <summary>
+    /// Generates a clean, monospaced ASCII/Unicode directory tree diagram (similar to the 'tree' command)
+    /// representing the exact folder hierarchy with optional status tags.
+    /// </summary>
+    public static string GenerateTreeDiagram(
+        string? rootName,
+        IReadOnlyList<FolderItemNode> rootNodes,
+        bool includeRoot = true,
+        bool showStatusBadges = false)
+    {
+        if (rootNodes is null || rootNodes.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder();
+        string displayRoot = string.IsNullOrWhiteSpace(rootName) ? "Root" : rootName.Trim();
+
+        if (includeRoot)
+        {
+            sb.AppendLine(CultureInfo.InvariantCulture, $"📁 {displayRoot}/");
+            AppendTreeChildren(sb, rootNodes, prefix: "", showStatusBadges);
+        }
+        else
+        {
+            for (int i = 0; i < rootNodes.Count; i++)
+            {
+                bool isLast = i == rootNodes.Count - 1;
+                AppendTreeNode(sb, rootNodes[i], prefix: "", isLast, showStatusBadges);
+            }
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static void AppendTreeChildren(
+        StringBuilder sb,
+        IReadOnlyList<FolderItemNode> children,
+        string prefix,
+        bool showStatusBadges)
+    {
+        for (int i = 0; i < children.Count; i++)
+        {
+            bool isLast = i == children.Count - 1;
+            AppendTreeNode(sb, children[i], prefix, isLast, showStatusBadges);
+        }
+    }
+
+    private static void AppendTreeNode(
+        StringBuilder sb,
+        FolderItemNode node,
+        string prefix,
+        bool isLast,
+        bool showStatusBadges)
+    {
+        string branch = isLast ? "└── " : "├── ";
+        string statusText = string.Empty;
+
+        if (showStatusBadges)
+        {
+            statusText = node.Status switch
+            {
+                FolderItemStatus.PlannedNew => " [New]",
+                FolderItemStatus.SkippedExisting => " [Exists]",
+                FolderItemStatus.WillOverwrite => " [Overwrite]",
+                FolderItemStatus.SuffixAppended => " [Renamed]",
+                FolderItemStatus.Failed => " [Failed]",
+                FolderItemStatus.Invalid => " [Invalid]",
+                _ => ""
+            };
+        }
+
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{prefix}{branch}📁 {node.EvaluatedName}{statusText}");
+
+        if (node.Children.Count > 0)
+        {
+            string childPrefix = prefix + (isLast ? "    " : "│   ");
+            AppendTreeChildren(sb, node.Children, childPrefix, showStatusBadges);
+        }
     }
 }

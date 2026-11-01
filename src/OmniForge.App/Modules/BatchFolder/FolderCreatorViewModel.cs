@@ -22,6 +22,7 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     private readonly IBatchFolderService _folderService;
     private readonly IFilePickerService _filePickerService;
     private readonly IDispatcherService _dispatcherService;
+    private readonly IClipboardService? _clipboardService;
 
     private CancellationTokenSource? _debounceCts;
     private IReadOnlyList<FolderItemNode> _lastPlannedItems = [];
@@ -153,6 +154,18 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     [ObservableProperty]
     public partial bool ImportSanitizeCharacters { get; set; } = true;
 
+    [ObservableProperty]
+    public partial string FormattedTreeDiagram { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsTextDiagramView { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsVisualTreeView { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsDiagramCopied { get; set; }
+
     public ObservableCollection<TreeViewNode> PreviewTreeNodes { get; } = [];
 
     public bool CanCreate => !string.IsNullOrWhiteSpace(RootDirectory) &&
@@ -163,11 +176,13 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     public FolderCreatorViewModel(
         IBatchFolderService folderService,
         IFilePickerService filePickerService,
-        IDispatcherService dispatcherService)
+        IDispatcherService dispatcherService,
+        IClipboardService? clipboardService = null)
     {
         _folderService = folderService ?? throw new ArgumentNullException(nameof(folderService));
         _filePickerService = filePickerService ?? throw new ArgumentNullException(nameof(filePickerService));
         _dispatcherService = dispatcherService ?? throw new ArgumentNullException(nameof(dispatcherService));
+        _clipboardService = clipboardService;
 
         // Default to a safe user Documents subfolder
         string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -176,6 +191,37 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
         // Load default template for immediate user feedback
         LoadTemplate("project");
         UpdateSeriesPreviewSample();
+    }
+
+    partial void OnIsVisualTreeViewChanged(bool value)
+    {
+        if (value && IsTextDiagramView) IsTextDiagramView = false;
+    }
+
+    partial void OnIsTextDiagramViewChanged(bool value)
+    {
+        if (value && IsVisualTreeView) IsVisualTreeView = false;
+    }
+
+    [RelayCommand]
+    private async Task CopyTreeDiagramAsync()
+    {
+        if (string.IsNullOrWhiteSpace(FormattedTreeDiagram)) return;
+
+        if (_clipboardService is not null)
+        {
+            _clipboardService.CopyText(FormattedTreeDiagram);
+        }
+        else
+        {
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(FormattedTreeDiagram);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        }
+
+        IsDiagramCopied = true;
+        await Task.Delay(2000).ConfigureAwait(true);
+        IsDiagramCopied = false;
     }
 
     partial void OnRootDirectoryChanged(string value)
@@ -341,6 +387,7 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             _dispatcherService.TryEnqueue(() =>
             {
                 PreviewTreeNodes.Clear();
+                FormattedTreeDiagram = string.Empty;
                 TotalFoldersCount = 0;
                 NewFoldersCount = 0;
                 ExistingFoldersCount = 0;
@@ -369,6 +416,7 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             _dispatcherService.TryEnqueue(() =>
             {
                 PreviewTreeNodes.Clear();
+                FormattedTreeDiagram = string.Empty;
                 TotalFoldersCount = 0;
                 NewFoldersCount = 0;
                 ExistingFoldersCount = 0;
@@ -388,6 +436,13 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             ? FilterNodes(result.RootNodes, SearchFilterText.Trim())
             : result.RootNodes;
 
+        string rootName = !string.IsNullOrWhiteSpace(RootDirectory)
+            ? Path.GetFileName(RootDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            : "Root";
+        if (string.IsNullOrWhiteSpace(rootName)) rootName = "Root";
+
+        string diagram = FolderParser.GenerateTreeDiagram(rootName, displayedNodes, includeRoot: true, showStatusBadges: true);
+
         // TreeViewNode is a WinUI DependencyObject and MUST be created on the UI thread
         _dispatcherService.TryEnqueue(() =>
         {
@@ -397,6 +452,7 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
                 PreviewTreeNodes.Add(FolderPreviewNode.FromModel(rootModel));
             }
 
+            FormattedTreeDiagram = diagram;
             TotalFoldersCount = result.TotalCount;
             NewFoldersCount = result.NewCount;
             ExistingFoldersCount = result.ExistingCount;
