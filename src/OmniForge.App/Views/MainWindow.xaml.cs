@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -7,6 +8,7 @@ using OmniForge.Core.Common;
 using OmniForge.Core.Contracts;
 using OmniForge.Services;
 using OmniForge.Services.Navigation;
+using WinRT.Interop;
 
 namespace OmniForge.App.Views;
 
@@ -15,8 +17,15 @@ namespace OmniForge.App.Views;
 /// </summary>
 public sealed partial class MainWindow : Window
 {
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int pvAttribute, int cbAttribute);
+
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
+
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _localizationService;
+    private bool _isMicaEnabled = true;
 
     public MainWindowViewModel ViewModel { get; }
 
@@ -54,6 +63,11 @@ public sealed partial class MainWindow : Window
             };
         }
 
+        if (Content is FrameworkElement rootElement)
+        {
+            rootElement.ActualThemeChanged += OnRootElementActualThemeChanged;
+        }
+
         // Initialize persistent theme, window geometry, and navigation state
         InitializeWindowSettings();
 
@@ -63,6 +77,14 @@ public sealed partial class MainWindow : Window
 
         // Trigger initial item binding and default navigation
         ViewModel.RefreshNavigationItems();
+    }
+
+    private void OnRootElementActualThemeChanged(FrameworkElement sender, object args)
+    {
+        bool isDark = sender.ActualTheme == ElementTheme.Dark;
+        UpdateDwmImmersiveDarkMode(isDark);
+        UpdateTitleBarButtonColors(isDark);
+        UpdateBackdropAndBackground();
     }
 
     private void UpdateLocalizedChrome()
@@ -95,7 +117,8 @@ public sealed partial class MainWindow : Window
             {
                 DispatcherQueue?.TryEnqueue(() =>
                 {
-                    SystemBackdrop = t.Result ? new MicaBackdrop { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt } : null;
+                    _isMicaEnabled = t.Result;
+                    UpdateBackdropAndBackground();
                 });
             }
             else
@@ -129,7 +152,8 @@ public sealed partial class MainWindow : Window
                     {
                         DispatcherQueue?.TryEnqueue(() =>
                         {
-                            SystemBackdrop = t.Result ? new MicaBackdrop { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt } : null;
+                            _isMicaEnabled = t.Result;
+                            UpdateBackdropAndBackground();
                         });
                     }
                     else
@@ -195,22 +219,76 @@ public sealed partial class MainWindow : Window
                 AppTitleBar.RequestedTheme = elementTheme;
             }
 
-            if (ContentFrame.Content is FrameworkElement pageContent)
+            if (ContentFrame is not null)
+            {
+                ContentFrame.RequestedTheme = elementTheme;
+            }
+
+            if (ContentFrame?.Content is FrameworkElement pageContent)
             {
                 pageContent.RequestedTheme = elementTheme;
             }
 
-            UpdateTitleBarButtonColors(elementTheme);
+            bool isDark = rootElement.ActualTheme == ElementTheme.Dark;
+            UpdateDwmImmersiveDarkMode(isDark);
+            UpdateTitleBarButtonColors(isDark);
+            UpdateBackdropAndBackground();
         }
     }
 
-    private void UpdateTitleBarButtonColors(ElementTheme theme)
+    private void UpdateBackdropAndBackground()
+    {
+        if (RootGrid is null) return;
+
+        if (_isMicaEnabled)
+        {
+            SystemBackdrop = null;
+            SystemBackdrop = new MicaBackdrop { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
+            RootGrid.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        }
+        else
+        {
+            SystemBackdrop = null;
+            if (Application.Current.Resources.TryGetValue("ApplicationPageBackgroundThemeBrush", out var brushObj) &&
+                brushObj is Brush bgBrush)
+            {
+                RootGrid.Background = bgBrush;
+            }
+            else
+            {
+                RootGrid.Background = new SolidColorBrush(
+                    RootGrid.ActualTheme == ElementTheme.Dark
+                        ? Windows.UI.Color.FromArgb(255, 32, 32, 32)
+                        : Windows.UI.Color.FromArgb(255, 243, 243, 243));
+            }
+        }
+    }
+
+    private void UpdateDwmImmersiveDarkMode(bool isDark)
+    {
+        try
+        {
+            var hwnd = WindowNative.GetWindowHandle(this);
+            if (hwnd != IntPtr.Zero)
+            {
+                int useDarkMode = isDark ? 1 : 0;
+                int hr = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkMode, sizeof(int));
+                if (hr != 0)
+                {
+                    _ = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref useDarkMode, sizeof(int));
+                }
+            }
+        }
+        catch
+        {
+            // Graceful fallback on platforms without DWM support
+        }
+    }
+
+    private void UpdateTitleBarButtonColors(bool isDark)
     {
         if (AppWindowTitleBar.IsCustomizationSupported() && AppWindow?.TitleBar is { } titleBar)
         {
-            bool isDark = theme == ElementTheme.Dark ||
-                (theme == ElementTheme.Default && Application.Current.RequestedTheme == ApplicationTheme.Dark);
-
             var foregroundColor = isDark
                 ? Windows.UI.Color.FromArgb(255, 255, 255, 255)
                 : Windows.UI.Color.FromArgb(255, 30, 30, 30);
@@ -219,13 +297,28 @@ public sealed partial class MainWindow : Window
                 ? Windows.UI.Color.FromArgb(30, 255, 255, 255)
                 : Windows.UI.Color.FromArgb(30, 0, 0, 0);
 
+            var pressedBgColor = isDark
+                ? Windows.UI.Color.FromArgb(45, 255, 255, 255)
+                : Windows.UI.Color.FromArgb(45, 0, 0, 0);
+
+            var inactiveForegroundColor = isDark
+                ? Windows.UI.Color.FromArgb(120, 255, 255, 255)
+                : Windows.UI.Color.FromArgb(120, 0, 0, 0);
+
+            var transparent = Windows.UI.Color.FromArgb(0, 0, 0, 0);
+
+            titleBar.BackgroundColor = transparent;
+            titleBar.InactiveBackgroundColor = transparent;
+            titleBar.ButtonBackgroundColor = transparent;
+            titleBar.ButtonInactiveBackgroundColor = transparent;
+
             titleBar.ButtonForegroundColor = foregroundColor;
             titleBar.ButtonHoverForegroundColor = foregroundColor;
             titleBar.ButtonPressedForegroundColor = foregroundColor;
+            titleBar.ButtonInactiveForegroundColor = inactiveForegroundColor;
+
             titleBar.ButtonHoverBackgroundColor = hoverBgColor;
-            titleBar.ButtonInactiveForegroundColor = isDark
-                ? Windows.UI.Color.FromArgb(120, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(120, 0, 0, 0);
+            titleBar.ButtonPressedBackgroundColor = pressedBgColor;
         }
     }
 

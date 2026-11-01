@@ -571,7 +571,7 @@
         <!-- ========================================================================= -->
         <!-- POPUP 1: CELEBRATORY WINNER MODAL DIALOG                                   -->
         <!-- ========================================================================= -->
-        <Grid Background="#CC000000"
+        <Grid Background="{ThemeResource SmokeFillColorDefaultBrush}"
               Visibility="{x:Bind ViewModel.IsResultModalOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch">
@@ -688,7 +688,7 @@
         <!-- ========================================================================= -->
         <!-- POPUP 2: SMART IMPORT MODAL (EXCEL .XLSX, CSV, TXT & BATCH PASTE)          -->
         <!-- ========================================================================= -->
-        <Grid Background="#CC000000"
+        <Grid Background="{ThemeResource SmokeFillColorDefaultBrush}"
               Visibility="{x:Bind ViewModel.IsImportModalOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch">

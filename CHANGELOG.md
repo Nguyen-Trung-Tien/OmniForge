@@ -25,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Directory tree diagram generator `FolderParser.GenerateTreeDiagram` producing standard directory tree text with branch glyphs and status badges.
   - 11 unit tests in `FolderCreatorTests` covering Excel parsing, CSV/delimiter handling, bulk add, ASCII tree parsing, Markdown list parsing, inline slashes, and diagram generation.
 
+### Fixed
+- **Dark/Light Mode Theme Switching & System Chrome Synchronization**:
+  - Resolved title bar caption button visibility glitch where buttons had opaque, contrasting background boxes in Dark/Light mode by enforcing `ButtonBackgroundColor`, `ButtonInactiveBackgroundColor`, `BackgroundColor`, and `InactiveBackgroundColor` to `Transparent`, and configuring contrast-compliant hover/pressed states.
+  - Implemented Win32 DWM Immersive Dark Mode synchronization via `DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ...)` so window chrome, system borders, and composition match the requested theme.
+  - Re-synchronized `SystemBackdrop` (`MicaBackdrop`) on dynamic theme changes and OS theme switches via `ActualThemeChanged`, preventing mismatched dark-on-light or light-on-dark mica tint bleed-through.
+  - Configured resilient root grid background fallback (`ApplicationPageBackgroundThemeBrush`) when Mica backdrop is disabled, eliminating solid black background rendering.
+  - Replaced hardcoded `#CC000000` smoke screen overlays in `BatchFolderPage` and `LuckyWheelPage` with dynamic `{ThemeResource SmokeFillColorDefaultBrush}` for smooth Fluent light/dark modal presentation.
+
 ### Changed
 - Re-architected `BatchFolderPage.xaml` layout with streamlined card hierarchy (Target Path, Settings Bar, Tools & Editor, Tree Preview, Action Bar).
 - Grouped tool actions into clean categorized command menus (Import, Series, Templates, Tokens, Tools, Clear).

@@ -803,7 +803,7 @@
         <!-- ========================================================================= -->
         <!-- POPUP MODAL: SMART IMPORT FROM EXCEL (.XLSX), CSV, TXT & BATCH PASTE      -->
         <!-- ========================================================================= -->
-        <Grid Background="#CC000000"
+        <Grid Background="{ThemeResource SmokeFillColorDefaultBrush}"
               Visibility="{x:Bind ViewModel.IsImportModalOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch">
