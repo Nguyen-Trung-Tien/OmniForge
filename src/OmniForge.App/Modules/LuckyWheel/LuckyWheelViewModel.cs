@@ -36,6 +36,7 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotSpinning))]
     [NotifyCanExecuteChangedFor(nameof(StartSpinCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopSpinCommand))]
     public partial bool IsSpinning { get; set; }
 
     public bool IsNotSpinning => !IsSpinning;
@@ -199,6 +200,7 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
 
         _spinElapsedTime += deltaSeconds;
         double progress = Math.Clamp(_spinElapsedTime / _activeTarget.DurationSeconds, 0.0, 1.0);
+        ReportProgress(progress * 100.0, $"Wheel is spinning... ({progress * 100.0:F0}%)");
 
         double evaluatedAngle = LuckyWheelEngine.EvaluateAngle(
             _spinStartAngle,
@@ -224,6 +226,15 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         {
             CompleteSpin();
         }
+    }
+
+    [RelayCommand(CanExecute = nameof(IsSpinning))]
+    public void StopSpin()
+    {
+        if (!IsSpinning) return;
+        IsSpinning = false;
+        IsBusy = false;
+        StatusMessage = "Wheel spin cancelled by user.";
     }
 
     private void CompleteSpin()
@@ -278,9 +289,18 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
     [RelayCommand]
     public void ClearItems()
     {
-        if (IsSpinning) return;
-        Items.Clear();
-        StatusMessage = "Cleared all wheel options.";
+        if (IsSpinning || Items.Count == 0) return;
+
+        RequestConfirmation(
+            title: "Confirm Clear All Wheel Options",
+            message: $"Remove all {Items.Count} option(s) from the wheel?",
+            onConfirmedAction: _ =>
+            {
+                Items.Clear();
+                StatusMessage = "Cleared all wheel options.";
+                SuccessMessage = "Cleared all wheel options.";
+                return Task.CompletedTask;
+            });
     }
 
     [RelayCommand]

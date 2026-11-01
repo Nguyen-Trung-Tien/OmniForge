@@ -98,5 +98,76 @@ public sealed class ResultTests
         Assert.Equal(1, notifications);
         Assert.Equal(5, collection.Count);
     }
+
+    private sealed class TestableToolViewModel : OmniForge.Core.Models.ToolViewModelBase
+    {
+        public Task<string?> ExecuteLongTaskAsync(CancellationToken ct = default)
+        {
+            return RunSafeAsync(
+                async linkedToken =>
+                {
+                    ReportProgress(35, "Step 1...");
+                    await Task.Delay(250, linkedToken);
+                    ReportProgress(100, "Done");
+                    return Result.Success("OK");
+                },
+                busyStatus: "Starting task...",
+                successStatus: "Task finished.",
+                cancellationToken: ct);
+        }
+
+        public void PromptConfirm(Func<CancellationToken, Task> action)
+        {
+            RequestConfirmation("Confirm Test", "Proceed with test?", action);
+        }
+    }
+
+    [Fact]
+    public async Task ToolViewModelBase_CancelCurrentOperation_ShouldAbortRunningTaskCleanly()
+    {
+        var vm = new TestableToolViewModel();
+        var runningTask = vm.ExecuteLongTaskAsync();
+
+        // Cancel while task is running
+        vm.CancelCurrentOperation();
+
+        var result = await runningTask;
+        Assert.Null(result);
+        Assert.False(vm.IsBusy);
+        Assert.Contains("cancelled", vm.StatusMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ToolViewModelBase_ConfirmationWorkflow_ShouldExecuteOrDismissCleanly()
+    {
+        var vm = new TestableToolViewModel();
+        bool executed = false;
+
+        vm.PromptConfirm(_ =>
+        {
+            executed = true;
+            return Task.CompletedTask;
+        });
+
+        Assert.True(vm.IsConfirmationOpen);
+        Assert.Equal("Confirm Test", vm.ConfirmationTitle);
+
+        // Dismiss first
+        vm.DismissConfirmation();
+        Assert.False(vm.IsConfirmationOpen);
+        Assert.False(executed);
+
+        // Prompt again and confirm
+        vm.PromptConfirm(async ct =>
+        {
+            var res = await vm.ExecuteLongTaskAsync(ct);
+            executed = res == "OK";
+        });
+
+        await vm.ConfirmPendingActionAsync();
+        Assert.False(vm.IsConfirmationOpen);
+        Assert.True(executed);
+        Assert.True(vm.HasSuccessMessage);
+    }
 }
 

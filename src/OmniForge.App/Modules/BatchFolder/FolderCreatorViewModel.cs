@@ -404,9 +404,19 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     [RelayCommand]
     private void ClearInput()
     {
-        RawInputText = string.Empty;
-        HasExecutionSummary = false;
-        ExecutionResultSummary = string.Empty;
+        if (string.IsNullOrWhiteSpace(RawInputText)) return;
+
+        RequestConfirmation(
+            title: "Confirm Clear Folder Structure",
+            message: "Are you sure you want to clear all folder rows in the editor?",
+            onConfirmedAction: _ =>
+            {
+                RawInputText = string.Empty;
+                HasExecutionSummary = false;
+                ExecutionResultSummary = string.Empty;
+                SuccessMessage = "Cleared folder editor content.";
+                return Task.CompletedTask;
+            });
     }
 
     [RelayCommand]
@@ -494,7 +504,7 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
     }
 
     [RelayCommand(CanExecute = nameof(CanCreate))]
-    private async Task CreateFoldersAsync(CancellationToken cancellationToken)
+    private void CreateFolders()
     {
         if (_lastPlannedItems.Count == 0)
         {
@@ -502,6 +512,14 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             return;
         }
 
+        RequestConfirmation(
+            title: "Confirm Batch Folder Creation",
+            message: $"Create {TotalFoldersCount} folder(s) ({NewFoldersCount} new, {ExistingFoldersCount} existing) inside '{RootDirectory}'?",
+            onConfirmedAction: ExecuteCreateFoldersConfirmedAsync);
+    }
+
+    private async Task ExecuteCreateFoldersConfirmedAsync(CancellationToken cancellationToken)
+    {
         HasExecutionSummary = false;
         ExecutionResultSummary = string.Empty;
 
@@ -521,6 +539,7 @@ public partial class FolderCreatorViewModel : ToolViewModelBase, IDisposable
             HasExecutionSummary = true;
             string elapsedText = ByteSizeFormatter.FormatDuration(summary.Elapsed);
             ExecutionResultSummary = $"Successfully created {summary.CreatedCount} folders, skipped {summary.SkippedCount}, with {summary.FailedCount} errors in {elapsedText}.";
+            SuccessMessage = ExecutionResultSummary;
 
             if (summary.Errors.Count > 0)
             {

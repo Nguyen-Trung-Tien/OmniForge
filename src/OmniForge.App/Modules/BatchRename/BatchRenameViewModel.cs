@@ -207,16 +207,26 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
     [RelayCommand]
     private void ClearFiles()
     {
-        _loadedFiles.Clear();
-        PreviewItems.ReplaceAll([]);
-        TotalFilesCount = 0;
-        ChangedFilesCount = 0;
-        ConflictCount = 0;
-        IsEmpty = true;
-        HasFiles = false;
-        ClearError();
-        StatusMessage = "Cleared all imported files.";
-        OnPropertyChanged(nameof(CanRun));
+        if (_loadedFiles.Count == 0) return;
+
+        RequestConfirmation(
+            title: "Confirm Clear Staged Files",
+            message: $"Are you sure you want to remove all {_loadedFiles.Count} staged file(s) from the list?",
+            onConfirmedAction: _ =>
+            {
+                _loadedFiles.Clear();
+                PreviewItems.ReplaceAll([]);
+                TotalFilesCount = 0;
+                ChangedFilesCount = 0;
+                ConflictCount = 0;
+                IsEmpty = true;
+                HasFiles = false;
+                ClearError();
+                StatusMessage = "Cleared all imported files.";
+                SuccessMessage = "Cleared all staged files from the batch list.";
+                OnPropertyChanged(nameof(CanRun));
+                return Task.CompletedTask;
+            });
     }
 
     [RelayCommand]
@@ -330,10 +340,18 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
     }
 
     [RelayCommand]
-    private async Task RunRenameAsync(CancellationToken cancellationToken)
+    private void RunRename()
     {
         if (!CanRun) return;
 
+        RequestConfirmation(
+            title: "Confirm Batch File Rename",
+            message: $"Ready to rename {ChangedFilesCount} file(s) out of {TotalFilesCount} staged items. You can undo this batch after completion. Proceed?",
+            onConfirmedAction: ExecuteRenameConfirmedAsync);
+    }
+
+    private async Task ExecuteRenameConfirmedAsync(CancellationToken cancellationToken)
+    {
         var progress = new Progress<BatchProgressReport>(p =>
         {
             ReportProgress(p.Percentage, $"Renaming ({p.ProcessedItems}/{p.TotalItems}): {p.CurrentItemName}");
@@ -342,7 +360,7 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         var result = await RunSafeAsync(
             ct => _renameService.ExecuteBatchAsync(PreviewItems, progress, ct),
             busyStatus: $"Executing batch rename ({ChangedFilesCount} files)...",
-            successStatus: "Batch rename completed successfully.",
+            successStatus: $"Successfully renamed {ChangedFilesCount} file(s).",
             cancellationToken: cancellationToken);
 
         if (result is not null)
@@ -372,15 +390,26 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
     }
 
     [RelayCommand]
-    private async Task UndoRenameAsync(CancellationToken cancellationToken)
+    private void UndoRename()
     {
         if (!CanUndo || _lastJournal is null) return;
+
+        int count = _lastJournal.CompletedOperations.Count;
+        RequestConfirmation(
+            title: "Confirm Undo Batch Rename",
+            message: $"Restore {count} renamed file(s) back to their original filenames?",
+            onConfirmedAction: ExecuteUndoConfirmedAsync);
+    }
+
+    private async Task ExecuteUndoConfirmedAsync(CancellationToken cancellationToken)
+    {
+        if (_lastJournal is null) return;
 
         var journal = _lastJournal;
         var result = await RunSafeAsync(
             ct => _renameService.UndoBatchAsync(journal, ct),
             busyStatus: $"Reverting {journal.CompletedOperations.Count} file(s)...",
-            successStatus: "Undo completed successfully.",
+            successStatus: $"Reverted {journal.CompletedOperations.Count} file(s) to original names.",
             cancellationToken: cancellationToken);
 
         if (result > 0)

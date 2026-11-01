@@ -7,39 +7,89 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Spacing="6">
-        <ProgressBar IsIndeterminate="{x:Bind IsIndeterminate, Mode=OneWay}"
-                     Value="{x:Bind ProgressPercent, Mode=OneWay}"
-                     Maximum="100"
-                     Visibility="{x:Bind IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+    <Border Style="{StaticResource FluentCardBorderStyle}" Padding="14,10">
+        <StackPanel Spacing="8">
+            <!-- Active Task Progress Banner with Percentage & Cancel Button -->
+            <Grid ColumnSpacing="12"
+                  Visibility="{x:Bind IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+                <ProgressRing Grid.Column="0"
+                              Width="16"
+                              Height="16"
+                              IsActive="{x:Bind IsBusy, Mode=OneWay}"
+                              VerticalAlignment="Center" />
 
-            <FontIcon Grid.Column="0"
-                      Glyph="&#xE946;"
-                      FontSize="12"
-                      VerticalAlignment="Center"
-                      Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <ProgressBar Grid.Column="1"
+                             IsIndeterminate="{x:Bind IsIndeterminate, Mode=OneWay}"
+                             Value="{x:Bind ProgressPercent, Mode=OneWay}"
+                             Maximum="100"
+                             VerticalAlignment="Center" />
 
-            <TextBlock Grid.Column="1"
-                       Text="{x:Bind StatusMessage, Mode=OneWay}"
-                       Style="{ThemeResource CaptionTextBlockStyle}"
-                       VerticalAlignment="Center"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Border Grid.Column="2"
+                        Style="{StaticResource StatusBadgeBorderStyle}"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind IsDeterminate, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="{x:Bind ProgressPercentText, Mode=OneWay}"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               FontWeight="SemiBold"
+                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                </Border>
 
-            <Border Grid.Column="2"
-                    Style="{StaticResource StatusBadgeBorderStyle}"
-                    Visibility="{x:Bind HasDuration, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <TextBlock Text="{x:Bind DurationText, Mode=OneWay}"
+                <Button Grid.Column="3"
+                        Padding="10,4"
+                        FontSize="12"
+                        ToolTipService.ToolTip="Cancel the currently running task (Esc)"
+                        Click="CancelTaskButton_Click"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                        <TextBlock Text="Cancel Task" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                    </StackPanel>
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Escape" />
+                    </Button.KeyboardAccelerators>
+                </Button>
+            </Grid>
+
+            <!-- Status Line & Execution Duration Badge -->
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <FontIcon Grid.Column="0"
+                          Glyph="&#xE946;"
+                          FontSize="12"
+                          VerticalAlignment="Center"
+                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{x:Bind StatusMessage, Mode=OneWay}"
                            Style="{ThemeResource CaptionTextBlockStyle}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </Border>
-        </Grid>
-    </StackPanel>
-</UserControl>
 
+                <Border Grid.Column="2"
+                        Style="{StaticResource StatusBadgeBorderStyle}"
+                        Visibility="{x:Bind HasDuration, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE916;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="{x:Bind DurationText, Mode=OneWay}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -171,18 +171,26 @@ public partial class FileToolsViewModel(
             return;
         }
 
+        long startTimestamp = Stopwatch.GetTimestamp();
+        var linkedToken = BeginCancellableScope(cancellationToken);
+
         try
         {
             IsBusy = true;
+            IsIndeterminate = true;
+            ProgressPercent = 0;
             ClearError();
+            SuccessMessage = null;
             StatusMessage = $"Scanning directory: {pathCheck.Value}...";
 
             var items = new List<FileItemDisplayModel>(capacity: 200);
             long totalBytes = 0;
             var searchOption = IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-            await foreach (var file in _fileSystemService.EnumerateFilesAsync(pathCheck.Value, "*.*", searchOption, cancellationToken))
+            await foreach (var file in _fileSystemService.EnumerateFilesAsync(pathCheck.Value, "*.*", searchOption, linkedToken))
             {
+                linkedToken.ThrowIfCancellationRequested();
+
                 var meta = FileMetadata.FromPath(file);
                 totalBytes += meta.SizeBytes;
                 items.Add(new FileItemDisplayModel(
@@ -193,6 +201,11 @@ public partial class FileToolsViewModel(
                     ModifiedText: meta.ModifiedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture),
                     FullPath: meta.FullPath));
 
+                if (items.Count % 25 == 0)
+                {
+                    ReportProgress(Math.Min(99.0, items.Count / 5.0), $"Scanning ({items.Count} files found): {meta.FileName}");
+                }
+
                 if (items.Count >= 500) break;
             }
 
@@ -202,11 +215,17 @@ public partial class FileToolsViewModel(
             FormattedDirectorySize = ByteSizeFormatter.FormatBytes(totalBytes);
 
             ApplyFilter();
-            StatusMessage = $"Scan completed. Found {TotalScannedCount} files ({FormattedDirectorySize}).";
+            var elapsed = Stopwatch.GetElapsedTime(startTimestamp);
+            LastDurationText = ByteSizeFormatter.FormatDuration(elapsed);
+            string summary = $"Scan completed in {LastDurationText}. Found {TotalScannedCount} files ({FormattedDirectorySize}).";
+            StatusMessage = summary;
+            SuccessMessage = summary;
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "File scan was canceled.";
+            var elapsed = Stopwatch.GetElapsedTime(startTimestamp);
+            LastDurationText = ByteSizeFormatter.FormatDuration(elapsed);
+            StatusMessage = $"File scan cancelled by user ({LastDurationText}).";
         }
         catch (Exception ex)
         {
@@ -215,6 +234,7 @@ public partial class FileToolsViewModel(
         }
         finally
         {
+            EndCancellableScope();
             IsBusy = false;
         }
     }
