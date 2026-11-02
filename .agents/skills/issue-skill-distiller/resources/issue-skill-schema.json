@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IssueSkillDistillationSchema",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "problemSummary",
+    "symptoms",
+    "rootCause",
+    "resolutionSteps",
+    "preventionGuardrails"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Lowercase, hyphenated skill identifier (kebab-case)."
+    },
+    "description": {
+      "type": "string",
+      "description": "Third-person description explaining WHAT the skill solves and WHEN to trigger it."
+    },
+    "problemSummary": {
+      "type": "string",
+      "description": "High-level summary of the issue encountered."
+    },
+    "symptoms": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of observable error codes, log messages, or visual anomalies."
+    },
+    "rootCause": {
+      "type": "string",
+      "description": "Deep architectural or code-level explanation of why the failure occurred."
+    },
+    "resolutionSteps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Step-by-step actionable procedure to resolve the issue."
+    },
+    "preventionGuardrails": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Architectural rules, analyzers, or unit tests to prevent future recurrence."
+    }
+  }
+}

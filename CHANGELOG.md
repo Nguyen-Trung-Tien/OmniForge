@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Issue-to-Skill Distiller Automation & Autonomous Evolution Protocol**:
+  - Created specialized `issue-skill-distiller` skill (`.agents/skills/issue-skill-distiller`) to autonomously package newly solved issues, runtime bugs, and root-cause runbooks into permanent 4-part skills.
+  - Added CLI task `.\forge distill-issue <Name> [-Symptom "..."] [-RootCause "..."] [-Resolution "..."]` in `forge.ps1`.
+  - Added Section 7.5 to `.agents/AGENTS.md` mandating issue distillation for newly encountered bugs and technical obstacles.
 - **Agent Skill Creation Protocol & Automation Tooling**:
   - Established Section 7 in `.agents/AGENTS.md` and `.agents/rules/agent-skills-rules.md` requiring agents to read official Antigravity skill instructions (`https://antigravity.google/docs/skills/`) before creating skills.
   - Standardized the 4-part skill directory structure (`SKILL.md`, `scripts/`, `examples/`, `resources/`) under `.agents/skills/`.

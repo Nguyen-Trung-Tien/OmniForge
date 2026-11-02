@@ -172,4 +172,9 @@ Whenever a new skill is created:
    - Update `CHANGELOG.md` under `[Unreleased] -> ### Added`.
    - Verify inventory via `.\forge doctor`.
 
+### 7.5 Automatic Issue-to-Skill Distillation Law
+- **Mandate**: Whenever a non-trivial runtime error, architecture race condition, platform quirk, or unique technical issue is diagnosed and resolved, the agent **MUST** package the solution into a dedicated skill via `issue-skill-distiller` (or `.\forge distill-issue <Name>`).
+- This guarantees continuous, autonomous agent evolution: future agent runs can immediately identify similar issues, apply verified runbooks, and avoid repeating root-cause investigations.
+
+
 

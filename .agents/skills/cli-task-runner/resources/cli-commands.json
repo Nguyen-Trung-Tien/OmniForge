@@ -38,6 +38,10 @@
       "summary": "Scaffolds standard 4-part AI Agent Skill (SKILL.md, scripts/, examples/, resources/)"
     },
     {
+      "name": "distill-issue",
+      "summary": "Distills newly solved issue or bug into a standardized 4-part AI Agent Skill"
+    },
+    {
       "name": "learn",
       "summary": "Appends a learned pattern or fix to .agents/MEMORY.md"
     },

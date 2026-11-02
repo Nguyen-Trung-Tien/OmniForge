@@ -17,7 +17,7 @@
 #>
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("build", "run", "test", "verify", "arch", "new-module", "new-test", "new-skill", "learn", "logs", "doctor", "clean", "publish", "package", "help")]
+    [ValidateSet("build", "run", "test", "verify", "arch", "new-module", "new-test", "new-skill", "distill-issue", "learn", "logs", "doctor", "clean", "publish", "package", "help")]
     [string]$Command = "help",
 
     [Parameter(Position = 1)]
@@ -25,6 +25,9 @@ param(
 
     [string]$DisplayName = "",
     [string]$Description = "",
+    [string]$Symptom = "",
+    [string]$RootCause = "",
+    [string]$Resolution = "",
     [string]$Category = "Developer Tools",
     [string]$IconGlyph = "\uE8B7",
     [string]$SubFolder = "Modules",
@@ -179,6 +182,21 @@ See https://antigravity.google/docs/skills/ for official Antigravity skill archi
         exit 0
     }
 
+    "distill-issue" {
+        if ([string]::IsNullOrWhiteSpace($Name)) {
+            Write-Host "[ERROR] Specify issue name: .\forge.ps1 distill-issue <IssueName> [-Description '...'] [-Symptom '...'] [-RootCause '...'] [-Resolution '...']" -ForegroundColor Red
+            exit 1
+        }
+        & "$Root\.agents\skills\issue-skill-distiller\scripts\distill_issue_skill.ps1" `
+            -Name $Name `
+            -Description $Description `
+            -Symptom $Symptom `
+            -RootCause $RootCause `
+            -Resolution $Resolution `
+            -Category $Category
+        exit $LASTEXITCODE
+    }
+
     "learn" {
         Write-Header "Agent Institutional Memory & Learned Patterns (.agents/MEMORY.md)"
         if ([string]::IsNullOrWhiteSpace($Name)) {
@@ -317,6 +335,7 @@ See https://antigravity.google/docs/skills/ for official Antigravity skill archi
         Write-Host "  .\forge new-module <Name>    Scaffold Module + ViewModel + XAML + Service + Test"
         Write-Host "  .\forge new-test <Name>      Scaffold deterministic xUnit test class"
         Write-Host "  .\forge new-skill <Name>     Scaffold standard 4-part AI Agent Skill (.agents/skills)"
+        Write-Host "  .\forge distill-issue <Name> Distill newly resolved issue into a standardized skill"
         Write-Host "  .\forge learn `"<Insight>`"    Persist learned architectural/debugging insight to .agents/MEMORY.md"
         Write-Host "  .\forge logs [-Tail 30]      Inspect or -Clear latest structured JSONL runtime logs"
         Write-Host "  .\forge doctor               Verify .NET SDK, skills inventory, and static architecture"
