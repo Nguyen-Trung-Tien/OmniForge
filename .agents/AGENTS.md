@@ -87,6 +87,10 @@ OmniForge is structured into strictly decoupled layers with unidirectional depen
 2. **Semantic Versioning (SemVer)**:
    - OmniForge follows `MAJOR.MINOR.PATCH` versioning (`v0.1.0-alpha` for Phase 1).
    - Every pull request, subagent task, or architectural feature addition must include a corresponding update to `CHANGELOG.md` under `[Unreleased]` or the targeted milestone version.
+3. **Changelog Curation & Noise Elimination**:
+   - **Pruning Permitted & Required**: Agents are explicitly permitted and expected to prune, merge, and delete unnecessary, redundant, or noisy changelog entries (e.g., intermediate debugging steps, micro-commits, duplicate bullet points).
+   - **Zero Duplicate Headers**: Each release version block (`[Unreleased]` or `[X.Y.Z]`) must contain at most one of each category header (`### Added`, `### Changed`, `### Deprecated`, `### Removed`, `### Fixed`, `### Security`).
+   - **Signal Over Noise**: Maintain clean, contributor- and end-user-facing release notes. Consolidate fragmented entries across multiple subagent runs into cohesive, high-impact summaries adhering to the `changelog-curator` skill.
 
 ---
 
