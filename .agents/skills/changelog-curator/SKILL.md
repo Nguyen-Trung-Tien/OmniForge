@@ -53,3 +53,4 @@ Under each version header (`## [Unreleased]` or `## [X.Y.Z] - YYYY-MM-DD`), cate
      - Secondary detail if necessary (keep brief).
    ```
 5. **Verify**: Ensure the document strictly complies with [Keep a Changelog](https://keepachangelog.com/).
+
