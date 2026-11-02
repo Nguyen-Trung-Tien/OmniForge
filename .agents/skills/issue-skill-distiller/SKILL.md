@@ -84,3 +84,4 @@ Always execute:
 .\forge verify
 ```
 Verify that all 143+ tests pass and the skills inventory count increments cleanly.
+

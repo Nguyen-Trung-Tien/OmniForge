@@ -131,3 +131,4 @@ Write-Host "  1. Review generated SKILL.md and refine problem-specific resolutio
 Write-Host "  2. Ensure .agents/AGENTS.md reflects this skill" -ForegroundColor Yellow
 Write-Host "  3. Update CHANGELOG.md under [Unreleased] -> ### Added" -ForegroundColor Yellow
 exit 0
+
