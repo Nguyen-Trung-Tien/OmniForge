@@ -3,15 +3,16 @@ param(
     [string]$TargetFolder = "src\OmniForge.App\Modules"
 )
 
-$RepoRoot = Resolve-Path "$PSScriptRoot\..\..\.."
+$RepoRoot = Resolve-Path "$PSScriptRoot\..\..\..\.."
 $ScanPath = Join-Path $RepoRoot $TargetFolder
 
 Write-Host "[Architecture Reuse Audit] Auditing $ScanPath for standard base classes..." -ForegroundColor Cyan
 
-$ViewModels = Get-ChildItem -Path $ScanPath -Recurse -Filter "*ViewModel.cs"
+$ViewModels = Get-ChildItem -Path $ScanPath -Recurse -File -Filter "*ViewModel.cs" | Where-Object { $_.FullName -notmatch "\\(bin|obj)\\" }
 $Violations = 0
 
 foreach ($Vm in $ViewModels) {
+    if ($Vm.Name -like "*ItemViewModel.cs" -or $Vm.Name -like "*EntryViewModel.cs" -or $Vm.Name -like "*RuleViewModel.cs") { continue }
     $Content = Get-Content -Path $Vm.FullName -Raw
     if ($Content -notmatch ":\s*ToolViewModelBase") {
         Write-Warning "$($Vm.Name) does not inherit from ToolViewModelBase!"

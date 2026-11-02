@@ -195,6 +195,9 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
 
     private void WheelCanvas_CreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
     {
+        _labelFormat?.Dispose();
+        _centerHubFormat?.Dispose();
+
         _labelFormat = new CanvasTextFormat
         {
             FontFamily = "Segoe UI",
@@ -237,7 +240,7 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
 
         if (slices.Count == 0)
         {
-            ds.DrawText("Thêm đối tượng để quay", center, Color.FromArgb(160, 150, 150, 150), _centerHubFormat);
+            ds.DrawText(ViewModel.EmptyWheelText, center, Color.FromArgb(160, 150, 150, 150), _centerHubFormat);
             return;
         }
 
@@ -308,8 +311,7 @@ public sealed partial class LuckyWheelPage : Page, IDisposable
         ds.FillCircle(center, hubInnerR, hubButtonColor);
         ds.DrawCircle(center, hubInnerR, Color.FromArgb(200, 255, 255, 255), 1.5f);
 
-        string centerText = ViewModel.IsSpinning ? "QUAY" : "SPIN";
-        ds.DrawText(centerText, center, Color.FromArgb(255, 255, 255, 255), _centerHubFormat);
+        ds.DrawText(ViewModel.CenterHubText, center, Color.FromArgb(255, 255, 255, 255), _centerHubFormat);
 
         // 5. Top Pointer / Ticker Needle
         Vector2 tickerPivot = new(center.X, center.Y - outerRadius - 12f);

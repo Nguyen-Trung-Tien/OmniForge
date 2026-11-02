@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using System.Xml;
 using System.Xml.Linq;
 using OmniForge.Core.Common;
 
@@ -19,6 +20,10 @@ public static class TextPayloadEngine
         if (string.IsNullOrWhiteSpace(input))
             return Result.Failure<string>("Json.Empty", "JSON payload cannot be empty.");
 
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(input);
+        if (sizeCheck.IsFailure)
+            return Result.Failure<string>(sizeCheck.Error);
+
         return await Task.Run(() =>
         {
             try
@@ -26,7 +31,8 @@ public static class TextPayloadEngine
                 using var doc = JsonDocument.Parse(input, new JsonDocumentOptions
                 {
                     AllowTrailingCommas = true,
-                    CommentHandling = JsonCommentHandling.Skip
+                    CommentHandling = JsonCommentHandling.Skip,
+                    MaxDepth = 64
                 });
 
                 var buffer = new ArrayBufferWriter<byte>();
@@ -55,11 +61,24 @@ public static class TextPayloadEngine
         if (string.IsNullOrWhiteSpace(input))
             return Result.Failure<string>("Xml.Empty", "XML payload cannot be empty.");
 
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(input);
+        if (sizeCheck.IsFailure)
+            return Result.Failure<string>(sizeCheck.Error);
+
         return await Task.Run(() =>
         {
             try
             {
-                var doc = XDocument.Parse(input);
+                var settings = new XmlReaderSettings
+                {
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null,
+                    MaxCharactersFromEntities = 1024,
+                    MaxCharactersInDocument = SecurityGuard.DefaultMaxPayloadBytes
+                };
+                using var stringReader = new StringReader(input);
+                using var xmlReader = XmlReader.Create(stringReader, settings);
+                var doc = XDocument.Load(xmlReader, LoadOptions.None);
                 return Result.Success(doc.ToString());
             }
             catch (Exception ex)
@@ -73,6 +92,10 @@ public static class TextPayloadEngine
     {
         if (string.IsNullOrEmpty(plainText))
             return Result.Failure<string>("Base64.Empty", "Input text cannot be empty.");
+
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(plainText);
+        if (sizeCheck.IsFailure)
+            return Result.Failure<string>(sizeCheck.Error);
 
         try
         {
@@ -88,6 +111,10 @@ public static class TextPayloadEngine
     {
         if (string.IsNullOrWhiteSpace(base64Text))
             return Result.Failure<string>("Base64.Empty", "Base64 input cannot be empty.");
+
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(base64Text);
+        if (sizeCheck.IsFailure)
+            return Result.Failure<string>(sizeCheck.Error);
 
         try
         {
@@ -109,6 +136,10 @@ public static class TextPayloadEngine
         if (string.IsNullOrEmpty(plainText))
             return Result.Failure<string>("Url.Empty", "Input text cannot be empty.");
 
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(plainText);
+        if (sizeCheck.IsFailure)
+            return Result.Failure<string>(sizeCheck.Error);
+
         try
         {
             return Result.Success(Uri.EscapeDataString(plainText));
@@ -124,6 +155,10 @@ public static class TextPayloadEngine
         if (string.IsNullOrEmpty(urlEncodedText))
             return Result.Failure<string>("Url.Empty", "URL-encoded input cannot be empty.");
 
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(urlEncodedText);
+        if (sizeCheck.IsFailure)
+            return Result.Failure<string>(sizeCheck.Error);
+
         try
         {
             return Result.Success(Uri.UnescapeDataString(urlEncodedText));
@@ -138,6 +173,10 @@ public static class TextPayloadEngine
     {
         if (string.IsNullOrWhiteSpace(jwtToken))
             return Result.Failure<JwtInspectionResult>("Jwt.Empty", "JWT token cannot be empty.");
+
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(jwtToken);
+        if (sizeCheck.IsFailure)
+            return Result.Failure<JwtInspectionResult>(sizeCheck.Error);
 
         var parts = jwtToken.Trim().Split('.');
         if (parts.Length < 2)

@@ -3,12 +3,12 @@ param(
     [string]$TargetFolder = "src\OmniForge.App"
 )
 
-$RepoRoot = Resolve-Path "$PSScriptRoot\..\..\.."
+$RepoRoot = Resolve-Path "$PSScriptRoot\..\..\..\.."
 $ScanPath = Join-Path $RepoRoot $TargetFolder
 
 Write-Host "[Performance & Memory Audit] Scanning $ScanPath for memory anti-patterns..." -ForegroundColor Cyan
 
-$Files = Get-ChildItem -Path $ScanPath -Recurse -Filter "*.cs"
+$Files = Get-ChildItem -Path $ScanPath -Recurse -File -Filter "*.cs" | Where-Object { $_.FullName -notmatch "\\(bin|obj)\\" }
 $Warnings = 0
 
 foreach ($File in $Files) {

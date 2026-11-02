@@ -105,12 +105,15 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         _debounceCts = new CancellationTokenSource();
         var token = _debounceCts.Token;
 
+        var filesSnapshot = _loadedFiles.ToList();
+        var rulesSnapshot = Rules.Select(r => r.ToRule()).ToList();
+
         _ = Task.Run(async () =>
         {
             try
             {
                 await Task.Delay(200, token).ConfigureAwait(false);
-                await RecomputePreviewAsync(token).ConfigureAwait(false);
+                await RecomputePreviewAsync(filesSnapshot, rulesSnapshot, token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -126,16 +129,20 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         }, token);
     }
 
-    private async Task RecomputePreviewAsync(CancellationToken cancellationToken)
+    private Task RecomputePreviewAsync(
+        List<FileMetadata> filesSnapshot,
+        List<IRenameRule> activeRules,
+        CancellationToken cancellationToken)
     {
-        if (_loadedFiles.Count == 0)
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (filesSnapshot.Count == 0)
         {
             UpdatePreviewUi([], 0, 0, 0, isEmpty: true, hasFiles: false);
-            return;
+            return Task.CompletedTask;
         }
 
-        var activeRules = Rules.Select(r => r.ToRule()).ToList();
-        var previewResult = _renameService.BuildPreview(_loadedFiles, activeRules);
+        var previewResult = _renameService.BuildPreview(filesSnapshot, activeRules);
 
         if (previewResult.IsSuccess)
         {
@@ -148,6 +155,8 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
                 isEmpty: items.Count == 0,
                 hasFiles: items.Count > 0);
         }
+
+        return Task.CompletedTask;
     }
 
     private void UpdatePreviewUi(
@@ -252,36 +261,41 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
     {
         ArgumentNullException.ThrowIfNull(paths);
 
+        var pathList = paths.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+        if (pathList.Count == 0) return;
+
         var existingPaths = new HashSet<string>(_loadedFiles.Select(f => f.FullPath), StringComparer.OrdinalIgnoreCase);
-        var newlyFound = new List<string>();
+        var searchOption = IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-        foreach (var path in paths)
+        var newMetadata = await Task.Run(async () =>
         {
-            if (string.IsNullOrWhiteSpace(path)) continue;
+            var newlyFound = new List<FileMetadata>();
 
-            if (Directory.Exists(path))
+            foreach (var path in pathList)
             {
-                var searchOption = IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                await foreach (var file in _fileSystemService.EnumerateFilesAsync(path, "*.*", searchOption, cancellationToken))
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (Directory.Exists(path))
                 {
-                    if (existingPaths.Add(file))
+                    await foreach (var file in _fileSystemService.EnumerateFilesAsync(path, "*.*", searchOption, cancellationToken).ConfigureAwait(false))
                     {
-                        newlyFound.Add(file);
+                        if (existingPaths.Add(file))
+                        {
+                            newlyFound.Add(FileMetadata.FromPath(file));
+                        }
                     }
                 }
+                else if (File.Exists(path) && existingPaths.Add(path))
+                {
+                    newlyFound.Add(FileMetadata.FromPath(path));
+                }
             }
-            else if (File.Exists(path) && existingPaths.Add(path))
-            {
-                newlyFound.Add(path);
-            }
-        }
 
-        foreach (var filePath in newlyFound)
-        {
-            _loadedFiles.Add(FileMetadata.FromPath(filePath));
-        }
+            return newlyFound;
+        }, cancellationToken);
 
-        StatusMessage = $"Imported {newlyFound.Count} file(s). Total: {_loadedFiles.Count}.";
+        _loadedFiles.AddRange(newMetadata);
+        StatusMessage = $"Imported {newMetadata.Count} file(s). Total: {_loadedFiles.Count}.";
         TriggerDebouncePreview();
     }
 

@@ -62,7 +62,18 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
     [ObservableProperty]
     public partial string WinningTimestampText { get; set; } = string.Empty;
 
-    public string WinningProbabilityText => WinningItem is not null ? $"Tỉ lệ trúng: {WinningItem.Percentage.ToString("F1", CultureInfo.InvariantCulture)}%" : string.Empty;
+    private bool IsVietnamese => _localizationService?.CurrentLanguage == AppLanguage.Vietnamese;
+
+    public string EmptyWheelText => _localizationService?.GetString(LocalizationKeys.LuckyWheel_Empty_Title)
+        ?? (IsVietnamese ? "Thêm đối tượng để quay" : "Add items to spin");
+
+    public string CenterHubText => IsVietnamese ? "QUAY" : "SPIN";
+
+    public string WinningProbabilityText => WinningItem is not null
+        ? (IsVietnamese
+            ? $"Tỉ lệ trúng: {WinningItem.Percentage.ToString("F1", CultureInfo.InvariantCulture)}%"
+            : $"Winning odds: {WinningItem.Percentage.ToString("F1", CultureInfo.InvariantCulture)}%")
+        : string.Empty;
 
     [ObservableProperty]
     public partial bool IsResultModalOpen { get; set; }
@@ -236,10 +247,14 @@ public partial class LuckyWheelViewModel : ToolViewModelBase
         OnPropertyChanged(nameof(TotalWeightText));
         OnPropertyChanged(nameof(ItemsCountSummaryText));
         OnPropertyChanged(nameof(HistoryButtonText));
+        OnPropertyChanged(nameof(WinningProbabilityText));
+        OnPropertyChanged(nameof(EmptyWheelText));
+        OnPropertyChanged(nameof(CenterHubText));
         if (string.IsNullOrEmpty(SelectedImportFilePath))
         {
             ImportFileStatusText = _localizationService?.GetString(LocalizationKeys.LuckyWheel_Import_NoFile) ?? ImportFileStatusText;
         }
+        WheelAngleUpdated?.Invoke(CurrentAngle);
     }
 
     private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

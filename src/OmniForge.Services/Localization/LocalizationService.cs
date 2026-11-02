@@ -146,6 +146,7 @@ public sealed class LocalizationService : ILocalizationService
         _enStrings[LocalizationKeys.Common_Confirm] = "Confirm";
         _enStrings[LocalizationKeys.Common_Save] = "Save";
         _enStrings[LocalizationKeys.Common_Close] = "Close";
+        _enStrings[LocalizationKeys.Common_Open] = "Open";
         _enStrings[LocalizationKeys.Common_Browse] = "Browse...";
         _enStrings[LocalizationKeys.Common_Copy] = "Copy";
         _enStrings[LocalizationKeys.Common_Delete] = "Delete";
@@ -461,6 +462,7 @@ public sealed class LocalizationService : ILocalizationService
         _viStrings[LocalizationKeys.Common_Confirm] = "Xác nhận";
         _viStrings[LocalizationKeys.Common_Save] = "Lưu thay đổi";
         _viStrings[LocalizationKeys.Common_Close] = "Đóng";
+        _viStrings[LocalizationKeys.Common_Open] = "Mở";
         _viStrings[LocalizationKeys.Common_Browse] = "Duyệt thư mục...";
         _viStrings[LocalizationKeys.Common_Copy] = "Sao chép";
         _viStrings[LocalizationKeys.Common_Delete] = "Xóa";

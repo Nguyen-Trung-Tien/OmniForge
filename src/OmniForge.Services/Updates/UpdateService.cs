@@ -52,7 +52,7 @@ public sealed class UpdateService : IUpdateService
             ? Path.Combine(Path.GetTempPath(), "OmniForge", "Updates")
             : updatesDirectory;
 
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         if (_httpClient.DefaultRequestHeaders.UserAgent.Count == 0)
         {
             _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("OmniForge-App", CurrentAppVersion));
@@ -236,9 +236,15 @@ public sealed class UpdateService : IUpdateService
             return Result.Failure<UpdateInfo?>("Update.EmptyResponse", "Received empty response from update server.");
         }
 
+        var sizeCheck = SecurityGuard.ValidatePayloadSize(jsonContent);
+        if (sizeCheck.IsFailure)
+        {
+            return Result.Failure<UpdateInfo?>(sizeCheck.Error);
+        }
+
         try
         {
-            using var doc = JsonDocument.Parse(jsonContent);
+            using var doc = JsonDocument.Parse(jsonContent, new JsonDocumentOptions { MaxDepth = 64 });
             var root = doc.RootElement;
 
             List<JsonElement> releaseElements = [];
@@ -421,7 +427,14 @@ public sealed class UpdateService : IUpdateService
 
         Directory.CreateDirectory(_updatesDirectory);
 
-        var destinationPath = Path.Combine(_updatesDirectory, safeFileName);
+        var rawDestinationPath = Path.Combine(_updatesDirectory, safeFileName);
+        var destCheck = SecurityGuard.ValidateSafePath(rawDestinationPath, _updatesDirectory);
+        if (!destCheck.IsSuccess)
+        {
+            return Result.Failure<string>(destCheck.Error);
+        }
+
+        var destinationPath = destCheck.Value;
         var tempFilePath = destinationPath + ".download.tmp";
 
         _logger.LogInformation("Starting download of {Version} from {Url} to {TempPath}", updateInfo.Version, updateInfo.DownloadUrl, tempFilePath);

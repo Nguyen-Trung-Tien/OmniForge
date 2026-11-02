@@ -9,7 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **XML Entity Expansion (XXE / Billion Laughs) & Zip Bomb Defense**:
+  - Added `SecurityGuard.CreateSafeXmlReaderSettings` and `SecurityGuard.LoadSafeXmlAsync` enforcing `DtdProcessing = DtdProcessing.Prohibit`, `XmlResolver = null`, `MaxCharactersFromEntities = 1024`, and `MaxCharactersInDocument = 10 MB`.
+  - Hardened `TextPayloadEngine.FormatXmlAsync`, `FolderParser.ParseFromExcelStreamAsync`, and `LuckyWheelCatalog.ParseFromExcelStreamAsync` against DTD/XXE attacks and oversized `.xlsx` zip entries.
+  - Enforced `SecurityGuard.ValidatePayloadSize` across all `TextPayloadEngine` operations (`FormatJsonAsync`, `FormatXmlAsync`, `EncodeBase64`, `DecodeBase64`, `EncodeUrl`, `DecodeUrl`, `InspectJwt`), `FolderParser.ImportFromFileAsync`, and `UpdateService.ParseReleasesPayload` with `MaxDepth = 64` JSON limits.
+- **Multi-Segment Path & Reserved Device Name Hardening**:
+  - Enhanced `SecurityGuard.ValidateSafePath` to inspect every directory segment in a path (not only the leaf filename) against reserved Windows device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) and trailing dots/spaces.
+  - Added explicit `SecurityGuard.ValidateSafePath` verification on download destination paths and configured a 30-second HTTP timeout in `UpdateService`.
+
 ### Fixed
+- **Case-Only Batch Rename Collision & Change Detection Bug**:
+  - Fixed `BatchRenameEngine.BuildPreview` where `StringComparison.OrdinalIgnoreCase` prevented case-only renames (e.g., `ChangeCaseRule` converting `photo.jpg` to `PHOTO.jpg`) from being recognized as pending changes (`HasChange = true`), and prevented false-positive disk collision errors on case-insensitive NTFS volumes.
+- **Crash Resilience & Forbidden `async void` Elimination**:
+  - Replaced 5 unprotected `async partial void` property-changed callbacks in `SettingsViewModel` (`OnSelectedThemeChanged`, `OnEnableMicaAltChanged`, `OnSelectedLanguageChanged`, `OnSelectedChannelChanged`, `OnAutoCheckOnStartupChanged`) with fault-isolated `RunSettingUpdateSafeAsync` wrappers.
+  - Protected `ToolHeaderControl.ConfirmActionButton_Click` with `try/catch` fault isolation.
+  - Updated `StringToBoolConverter.ConvertBack` to return `DependencyProperty.UnsetValue` instead of throwing `NotSupportedException`, and added `"Invert"` parameter support to `BoolToVisibilityConverter.ConvertBack`.
+  - Fixed thread-safety race conditions and UI-thread synchronous I/O in `BatchRenameViewModel.TriggerDebouncePreview` and `ImportPathsAsync` by capturing immutable snapshots on the UI thread and offloading file discovery/metadata reading to `Task.Run`.
+- **UI/UX, Memory & Localization Polish**:
+  - Cached `SolidColorBrush` instances in `WheelItemViewModel` (`Brush` and `ContrastForegroundBrush`), eliminating redundant WinRT COM brush allocations on every XAML binding read.
+  - Added missing `LocalizationKeys.Common_Open` (`"Open"` / `"Mở"`) to `LocalizationService`, fixing raw `[Common_Open]` bracket display in `BatchFolderPage`.
+  - Localized Win2D canvas hub/empty text (`EmptyWheelText`, `CenterHubText`) and winner modal odds (`WinningProbabilityText`) in `LuckyWheelViewModel` and `LuckyWheelPage.xaml.cs`, and added Win2D resource disposal prior to recreation in `WheelCanvas_CreateResources`.
+  - Explicitly bound `CancelCommand="{x:Bind ViewModel.CancelCurrentOperationCommand}"` on `StatusFooterControl` across all utility module pages (`BatchFolderPage`, `BatchRenamePage`, `ChecksumPage`, `FileToolsPage`, `TextInspectorPage`).
+  - Fixed repository root path resolution (`$PSScriptRoot\..\..\..\..`) and excluded `bin`/`obj` folders across all 5 automated governance scripts in `.agents/skills/*/scripts/*.ps1`.
 - **Build Infrastructure & MSB3026 File Lock Elimination**:
   - Created global MSBuild target `Directory.Build.targets` with `KillLockingProcessesBeforeBuild`.
   - Automatically terminates lingering instances of `Microsoft.UI.Xaml.Markup.Compiler.exe` and running `OmniForge.App.exe` across all projects prior to compilation.

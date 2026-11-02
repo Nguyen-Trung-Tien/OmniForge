@@ -561,6 +561,7 @@
             IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
             ProgressPercent="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
             StatusMessage="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-            DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}" />
+            DurationText="{x:Bind ViewModel.LastDurationText, Mode=OneWay}"
+            CancelCommand="{x:Bind ViewModel.CancelCurrentOperationCommand}" />
     </Grid>
 </Page>

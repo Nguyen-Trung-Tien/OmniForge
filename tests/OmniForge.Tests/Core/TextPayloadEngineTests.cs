@@ -121,5 +121,25 @@ public class TextPayloadEngineTests
         Assert.Contains(diff, d => d.IsRemoved && d.Content == "Beta");
         Assert.Contains(diff, d => d.IsAdded && d.Content == "Gamma");
     }
+
+    [Fact]
+    public async Task FormatXmlAsync_WithDtdDeclaration_ShouldProhibitXxeAndReturnFailure()
+    {
+        string maliciousXml = "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe \"secret\">]><root>&xxe;</root>";
+
+        var result = await TextPayloadEngine.FormatXmlAsync(maliciousXml);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Xml.SyntaxError", result.Error.Code);
+    }
+
+    [Fact]
+    public void SecurityGuard_ValidateSafePath_WithIntermediateReservedDeviceName_ShouldReject()
+    {
+        var result = OmniForge.Core.Common.SecurityGuard.ValidateSafePath(@"C:\SafeWorkspace\CON\nested\file.txt");
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Security.ReservedDeviceName", result.Error.Code);
+    }
 }
 

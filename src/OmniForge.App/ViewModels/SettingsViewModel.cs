@@ -222,45 +222,63 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         }
     }
 
-    async partial void OnSelectedThemeChanged(string value)
+    partial void OnSelectedThemeChanged(string value)
     {
         if (!_isInitialLoading && !string.IsNullOrWhiteSpace(value))
         {
-            await _settingsService.SetThemeAsync(value);
-            StatusNotice = _localizationService.GetFormattedString(LocalizationKeys.Settings_ThemeUpdatedLive, value);
+            _ = RunSettingUpdateSafeAsync(async () =>
+            {
+                await _settingsService.SetThemeAsync(value);
+                StatusNotice = _localizationService.GetFormattedString(LocalizationKeys.Settings_ThemeUpdatedLive, value);
+            });
         }
     }
 
-    async partial void OnEnableMicaAltChanged(bool value)
+    partial void OnEnableMicaAltChanged(bool value)
     {
         if (!_isInitialLoading)
         {
-            await _settingsService.SetSettingAsync("General.EnableMicaAlt", value);
+            _ = RunSettingUpdateSafeAsync(() => _settingsService.SetSettingAsync("General.EnableMicaAlt", value));
         }
     }
 
-    async partial void OnSelectedLanguageChanged(LanguageItem? value)
+    partial void OnSelectedLanguageChanged(LanguageItem? value)
     {
         if (!_isInitialLoading && !_isUpdatingSelection && value is not null && value.Language != _localizationService.CurrentLanguage)
         {
-            await _localizationService.SetLanguageAsync(value.Language);
-            StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_SavedSuccess);
+            _ = RunSettingUpdateSafeAsync(async () =>
+            {
+                await _localizationService.SetLanguageAsync(value.Language);
+                StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_SavedSuccess);
+            });
         }
     }
 
-    async partial void OnSelectedChannelChanged(UpdateChannel value)
+    partial void OnSelectedChannelChanged(UpdateChannel value)
     {
         if (!_isInitialLoading)
         {
-            await _updateService.SetChannelAsync(value);
+            _ = RunSettingUpdateSafeAsync(() => _updateService.SetChannelAsync(value));
         }
     }
 
-    async partial void OnAutoCheckOnStartupChanged(bool value)
+    partial void OnAutoCheckOnStartupChanged(bool value)
     {
         if (!_isInitialLoading)
         {
-            await _updateService.SetAutoCheckOnStartupAsync(value);
+            _ = RunSettingUpdateSafeAsync(() => _updateService.SetAutoCheckOnStartupAsync(value));
+        }
+    }
+
+    private async Task RunSettingUpdateSafeAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            StatusNotice = ex.Message;
         }
     }
 

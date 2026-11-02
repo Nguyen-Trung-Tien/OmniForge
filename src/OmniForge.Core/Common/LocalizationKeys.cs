@@ -11,6 +11,7 @@ public static class LocalizationKeys
     public const string Common_Confirm = "Common_Confirm";
     public const string Common_Save = "Common_Save";
     public const string Common_Close = "Common_Close";
+    public const string Common_Open = "Common_Open";
     public const string Common_Browse = "Common_Browse";
     public const string Common_Copy = "Common_Copy";
     public const string Common_Delete = "Common_Delete";

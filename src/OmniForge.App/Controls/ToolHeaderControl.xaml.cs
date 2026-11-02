@@ -226,7 +226,14 @@ public sealed partial class ToolHeaderControl : UserControl
     {
         if (_subscribedVm is not null)
         {
-            await _subscribedVm.ConfirmPendingActionAsync();
+            try
+            {
+                await _subscribedVm.ConfirmPendingActionAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+            }
         }
     }
 

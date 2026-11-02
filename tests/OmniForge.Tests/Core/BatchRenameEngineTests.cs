@@ -236,5 +236,30 @@ public sealed class BatchRenameEngineTests : IDisposable
         Assert.True(results[0].IsSuccess);
         Assert.True(File.Exists(Path.Combine(_tempDirectory, "STREAM_stream1.txt")));
     }
+
+    [Fact]
+    public async Task BuildPreviewAndExecute_CaseOnlyRename_ShouldDetectChangeWithoutDiskCollision()
+    {
+        var file1 = CreateTestFile("photo_sample.txt");
+        var meta1 = FileMetadata.FromPath(file1);
+
+        var rules = new IRenameRule[]
+        {
+            new ChangeCaseRule(CaseMode.Uppercase)
+        };
+
+        var previewResult = _engine.BuildPreview([meta1], rules);
+
+        Assert.True(previewResult.IsSuccess);
+        var item = Assert.Single(previewResult.Value);
+        Assert.Equal("PHOTO_SAMPLE.txt", item.ProposedFileName);
+        Assert.True(item.HasChange);
+        Assert.False(item.HasConflict);
+        Assert.Equal(RenameItemStatus.Pending, item.Status);
+
+        var execResult = await _engine.ExecuteBatchAsync(previewResult.Value);
+        Assert.True(execResult.IsSuccess);
+        Assert.Single(execResult.Value.CompletedOperations);
+    }
 }
 

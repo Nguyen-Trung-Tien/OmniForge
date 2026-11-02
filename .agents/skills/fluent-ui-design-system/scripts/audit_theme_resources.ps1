@@ -3,12 +3,12 @@ param(
     [string]$TargetFolder = "src\OmniForge.App"
 )
 
-$RepoRoot = Resolve-Path "$PSScriptRoot\..\..\.."
+$RepoRoot = Resolve-Path "$PSScriptRoot\..\..\..\.."
 $ScanPath = Join-Path $RepoRoot $TargetFolder
 
 Write-Host "[Fluent UI Audit] Checking XAML for hardcoded color hex values..." -ForegroundColor Cyan
 
-$Files = Get-ChildItem -Path $ScanPath -Recurse -Filter "*.xaml"
+$Files = Get-ChildItem -Path $ScanPath -Recurse -File -Filter "*.xaml" | Where-Object { $_.FullName -notmatch "\\(bin|obj)\\" }
 $Violations = 0
 
 foreach ($File in $Files) {

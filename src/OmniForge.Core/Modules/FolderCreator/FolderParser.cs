@@ -464,8 +464,21 @@ public static class FolderParser
             var sharedStringsEntry = archive.GetEntry("xl/sharedStrings.xml");
             if (sharedStringsEntry is not null)
             {
+                if (sharedStringsEntry.Length > SecurityGuard.DefaultMaxPayloadBytes)
+                {
+                    return Result.Failure<IReadOnlyList<string>>("Security.PayloadTooLarge", "Excel shared strings table exceeds maximum safe size limit.");
+                }
+
                 await using var ssStream = sharedStringsEntry.Open();
-                var ssDoc = await XDocument.LoadAsync(ssStream, LoadOptions.None, cancellationToken);
+                using var ssReader = System.Xml.XmlReader.Create(ssStream, new System.Xml.XmlReaderSettings
+                {
+                    Async = true,
+                    DtdProcessing = System.Xml.DtdProcessing.Prohibit,
+                    XmlResolver = null,
+                    MaxCharactersFromEntities = 1024,
+                    MaxCharactersInDocument = SecurityGuard.DefaultMaxPayloadBytes
+                });
+                var ssDoc = await XDocument.LoadAsync(ssReader, LoadOptions.None, cancellationToken).ConfigureAwait(false);
                 XNamespace ssNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
                 foreach (var si in ssDoc.Descendants(ssNs + "si"))
                 {
@@ -483,8 +496,21 @@ public static class FolderParser
                 return Result.Failure<IReadOnlyList<string>>("FolderParser.NoWorksheet", "No valid worksheet found in the Excel workbook.");
             }
 
+            if (sheetEntry.Length > SecurityGuard.DefaultMaxPayloadBytes)
+            {
+                return Result.Failure<IReadOnlyList<string>>("Security.PayloadTooLarge", "Excel worksheet exceeds maximum safe size limit.");
+            }
+
             await using var sheetStream = sheetEntry.Open();
-            var sheetDoc = await XDocument.LoadAsync(sheetStream, LoadOptions.None, cancellationToken);
+            using var sheetReader = System.Xml.XmlReader.Create(sheetStream, new System.Xml.XmlReaderSettings
+            {
+                Async = true,
+                DtdProcessing = System.Xml.DtdProcessing.Prohibit,
+                XmlResolver = null,
+                MaxCharactersFromEntities = 1024,
+                MaxCharactersInDocument = SecurityGuard.DefaultMaxPayloadBytes
+            });
+            var sheetDoc = await XDocument.LoadAsync(sheetReader, LoadOptions.None, cancellationToken).ConfigureAwait(false);
             XNamespace sNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 
             var rows = sheetDoc.Descendants(sNs + "row").ToList();
@@ -588,20 +614,35 @@ public static class FolderParser
             return Result.Failure<IReadOnlyList<string>>("FolderParser.InvalidPath", "File path cannot be empty.");
         }
 
-        if (!File.Exists(filePath))
+        var pathCheck = SecurityGuard.ValidateSafePath(filePath);
+        if (pathCheck.IsFailure)
         {
-            return Result.Failure<IReadOnlyList<string>>("FolderParser.FileNotFound", $"File not found: {filePath}");
+            return Result.Failure<IReadOnlyList<string>>(pathCheck.Error);
         }
 
-        string ext = Path.GetExtension(filePath).ToLowerInvariant();
+        string safePath = pathCheck.Value;
+        if (!File.Exists(safePath))
+        {
+            return Result.Failure<IReadOnlyList<string>>("FolderParser.FileNotFound", $"File not found: {safePath}");
+        }
+
+        var fileInfo = new FileInfo(safePath);
+        if (fileInfo.Length > SecurityGuard.DefaultMaxPayloadBytes)
+        {
+            return Result.Failure<IReadOnlyList<string>>(
+                "Security.PayloadTooLarge",
+                $"File size ({ByteSizeFormatter.FormatBytes(fileInfo.Length)}) exceeds maximum safe limit ({ByteSizeFormatter.FormatBytes(SecurityGuard.DefaultMaxPayloadBytes)}).");
+        }
+
+        string ext = Path.GetExtension(safePath).ToLowerInvariant();
         if (ext == ".xlsx")
         {
-            await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+            await using var stream = new FileStream(safePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
             return await ParseFromExcelStreamAsync(stream, cancellationToken).ConfigureAwait(false);
         }
 
         // Plain text formats: .csv, .tsv, .txt
-        string text = await File.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+        string text = await File.ReadAllTextAsync(safePath, cancellationToken).ConfigureAwait(false);
         return ParseLinesFromText(text, sanitize: true);
     }
 

@@ -213,8 +213,21 @@ public static class LuckyWheelCatalog
             var sharedStringsEntry = archive.GetEntry("xl/sharedStrings.xml");
             if (sharedStringsEntry is not null)
             {
+                if (sharedStringsEntry.Length > SecurityGuard.DefaultMaxPayloadBytes)
+                {
+                    return Result.Failure<IReadOnlyList<WheelItem>>("Security.PayloadTooLarge", "Excel shared strings table exceeds maximum safe size limit.");
+                }
+
                 await using var ssStream = sharedStringsEntry.Open();
-                var ssDoc = await XDocument.LoadAsync(ssStream, LoadOptions.None, cancellationToken);
+                using var ssReader = System.Xml.XmlReader.Create(ssStream, new System.Xml.XmlReaderSettings
+                {
+                    Async = true,
+                    DtdProcessing = System.Xml.DtdProcessing.Prohibit,
+                    XmlResolver = null,
+                    MaxCharactersFromEntities = 1024,
+                    MaxCharactersInDocument = SecurityGuard.DefaultMaxPayloadBytes
+                });
+                var ssDoc = await XDocument.LoadAsync(ssReader, LoadOptions.None, cancellationToken).ConfigureAwait(false);
                 XNamespace ssNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
                 foreach (var si in ssDoc.Descendants(ssNs + "si"))
                 {
@@ -232,8 +245,21 @@ public static class LuckyWheelCatalog
                 return Result.Failure<IReadOnlyList<WheelItem>>("LuckyWheel.NoWorksheet", "No valid worksheet found in the Excel workbook.");
             }
 
+            if (sheetEntry.Length > SecurityGuard.DefaultMaxPayloadBytes)
+            {
+                return Result.Failure<IReadOnlyList<WheelItem>>("Security.PayloadTooLarge", "Excel worksheet exceeds maximum safe size limit.");
+            }
+
             await using var sheetStream = sheetEntry.Open();
-            var sheetDoc = await XDocument.LoadAsync(sheetStream, LoadOptions.None, cancellationToken);
+            using var sheetReader = System.Xml.XmlReader.Create(sheetStream, new System.Xml.XmlReaderSettings
+            {
+                Async = true,
+                DtdProcessing = System.Xml.DtdProcessing.Prohibit,
+                XmlResolver = null,
+                MaxCharactersFromEntities = 1024,
+                MaxCharactersInDocument = SecurityGuard.DefaultMaxPayloadBytes
+            });
+            var sheetDoc = await XDocument.LoadAsync(sheetReader, LoadOptions.None, cancellationToken).ConfigureAwait(false);
             XNamespace sNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 
             var rows = sheetDoc.Descendants(sNs + "row").ToList();

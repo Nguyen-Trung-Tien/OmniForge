@@ -88,12 +88,23 @@ public partial class WheelItemViewModel : ObservableObject
 
     public string PercentageText => $"{Percentage:F1}%";
 
+    private SolidColorBrush? _cachedBrush;
+    private SolidColorBrush? _cachedContrastBrush;
+
+    partial void OnColorHexChanged(string value)
+    {
+        _cachedBrush = null;
+        _cachedContrastBrush = null;
+    }
+
     public Color WindowsColor => ParseHexColor(ColorHex);
 
-    public SolidColorBrush Brush => new(WindowsColor);
+    public SolidColorBrush Brush => _cachedBrush ??= new SolidColorBrush(WindowsColor);
 
     public SolidColorBrush ContrastForegroundBrush =>
-        IsLightColor(WindowsColor) ? new SolidColorBrush(Colors.Black) : new SolidColorBrush(Colors.White);
+        _cachedContrastBrush ??= IsLightColor(WindowsColor)
+            ? new SolidColorBrush(Colors.Black)
+            : new SolidColorBrush(Colors.White);
 
     public WheelItemViewModel() { }
 

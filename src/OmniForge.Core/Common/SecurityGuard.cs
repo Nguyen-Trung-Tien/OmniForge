@@ -1,10 +1,12 @@
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace OmniForge.Core.Common;
 
 /// <summary>
 /// Centralized security and input validation guardrails for paths, payloads, and untrusted user input.
-/// Prevents Path Traversal, Reserved Device Name attacks, and Memory Exhaustion (DoS).
+/// Prevents Path Traversal, Reserved Device Name attacks, XML Entity Expansion (XXE/Billion Laughs), and Memory Exhaustion (DoS).
 /// </summary>
 public static class SecurityGuard
 {
@@ -36,11 +38,17 @@ public static class SecurityGuard
         try
         {
             var fullPath = Path.GetFullPath(inputPath);
-            var fileNameWithoutExt = Path.GetFileNameWithoutExtension(fullPath);
+            var root = Path.GetPathRoot(fullPath) ?? string.Empty;
+            var relativePortion = fullPath[root.Length..];
+            var segments = relativePortion.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
 
-            if (!string.IsNullOrEmpty(fileNameWithoutExt) && ReservedDeviceNames.Contains(fileNameWithoutExt))
+            foreach (var segment in segments)
             {
-                return Result.Failure<string>("Security.ReservedDeviceName", $"'{fileNameWithoutExt}' is a reserved Windows device name.");
+                var stem = Path.GetFileNameWithoutExtension(segment.TrimEnd('.', ' '));
+                if (!string.IsNullOrEmpty(stem) && ReservedDeviceNames.Contains(stem))
+                {
+                    return Result.Failure<string>("Security.ReservedDeviceName", $"'{stem}' is a reserved Windows device name.");
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(allowedRootDirectory))
@@ -88,6 +96,28 @@ public static class SecurityGuard
         }
 
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Creates a hardened <see cref="XmlReaderSettings"/> instance with DTD processing prohibited and external resolvers disabled.
+    /// </summary>
+    public static XmlReaderSettings CreateSafeXmlReaderSettings(bool isAsync = false, long maxCharactersInDocument = DefaultMaxPayloadBytes) => new()
+    {
+        Async = isAsync,
+        DtdProcessing = DtdProcessing.Prohibit,
+        XmlResolver = null,
+        MaxCharactersFromEntities = 1024,
+        MaxCharactersInDocument = maxCharactersInDocument
+    };
+
+    /// <summary>
+    /// Loads an <see cref="XDocument"/> asynchronously from a stream using hardened XXE/DoS-safe <see cref="XmlReaderSettings"/>.
+    /// </summary>
+    public static async Task<XDocument> LoadSafeXmlAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        using var reader = XmlReader.Create(stream, CreateSafeXmlReaderSettings(isAsync: true));
+        return await XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken).ConfigureAwait(false);
     }
 }
 

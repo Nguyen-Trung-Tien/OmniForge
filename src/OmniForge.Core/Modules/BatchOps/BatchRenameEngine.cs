@@ -76,7 +76,7 @@ public sealed class BatchRenameEngine : IBatchRenameEngine
                 targetPathsSeen[targetFullPath]++;
             }
 
-            bool hasChange = !string.Equals(meta.FullPath, targetFullPath, StringComparison.OrdinalIgnoreCase);
+            bool hasChange = !string.Equals(meta.FullPath, targetFullPath, StringComparison.Ordinal);
 
             previewItems.Add(new RenamePreviewItem(
                 SourceFullPath: meta.FullPath,
@@ -112,8 +112,9 @@ public sealed class BatchRenameEngine : IBatchRenameEngine
                 continue;
             }
 
-            // Check if destination file already exists on disk (and is not the source itself)
-            if (item.HasChange && File.Exists(item.TargetFullPath))
+            // Check if destination file already exists on disk (and is not a case-only rename of the source itself)
+            bool isCaseOnlySameFile = string.Equals(item.SourceFullPath, item.TargetFullPath, StringComparison.OrdinalIgnoreCase);
+            if (item.HasChange && !isCaseOnlySameFile && File.Exists(item.TargetFullPath))
             {
                 previewItems[i] = item with
                 {

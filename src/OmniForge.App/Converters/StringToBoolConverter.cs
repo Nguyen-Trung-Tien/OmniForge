@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 
 namespace OmniForge.App.Converters;
@@ -20,7 +21,7 @@ public sealed class StringToBoolConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
-        throw new NotSupportedException("StringToBoolConverter supports OneWay binding only.");
+        return DependencyProperty.UnsetValue;
     }
 }
 

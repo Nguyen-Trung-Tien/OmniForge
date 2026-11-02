@@ -21,7 +21,13 @@ public sealed class BoolToVisibilityConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
-        return value is Visibility visibility && visibility == Visibility.Visible;
+        bool isVisible = value is Visibility visibility && visibility == Visibility.Visible;
+        if (parameter is string param && param.Equals("Invert", StringComparison.OrdinalIgnoreCase))
+        {
+            return !isVisible;
+        }
+
+        return isVisible;
     }
 }
 
