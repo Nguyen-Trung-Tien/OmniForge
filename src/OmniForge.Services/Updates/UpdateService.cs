@@ -168,6 +168,11 @@ public sealed class UpdateService : IUpdateService
                     return Result.Failure<UpdateCheckResult>("Update.RateLimited", "Update server request limit reached. Please try again later.");
                 }
 
+                if (statusCode == 404)
+                {
+                    return Result.Failure<UpdateCheckResult>("Update.NotFound", "Update repository not found or no releases published yet (404).");
+                }
+
                 return Result.Failure<UpdateCheckResult>("Update.HttpError", $"Update server returned status code {response.StatusCode} ({statusCode}).");
             }
 

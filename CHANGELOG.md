@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added explicit `SecurityGuard.ValidateSafePath` verification on download destination paths and configured a 30-second HTTP timeout in `UpdateService`.
 
 ### Fixed
+- **Confirmation Dialog Message Blank Box Bug**:
+  - Fixed property synchronization order in `ToolHeaderControl.xaml.cs` where `IsConfirmationOpen = true` was assigned before `ConfirmationTitle` and `ConfirmationMessage`, triggering `ShowConfirmationDialogAsync` before the message text was populated and rendering an empty box.
+  - Added direct fallback to `_subscribedVm.ConfirmationMessage` and `_subscribedVm.ConfirmationTitle`, and guarded `messageBorder` rendering so empty placeholder boxes are never displayed.
+- **Settings Update Notification Polish & Friendly 404 Handling**:
+  - Replaced raw unformatted HTTP 404 error strings with localized, friendly update notices (`Settings_Updates_ErrorNotFound` and `Settings_Updates_ErrorTitle`).
+  - Added 5-second auto-dismiss timer via `SetUpdateErrorWithAutoDismiss` in `SettingsViewModel` with cancellation token support, and enabled manual dismissal via InfoBar 'X' button.
+- **NavigationView Sidebar Pitch-Black Mica Bleed-Through in Light Theme**:
+  - Added explicit ThemeDictionaries (`NavigationViewDefaultPaneBackground` and `NavigationViewExpandedPaneBackground`) to `NavView.Resources` mapping to `#F3F3F3` in Light Mode and `#202020` in Dark Mode.
+  - Implemented high-contrast protective tint on `RootGrid.Background` in `MainWindow.xaml.cs` for Light Mode, ensuring the NavigationView pane and TitleBar never degrade to pitch black on systems with dark OS wallpapers or disabled DWM transparency.
 - **Shell Theme Synchronization & Mica Contrast Bug**:
   - Fixed theme calculation in `MainWindow.xaml.cs` (`DetermineIsDark`) where `ActualTheme` evaluated synchronously to Dark during Light theme selection, causing `DwmSetWindowAttribute` to force DWM Immersive Dark Mode on a Light XAML tree (resulting in black-on-black invisible sidebar text and icons).
   - Explicitly synchronized `RequestedTheme` across `NavView`, `AppTitleBar`, and `ContentFrame`, passing determined theme state to DWM, caption buttons, and `UpdateBackdropAndBackground`.

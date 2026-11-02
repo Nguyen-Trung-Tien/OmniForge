@@ -108,7 +108,8 @@
                              Message="{x:Bind ViewModel.LastCheckedText, Mode=OneWay}" />
 
                     <!-- Error Alert InfoBar -->
-                    <InfoBar IsOpen="{x:Bind ViewModel.HasUpdateError, Mode=OneWay}"
+                    <InfoBar IsOpen="{x:Bind ViewModel.HasUpdateError, Mode=TwoWay}"
+                             Title="{x:Bind ViewModel.UpdatesErrorTitle, Mode=OneWay}"
                              Severity="Error"
                              IsClosable="True"
                              Message="{x:Bind ViewModel.UpdateErrorMessage, Mode=OneWay}"

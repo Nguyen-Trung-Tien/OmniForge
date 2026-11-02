@@ -243,12 +243,16 @@ public sealed partial class ToolHeaderControl : UserControl
                 case nameof(ToolViewModelBase.HasSuccessMessage):
                     SuccessMessage = vm.SuccessMessage;
                     break;
-                case nameof(ToolViewModelBase.IsConfirmationOpen):
                 case nameof(ToolViewModelBase.ConfirmationTitle):
+                    ConfirmationTitle = vm.ConfirmationTitle;
+                    break;
                 case nameof(ToolViewModelBase.ConfirmationMessage):
-                    IsConfirmationOpen = vm.IsConfirmationOpen;
+                    ConfirmationMessage = vm.ConfirmationMessage;
+                    break;
+                case nameof(ToolViewModelBase.IsConfirmationOpen):
                     ConfirmationTitle = vm.ConfirmationTitle;
                     ConfirmationMessage = vm.ConfirmationMessage;
+                    IsConfirmationOpen = vm.IsConfirmationOpen;
                     break;
             }
         });
@@ -257,9 +261,9 @@ public sealed partial class ToolHeaderControl : UserControl
     private void SyncFromViewModel(ToolViewModelBase vm)
     {
         SuccessMessage = vm.SuccessMessage;
-        IsConfirmationOpen = vm.IsConfirmationOpen;
         ConfirmationTitle = vm.ConfirmationTitle;
         ConfirmationMessage = vm.ConfirmationMessage;
+        IsConfirmationOpen = vm.IsConfirmationOpen;
     }
 
     private DispatcherTimer? _successDismissTimer;
@@ -319,9 +323,17 @@ public sealed partial class ToolHeaderControl : UserControl
         };
         badgeBorder.Child = warningIcon;
 
+        string title = !string.IsNullOrWhiteSpace(_subscribedVm?.ConfirmationTitle)
+            ? _subscribedVm.ConfirmationTitle
+            : (!string.IsNullOrWhiteSpace(ConfirmationTitle) ? ConfirmationTitle : "Confirm Action");
+
+        string message = !string.IsNullOrWhiteSpace(_subscribedVm?.ConfirmationMessage)
+            ? _subscribedVm.ConfirmationMessage
+            : ConfirmationMessage;
+
         var titleText = new TextBlock
         {
-            Text = ConfirmationTitle,
+            Text = title,
             Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"],
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             TextWrapping = TextWrapping.Wrap,
@@ -335,30 +347,34 @@ public sealed partial class ToolHeaderControl : UserControl
             Children = { badgeBorder, titleText }
         };
 
-        var messageBorder = new Border
-        {
-            Background = (Brush)Application.Current.Resources["SubtleFillColorSecondaryBrush"],
-            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(14, 12, 14, 12)
-        };
-
-        var messageText = new TextBlock
-        {
-            Text = ConfirmationMessage,
-            Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-            Foreground = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"],
-            TextWrapping = TextWrapping.Wrap
-        };
-        messageBorder.Child = messageText;
-
         var container = new StackPanel
         {
             Spacing = 16,
             MaxWidth = 420,
-            Children = { headerStack, messageBorder }
+            Children = { headerStack }
         };
+
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            var messageBorder = new Border
+            {
+                Background = (Brush)Application.Current.Resources["SubtleFillColorSecondaryBrush"],
+                BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(14, 12, 14, 12)
+            };
+
+            var messageText = new TextBlock
+            {
+                Text = message,
+                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                Foreground = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"],
+                TextWrapping = TextWrapping.Wrap
+            };
+            messageBorder.Child = messageText;
+            container.Children.Add(messageBorder);
+        }
 
         var dialog = new ContentDialog
         {

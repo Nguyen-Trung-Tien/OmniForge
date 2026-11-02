@@ -311,7 +311,11 @@ public sealed partial class MainWindow : Window
         {
             SystemBackdrop = null;
             SystemBackdrop = new MicaBackdrop { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
-            RootGrid.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            // In light mode, provide a protective high-contrast tint so that when Mica samples against dark desktop or
+            // fallback environments, the title bar and root chrome never degrade to solid pitch black.
+            RootGrid.Background = isDark
+                ? new SolidColorBrush(Microsoft.UI.Colors.Transparent)
+                : new SolidColorBrush(Windows.UI.Color.FromArgb(240, 243, 243, 243));
         }
         else
         {

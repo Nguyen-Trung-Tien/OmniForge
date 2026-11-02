@@ -289,6 +289,8 @@ public static class LocalizationKeys
     public const string Settings_Updates_InstallAndRestart = "Settings_Updates_InstallAndRestart";
     public const string Settings_Updates_ReleaseNotes = "Settings_Updates_ReleaseNotes";
     public const string Settings_Updates_ErrorGeneric = "Settings_Updates_ErrorGeneric";
+    public const string Settings_Updates_ErrorTitle = "Settings_Updates_ErrorTitle";
+    public const string Settings_Updates_ErrorNotFound = "Settings_Updates_ErrorNotFound";
     public const string Settings_Updates_ErrorHashMismatch = "Settings_Updates_ErrorHashMismatch";
     public const string Settings_Updates_ErrorNetwork = "Settings_Updates_ErrorNetwork";
     public const string Settings_Updates_Retry = "Settings_Updates_Retry";

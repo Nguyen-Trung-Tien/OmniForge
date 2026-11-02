@@ -248,7 +248,9 @@ public sealed class LocalizationService : ILocalizationService
         _enStrings[LocalizationKeys.Settings_Updates_ReadyToInstallDesc] = "The update file has been downloaded and verified. Click below to proceed with installation.";
         _enStrings[LocalizationKeys.Settings_Updates_InstallAndRestart] = "Install & Relaunch";
         _enStrings[LocalizationKeys.Settings_Updates_ReleaseNotes] = "Release Notes & Changelog";
+        _enStrings[LocalizationKeys.Settings_Updates_ErrorTitle] = "Update Check Failed";
         _enStrings[LocalizationKeys.Settings_Updates_ErrorGeneric] = "Unable to complete update check: {0}";
+        _enStrings[LocalizationKeys.Settings_Updates_ErrorNotFound] = "Update repository not found or no releases published yet (404).";
         _enStrings[LocalizationKeys.Settings_Updates_ErrorHashMismatch] = "Security alert: Package SHA-256 hash does not match expected checksum. The file was discarded.";
         _enStrings[LocalizationKeys.Settings_Updates_ErrorNetwork] = "Network connection failed. Please verify your internet connection and try again.";
         _enStrings[LocalizationKeys.Settings_Updates_Retry] = "Retry";
@@ -564,7 +566,9 @@ public sealed class LocalizationService : ILocalizationService
         _viStrings[LocalizationKeys.Settings_Updates_ReadyToInstallDesc] = "Gói cài đặt đã được tải và xác minh bảo mật thành công. Nhấn nút bên dưới để tiến hành cài đặt.";
         _viStrings[LocalizationKeys.Settings_Updates_InstallAndRestart] = "Cài đặt & Khởi động lại";
         _viStrings[LocalizationKeys.Settings_Updates_ReleaseNotes] = "Thông tin bản phát hành & Nhật ký thay đổi";
+        _viStrings[LocalizationKeys.Settings_Updates_ErrorTitle] = "Kiểm tra cập nhật thất bại";
         _viStrings[LocalizationKeys.Settings_Updates_ErrorGeneric] = "Không thể kiểm tra cập nhật: {0}";
+        _viStrings[LocalizationKeys.Settings_Updates_ErrorNotFound] = "Không tìm thấy kho phát hành cập nhật hoặc chưa có bản phát hành nào (404).";
         _viStrings[LocalizationKeys.Settings_Updates_ErrorHashMismatch] = "Cảnh báo bảo mật: Mã băm SHA-256 không khớp với bản phát hành gốc. Tệp đã bị hủy an toàn.";
         _viStrings[LocalizationKeys.Settings_Updates_ErrorNetwork] = "Lỗi kết nối mạng. Vui lòng kiểm tra lại kết nối internet của bạn và thử lại.";
         _viStrings[LocalizationKeys.Settings_Updates_Retry] = "Thử lại";

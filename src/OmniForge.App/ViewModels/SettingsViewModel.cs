@@ -20,6 +20,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private CancellationTokenSource? _downloadCts;
     private CancellationTokenSource? _statusNoticeCts;
     private CancellationTokenSource? _upToDateCts;
+    private CancellationTokenSource? _updateErrorCts;
     private UpdateInfo? _latestUpdateInfo;
 
     // --- Appearance & System Preferences ---
@@ -84,7 +85,17 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(HasUpdateError))]
     public partial string UpdateErrorMessage { get; set; } = string.Empty;
 
-    public bool HasUpdateError => !string.IsNullOrWhiteSpace(UpdateErrorMessage);
+    public bool HasUpdateError
+    {
+        get => !string.IsNullOrWhiteSpace(UpdateErrorMessage);
+        set
+        {
+            if (!value)
+            {
+                DismissUpdateError();
+            }
+        }
+    }
 
     [ObservableProperty]
     public partial string LatestVersionText { get; set; } = string.Empty;
@@ -158,6 +169,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string UpdatesInstallButtonText { get; set; } = string.Empty;
     [ObservableProperty] public partial string UpdatesReleaseNotesLabel { get; set; } = string.Empty;
     [ObservableProperty] public partial string UpdatesRetryButtonText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string UpdatesErrorTitle { get; set; } = string.Empty;
 
     public SettingsViewModel(
         ISettingsService settingsService,
@@ -210,6 +222,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         UpdatesInstallButtonText = _localizationService.GetString(LocalizationKeys.Settings_Updates_InstallAndRestart);
         UpdatesReleaseNotesLabel = _localizationService.GetString(LocalizationKeys.Settings_Updates_ReleaseNotes);
         UpdatesRetryButtonText = _localizationService.GetString(LocalizationKeys.Settings_Updates_Retry);
+        UpdatesErrorTitle = _localizationService.GetString(LocalizationKeys.Settings_Updates_ErrorTitle);
 
         if (!string.IsNullOrEmpty(LatestVersionText))
         {
@@ -255,6 +268,37 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
                         if (!token.IsCancellationRequested)
                         {
                             StatusNotice = string.Empty;
+                        }
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }, token);
+    }
+
+    private void SetUpdateErrorWithAutoDismiss(string message)
+    {
+        _updateErrorCts?.Cancel();
+        _updateErrorCts?.Dispose();
+        _updateErrorCts = new CancellationTokenSource();
+        var token = _updateErrorCts.Token;
+
+        UpdateErrorMessage = message;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(5000, token);
+                if (!token.IsCancellationRequested)
+                {
+                    _dispatcherService.TryEnqueue(() =>
+                    {
+                        if (!token.IsCancellationRequested && HasUpdateError)
+                        {
+                            DismissUpdateError();
                         }
                     });
                 }
@@ -402,9 +446,13 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             if (!result.IsSuccess)
             {
                 CurrentUpdateState = UpdateState.Error;
-                UpdateErrorMessage = result.Error.Code == "Update.NetworkError"
-                    ? _localizationService.GetString(LocalizationKeys.Settings_Updates_ErrorNetwork)
-                    : _localizationService.GetFormattedString(LocalizationKeys.Settings_Updates_ErrorGeneric, result.Error.Message);
+                string errorMsg = result.Error.Code switch
+                {
+                    "Update.NetworkError" => _localizationService.GetString(LocalizationKeys.Settings_Updates_ErrorNetwork),
+                    "Update.NotFound" => _localizationService.GetString(LocalizationKeys.Settings_Updates_ErrorNotFound),
+                    _ => _localizationService.GetFormattedString(LocalizationKeys.Settings_Updates_ErrorGeneric, result.Error.Message)
+                };
+                SetUpdateErrorWithAutoDismiss(errorMsg);
                 return;
             }
 
@@ -470,7 +518,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             CurrentUpdateState = UpdateState.Error;
-            UpdateErrorMessage = ex.Message;
+            SetUpdateErrorWithAutoDismiss(ex.Message);
         }
         finally
         {
@@ -544,7 +592,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             CurrentUpdateState = UpdateState.Error;
-            UpdateErrorMessage = ex.Message;
+            SetUpdateErrorWithAutoDismiss(ex.Message);
         }
         finally
         {
@@ -584,6 +632,10 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void DismissUpdateError()
     {
+        _updateErrorCts?.Cancel();
+        _updateErrorCts?.Dispose();
+        _updateErrorCts = null;
+
         UpdateErrorMessage = string.Empty;
         if (CurrentUpdateState == UpdateState.Error)
         {
@@ -613,6 +665,9 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
                 _upToDateCts?.Cancel();
                 _upToDateCts?.Dispose();
                 _upToDateCts = null;
+                _updateErrorCts?.Cancel();
+                _updateErrorCts?.Dispose();
+                _updateErrorCts = null;
             }
             _disposed = true;
         }
