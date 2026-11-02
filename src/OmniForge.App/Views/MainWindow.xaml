@@ -13,7 +13,7 @@
         <MicaBackdrop Kind="BaseAlt" />
     </Window.SystemBackdrop>
 
-    <Grid x:Name="RootGrid" Background="Transparent">
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -22,11 +22,8 @@
         <!-- Custom Fluent App Title Bar with MicaAlt integration -->
         <TitleBar x:Name="AppTitleBar"
                   Grid.Row="0"
-                  Title="{x:Bind ViewModel.AppTitle, Mode=OneWay}">
-            <TitleBar.IconSource>
-                <ImageIconSource ImageSource="ms-appx:///Assets/app.ico" />
-            </TitleBar.IconSource>
-        </TitleBar>
+                  Height="32"
+                  Title="{x:Bind ViewModel.AppTitle, Mode=OneWay}" />
 
         <!-- Main Shell Navigation with Adaptive Responsive Thresholds, AutoSuggestBox, and Fluent Design -->
         <NavigationView x:Name="NavView"
@@ -45,10 +42,15 @@
                         IsSettingsVisible="True"
                         AlwaysShowHeader="False">
 
-            <!-- Branded Pane Header with Vector SVG Logo -->
+            <!-- Branded Pane Header with Vector SVG Logo & Waffle App Launcher -->
             <NavigationView.PaneHeader>
                 <Grid Margin="12,12,12,10" Height="36">
-                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <Image Width="24" Height="24" VerticalAlignment="Center">
                             <Image.Source>
                                 <SvgImageSource UriSource="ms-appx:///Assets/logo.svg" RasterizePixelWidth="48" RasterizePixelHeight="48" />
@@ -57,8 +59,43 @@
                         <TextBlock Text="OmniForge"
                                    Style="{ThemeResource SubtitleTextBlockStyle}"
                                    FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
+
+                    <!-- Waffle Menu (App Launcher) -->
+                    <Button Grid.Column="1"
+                            ToolTipService.ToolTip="App Launcher (All Modules)"
+                            AutomationProperties.Name="App Launcher"
+                            Padding="6,4"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xED35;" FontSize="14" />
+                        <Button.Flyout>
+                            <Flyout x:Name="AppLauncherFlyout" Placement="BottomEdgeAlignedRight">
+                                <StackPanel Spacing="10" Width="260">
+                                    <TextBlock Text="App Launcher" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                                    <ListView ItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
+                                              SelectionMode="None"
+                                              IsItemClickEnabled="True"
+                                              ItemClick="AppLauncherItem_Click">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:NavigationItemViewModel">
+                                                <StackPanel Orientation="Horizontal" Spacing="12" Padding="4,6">
+                                                    <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" FontSize="13" />
+                                                        <TextBlock Text="{x:Bind Description}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="190" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                 </Grid>
             </NavigationView.PaneHeader>
 

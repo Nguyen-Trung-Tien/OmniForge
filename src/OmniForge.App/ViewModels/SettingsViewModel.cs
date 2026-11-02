@@ -18,6 +18,8 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private bool _isUpdatingSelection;
     private bool _disposed;
     private CancellationTokenSource? _downloadCts;
+    private CancellationTokenSource? _statusNoticeCts;
+    private CancellationTokenSource? _upToDateCts;
     private UpdateInfo? _latestUpdateInfo;
 
     // --- Appearance & System Preferences ---
@@ -42,7 +44,17 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(HasStatusNotice))]
     public partial string StatusNotice { get; set; } = string.Empty;
 
-    public bool HasStatusNotice => !string.IsNullOrEmpty(StatusNotice);
+    public bool HasStatusNotice
+    {
+        get => !string.IsNullOrEmpty(StatusNotice);
+        set
+        {
+            if (!value)
+            {
+                StatusNotice = string.Empty;
+            }
+        }
+    }
 
     // --- Application Updates Observables ---
 
@@ -222,6 +234,37 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private void SetStatusNotice(string message)
+    {
+        _statusNoticeCts?.Cancel();
+        _statusNoticeCts?.Dispose();
+        _statusNoticeCts = new CancellationTokenSource();
+        var token = _statusNoticeCts.Token;
+
+        StatusNotice = message;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(5000, token);
+                if (!token.IsCancellationRequested)
+                {
+                    _dispatcherService.TryEnqueue(() =>
+                    {
+                        if (!token.IsCancellationRequested)
+                        {
+                            StatusNotice = string.Empty;
+                        }
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }, token);
+    }
+
     partial void OnSelectedThemeChanged(string value)
     {
         if (!_isInitialLoading && !string.IsNullOrWhiteSpace(value))
@@ -229,7 +272,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             _ = RunSettingUpdateSafeAsync(async () =>
             {
                 await _settingsService.SetThemeAsync(value);
-                StatusNotice = _localizationService.GetFormattedString(LocalizationKeys.Settings_ThemeUpdatedLive, value);
+                SetStatusNotice(_localizationService.GetFormattedString(LocalizationKeys.Settings_ThemeUpdatedLive, value));
             });
         }
     }
@@ -249,7 +292,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             _ = RunSettingUpdateSafeAsync(async () =>
             {
                 await _localizationService.SetLanguageAsync(value.Language);
-                StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_SavedSuccess);
+                SetStatusNotice(_localizationService.GetString(LocalizationKeys.Settings_SavedSuccess));
             });
         }
     }
@@ -337,7 +380,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         await _updateService.SetChannelAsync(SelectedChannel, cancellationToken);
         await _updateService.SetAutoCheckOnStartupAsync(AutoCheckOnStartup, cancellationToken);
 
-        StatusNotice = _localizationService.GetString(LocalizationKeys.Settings_SavedSuccess);
+        SetStatusNotice(_localizationService.GetString(LocalizationKeys.Settings_SavedSuccess));
     }
 
     // --- Update Commands ---
@@ -388,6 +431,36 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
                 IsUpdateAvailable = false;
                 IsUpToDate = true;
                 CurrentUpdateState = UpdateState.UpToDate;
+
+                _upToDateCts?.Cancel();
+                _upToDateCts?.Dispose();
+                _upToDateCts = new CancellationTokenSource();
+                var upToDateToken = _upToDateCts.Token;
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(5000, upToDateToken);
+                        if (!upToDateToken.IsCancellationRequested)
+                        {
+                            _dispatcherService.TryEnqueue(() =>
+                            {
+                                if (!upToDateToken.IsCancellationRequested && IsUpToDate)
+                                {
+                                    IsUpToDate = false;
+                                    if (CurrentUpdateState == UpdateState.UpToDate)
+                                    {
+                                        CurrentUpdateState = UpdateState.Idle;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                }, upToDateToken);
             }
         }
         catch (OperationCanceledException)
@@ -534,6 +607,12 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
                 _downloadCts?.Cancel();
                 _downloadCts?.Dispose();
                 _downloadCts = null;
+                _statusNoticeCts?.Cancel();
+                _statusNoticeCts?.Dispose();
+                _statusNoticeCts = null;
+                _upToDateCts?.Cancel();
+                _upToDateCts?.Dispose();
+                _upToDateCts = null;
             }
             _disposed = true;
         }

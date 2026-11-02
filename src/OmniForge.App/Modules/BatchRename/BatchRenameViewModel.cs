@@ -253,6 +253,37 @@ public sealed partial class BatchRenameViewModel : ToolViewModelBase, IDisposabl
         }
     }
 
+    [RelayCommand]
+    public void CopyFilePath(RenamePreviewItem? item)
+    {
+        if (item is null || _clipboardService is null) return;
+        _clipboardService.CopyText(item.SourceFullPath);
+        StatusMessage = $"Copied path for '{item.OriginalFileName}' to clipboard.";
+    }
+
+    [RelayCommand]
+    public void OpenFileLocation(RenamePreviewItem? item)
+    {
+        if (item is null) return;
+        try
+        {
+            var folder = System.IO.Path.GetDirectoryName(item.SourceFullPath);
+            if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = folder,
+                    UseShellExecute = true
+                });
+                StatusMessage = $"Opened location for '{item.OriginalFileName}'.";
+            }
+        }
+        catch
+        {
+            // Shell launch best effort
+        }
+    }
+
     /// <summary>
     /// Ingests files or directory paths from file dialogs or Drag-and-Drop.
     /// Safely handles directory traversal and deduplication.

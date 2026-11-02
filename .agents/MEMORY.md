@@ -15,3 +15,4 @@ Whenever a bug is resolved, a WinUI 3 quirk is discovered, or a convention is re
 
 - **[2026-11-01 11:49]** (Localization): Always use string.Create(CultureInfo.InvariantCulture, ...) when formatting numeric metrics (bytes, durations, percentages) so tests and UI remain deterministic on non-US locales like vi-VN.
 - **[2026-11-01 17:19]** (WinUI3): EmptyStateControl.IsEmpty is a bool DependencyProperty and converts to Visibility internally; never attach BoolToVisibilityConverter to EmptyStateControl.IsEmpty or it will throw InvalidCastException (Visibility to Boolean) at runtime.
+- **[2026-11-02 11:11]** (WinUI3): WinUI 3 does not provide a native AccentSplitButtonStyle theme resource (unlike Button AccentButtonStyle); do not set Style on SplitButton unless defining a custom Style in XAML.

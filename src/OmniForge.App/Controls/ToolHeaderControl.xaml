@@ -18,24 +18,7 @@
                        TextWrapping="Wrap" />
         </StackPanel>
 
-        <!-- Action Confirmation Prompt Banner (Before Destructive / Batch Execution) -->
-        <InfoBar IsOpen="{x:Bind IsConfirmationOpen, Mode=TwoWay}"
-                 Severity="Warning"
-                 IsClosable="True"
-                 Title="{x:Bind ConfirmationTitle, Mode=OneWay}"
-                 Message="{x:Bind ConfirmationMessage, Mode=OneWay}">
-            <InfoBar.Content>
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,12">
-                    <Button Content="{Binding Source={StaticResource Loc}, Path=[Control_ToolHeader_ConfirmAndExecute]}"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            Click="ConfirmActionButton_Click" />
-                    <Button Content="{Binding Source={StaticResource Loc}, Path=[Control_ToolHeader_Cancel]}"
-                            Click="DismissConfirmationButton_Click" />
-                </StackPanel>
-            </InfoBar.Content>
-        </InfoBar>
-
-        <!-- Action Completed Confirmation Banner -->
+        <!-- Action Completed Confirmation Banner (Auto-dismisses in 5s) -->
         <InfoBar IsOpen="{x:Bind HasSuccessMessage, Mode=TwoWay}"
                  Severity="Success"
                  IsClosable="True"

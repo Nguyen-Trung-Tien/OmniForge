@@ -169,5 +169,17 @@ public sealed class ResultTests
         Assert.True(executed);
         Assert.True(vm.HasSuccessMessage);
     }
+
+    [Fact]
+    public void ToolViewModelBase_DismissSuccessMessage_ShouldClearCleanly()
+    {
+        var vm = new TestableToolViewModel();
+        vm.SuccessMessage = "Task finished successfully";
+        Assert.True(vm.HasSuccessMessage);
+
+        vm.HasSuccessMessage = false;
+        Assert.False(vm.HasSuccessMessage);
+        Assert.Null(vm.SuccessMessage);
+    }
 }
 

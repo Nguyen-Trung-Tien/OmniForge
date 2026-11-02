@@ -81,10 +81,29 @@ public sealed partial class MainWindow : Window
 
     private void OnRootElementActualThemeChanged(FrameworkElement sender, object args)
     {
-        bool isDark = sender.ActualTheme == ElementTheme.Dark;
-        UpdateDwmImmersiveDarkMode(isDark);
-        UpdateTitleBarButtonColors(isDark);
-        UpdateBackdropAndBackground();
+        _ = _settingsService.GetThemeAsync().ContinueWith(t =>
+        {
+            if (t.IsCompletedSuccessfully)
+            {
+                DispatcherQueue?.TryEnqueue(() =>
+                {
+                    bool isDark = DetermineIsDark(t.Result, sender.ActualTheme);
+                    UpdateDwmImmersiveDarkMode(isDark);
+                    UpdateTitleBarButtonColors(isDark);
+                    UpdateBackdropAndBackground(isDark);
+                });
+            }
+        });
+    }
+
+    private static bool DetermineIsDark(string themeSetting, ElementTheme actualTheme)
+    {
+        return themeSetting switch
+        {
+            "Dark" => true,
+            "Light" => false,
+            _ => actualTheme == ElementTheme.Dark || (actualTheme == ElementTheme.Default && Application.Current.RequestedTheme == ApplicationTheme.Dark)
+        };
     }
 
     private void UpdateLocalizedChrome()
@@ -115,10 +134,12 @@ public sealed partial class MainWindow : Window
         {
             if (t.IsCompletedSuccessfully)
             {
-                DispatcherQueue?.TryEnqueue(() =>
+                DispatcherQueue?.TryEnqueue(async () =>
                 {
                     _isMicaEnabled = t.Result;
-                    UpdateBackdropAndBackground();
+                    string theme = await _settingsService.GetThemeAsync();
+                    bool isDark = DetermineIsDark(theme, (Content as FrameworkElement)?.ActualTheme ?? ElementTheme.Default);
+                    UpdateBackdropAndBackground(isDark);
                 });
             }
             else
@@ -150,10 +171,12 @@ public sealed partial class MainWindow : Window
                 {
                     if (t.IsCompletedSuccessfully)
                     {
-                        DispatcherQueue?.TryEnqueue(() =>
+                        DispatcherQueue?.TryEnqueue(async () =>
                         {
                             _isMicaEnabled = t.Result;
-                            UpdateBackdropAndBackground();
+                            string theme = await _settingsService.GetThemeAsync();
+                            bool isDark = DetermineIsDark(theme, (Content as FrameworkElement)?.ActualTheme ?? ElementTheme.Default);
+                            UpdateBackdropAndBackground(isDark);
                         });
                     }
                     else
@@ -251,6 +274,11 @@ public sealed partial class MainWindow : Window
 
             rootElement.RequestedTheme = elementTheme;
 
+            if (NavView is not null)
+            {
+                NavView.RequestedTheme = elementTheme;
+            }
+
             if (AppTitleBar is not null)
             {
                 AppTitleBar.RequestedTheme = elementTheme;
@@ -266,18 +294,20 @@ public sealed partial class MainWindow : Window
                 pageContent.RequestedTheme = elementTheme;
             }
 
-            bool isDark = rootElement.ActualTheme == ElementTheme.Dark;
+            bool isDark = DetermineIsDark(theme, rootElement.ActualTheme);
             UpdateDwmImmersiveDarkMode(isDark);
             UpdateTitleBarButtonColors(isDark);
-            UpdateBackdropAndBackground();
+            UpdateBackdropAndBackground(isDark);
         }
     }
 
-    private void UpdateBackdropAndBackground()
+    private void UpdateBackdropAndBackground(bool isDark)
     {
         if (RootGrid is null) return;
 
-        if (_isMicaEnabled)
+        bool isMicaSupported = Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported();
+
+        if (_isMicaEnabled && isMicaSupported)
         {
             SystemBackdrop = null;
             SystemBackdrop = new MicaBackdrop { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
@@ -294,7 +324,7 @@ public sealed partial class MainWindow : Window
             else
             {
                 RootGrid.Background = new SolidColorBrush(
-                    RootGrid.ActualTheme == ElementTheme.Dark
+                    isDark
                         ? Windows.UI.Color.FromArgb(255, 32, 32, 32)
                         : Windows.UI.Color.FromArgb(255, 243, 243, 243));
             }
@@ -408,6 +438,15 @@ public sealed partial class MainWindow : Window
         if (args.SelectedItem is string selectedText)
         {
             ViewModel.AutoSuggestQuerySubmittedCommand.Execute(selectedText);
+        }
+    }
+
+    private void AppLauncherItem_Click(object sender, ItemClickEventArgs e)
+    {
+        AppLauncherFlyout?.Hide();
+        if (e.ClickedItem is NavigationItemViewModel navItem)
+        {
+            ViewModel.NavigateItemCommand.Execute(navItem);
         }
     }
 }

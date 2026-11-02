@@ -90,6 +90,12 @@ public partial class DashboardViewModel : ToolViewModelBase
     [ObservableProperty]
     public partial string FilterPlaceholder { get; set; } = "Filter tools by name or category...";
 
+    [ObservableProperty]
+    public partial string SelectedCategory { get; set; } = "All";
+
+    [ObservableProperty]
+    public partial bool IsTourOpen { get; set; }
+
     public ObservableCollection<DashboardToolItemViewModel> AvailableTools { get; } = [];
 
     public IReadOnlyList<IToolModule> Modules => _toolRegistry.Modules;
@@ -146,14 +152,39 @@ public partial class DashboardViewModel : ToolViewModelBase
         PopulateAvailableTools();
     }
 
+    partial void OnSelectedCategoryChanged(string value)
+    {
+        PopulateAvailableTools();
+    }
+
+    [RelayCommand]
+    private void FilterByCategory(string? category)
+    {
+        SelectedCategory = category ?? "All";
+    }
+
+    [RelayCommand]
+    private void StartTour()
+    {
+        IsTourOpen = true;
+    }
+
     private void PopulateAvailableTools()
     {
         AvailableTools.Clear();
         var query = FilterQuery?.Trim() ?? string.Empty;
+        var categoryFilter = SelectedCategory?.Trim() ?? "All";
 
         foreach (var module in _toolRegistry.Modules.Where(m => m.IsEnabled && !m.Id.EndsWith("dashboard", StringComparison.OrdinalIgnoreCase)))
         {
             var itemVm = new DashboardToolItemViewModel(module, LaunchModule, _localizationService);
+
+            bool matchesCategory = string.Equals(categoryFilter, "All", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(itemVm.Category, categoryFilter, StringComparison.OrdinalIgnoreCase) ||
+                                   (categoryFilter == "Files" && itemVm.Category.Contains("File", StringComparison.OrdinalIgnoreCase));
+
+            if (!matchesCategory) continue;
+
             if (string.IsNullOrEmpty(query) ||
                 itemVm.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 itemVm.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||

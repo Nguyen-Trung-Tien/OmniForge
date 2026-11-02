@@ -7,6 +7,15 @@
     <!-- OmniForge Standardized Fluent UI Design Tokens & Reusable Control Styles -->
     <!-- ======================================================================= -->
 
+    <!-- Standard Semantic Spacing & Corner Radius Tokens -->
+    <x:Double x:Key="SpaceInsetMicro">4</x:Double>
+    <x:Double x:Key="SpaceInsetSmall">8</x:Double>
+    <x:Double x:Key="SpaceInsetMedium">16</x:Double>
+    <x:Double x:Key="SpaceInsetLarge">24</x:Double>
+    <CornerRadius x:Key="ControlCornerRadiusSmall">4</CornerRadius>
+    <CornerRadius x:Key="ControlCornerRadiusMedium">8</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadiusLarge">12</CornerRadius>
+
     <Thickness x:Key="OmniPagePadding">28,20,28,20</Thickness>
     <Thickness x:Key="OmniCompactPagePadding">16,12,16,12</Thickness>
     <CornerRadius x:Key="OmniCardCornerRadius">8</CornerRadius>

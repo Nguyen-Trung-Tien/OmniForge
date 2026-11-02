@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using OmniForge.App.Helpers;
 using OmniForge.Core.Models;
 
 namespace OmniForge.App.Controls;
@@ -71,10 +73,20 @@ public sealed partial class ToolHeaderControl : UserControl
     {
         if (d is ToolHeaderControl control)
         {
-            bool hasSuccess = !string.IsNullOrEmpty(e.NewValue as string);
+            string? newMsg = e.NewValue as string;
+            bool hasSuccess = !string.IsNullOrEmpty(newMsg);
             if (control.HasSuccessMessage != hasSuccess)
             {
                 control.HasSuccessMessage = hasSuccess;
+            }
+
+            if (hasSuccess)
+            {
+                control.StartSuccessDismissTimer();
+            }
+            else
+            {
+                control._successDismissTimer?.Stop();
             }
         }
     }
@@ -83,6 +95,7 @@ public sealed partial class ToolHeaderControl : UserControl
     {
         if (d is ToolHeaderControl control && e.NewValue is false)
         {
+            control._successDismissTimer?.Stop();
             if (!string.IsNullOrEmpty(control.SuccessMessage))
             {
                 control.SuccessMessage = null;
@@ -96,11 +109,35 @@ public sealed partial class ToolHeaderControl : UserControl
 
     private static void OnIsConfirmationOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ToolHeaderControl control && e.NewValue is false)
+        if (d is ToolHeaderControl control)
         {
-            if (control._subscribedVm is { IsConfirmationOpen: true })
+            if (e.NewValue is true)
             {
-                control._subscribedVm.DismissConfirmation();
+                if (control.IsLoaded)
+                {
+                    _ = control.ShowConfirmationDialogAsync();
+                }
+                else
+                {
+                    RoutedEventHandler? loadedHandler = null;
+                    loadedHandler = (s, args) =>
+                    {
+                        control.Loaded -= loadedHandler;
+                        if (control.IsConfirmationOpen)
+                        {
+                            _ = control.ShowConfirmationDialogAsync();
+                        }
+                    };
+                    control.Loaded += loadedHandler;
+                }
+            }
+            else if (e.NewValue is false)
+            {
+                control._activeConfirmDialog?.Hide();
+                if (control._subscribedVm is { IsConfirmationOpen: true })
+                {
+                    control._subscribedVm.DismissConfirmation();
+                }
             }
         }
     }
@@ -184,6 +221,9 @@ public sealed partial class ToolHeaderControl : UserControl
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        _successDismissTimer?.Stop();
+        _activeConfirmDialog?.Hide();
+        _activeConfirmDialog = null;
         if (_subscribedVm is not null)
         {
             _subscribedVm.PropertyChanged -= OnViewModelPropertyChanged;
@@ -222,23 +262,140 @@ public sealed partial class ToolHeaderControl : UserControl
         ConfirmationMessage = vm.ConfirmationMessage;
     }
 
-    private async void ConfirmActionButton_Click(object sender, RoutedEventArgs e)
+    private DispatcherTimer? _successDismissTimer;
+    private ContentDialog? _activeConfirmDialog;
+
+    private void StartSuccessDismissTimer()
     {
-        if (_subscribedVm is not null)
+        _successDismissTimer?.Stop();
+        if (_successDismissTimer is null)
         {
-            try
+            _successDismissTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            _successDismissTimer.Tick += (s, e) =>
             {
-                await _subscribedVm.ConfirmPendingActionAsync();
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message;
-            }
+                _successDismissTimer?.Stop();
+                HasSuccessMessage = false;
+                SuccessMessage = null;
+                if (_subscribedVm is not null)
+                {
+                    _subscribedVm.HasSuccessMessage = false;
+                    _subscribedVm.SuccessMessage = null;
+                }
+            };
         }
+        _successDismissTimer.Start();
     }
 
-    private void DismissConfirmationButton_Click(object sender, RoutedEventArgs e)
+    private async Task ShowConfirmationDialogAsync()
     {
-        _subscribedVm?.DismissConfirmation();
+        if (_activeConfirmDialog is not null) return;
+
+        var xamlRoot = XamlRoot ?? (Content as FrameworkElement)?.XamlRoot;
+        if (xamlRoot is null) return;
+
+        var loc = LocalizationManager.Current;
+        string confirmText = loc?["Control_ToolHeader_ConfirmAndExecute"] ?? "Confirm & Execute";
+        string cancelText = loc?["Control_ToolHeader_Cancel"] ?? "Cancel";
+
+        // Build rich confirmation content with visual warning badge
+        var badgeBorder = new Border
+        {
+            Width = 42,
+            Height = 42,
+            CornerRadius = new CornerRadius(21),
+            Background = (Brush)Application.Current.Resources["SubtleFillColorSecondaryBrush"],
+            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+            BorderThickness = new Thickness(1),
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+
+        var warningIcon = new FontIcon
+        {
+            Glyph = "\uE7BA", // Warning badge
+            FontSize = 20,
+            Foreground = (Brush)Application.Current.Resources["SystemFillColorCautionBrush"],
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        badgeBorder.Child = warningIcon;
+
+        var titleText = new TextBlock
+        {
+            Text = ConfirmationTitle,
+            Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"],
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            TextWrapping = TextWrapping.Wrap,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var headerStack = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 12,
+            Children = { badgeBorder, titleText }
+        };
+
+        var messageBorder = new Border
+        {
+            Background = (Brush)Application.Current.Resources["SubtleFillColorSecondaryBrush"],
+            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(14, 12, 14, 12)
+        };
+
+        var messageText = new TextBlock
+        {
+            Text = ConfirmationMessage,
+            Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+            Foreground = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"],
+            TextWrapping = TextWrapping.Wrap
+        };
+        messageBorder.Child = messageText;
+
+        var container = new StackPanel
+        {
+            Spacing = 16,
+            MaxWidth = 420,
+            Children = { headerStack, messageBorder }
+        };
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = xamlRoot,
+            RequestedTheme = ActualTheme,
+            Content = container,
+            PrimaryButtonText = confirmText,
+            CloseButtonText = cancelText,
+            DefaultButton = ContentDialogButton.Primary
+        };
+
+        _activeConfirmDialog = dialog;
+
+        try
+        {
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                if (_subscribedVm is not null)
+                {
+                    await _subscribedVm.ConfirmPendingActionAsync();
+                }
+            }
+            else
+            {
+                _subscribedVm?.DismissConfirmation();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            _subscribedVm?.DismissConfirmation();
+        }
+        finally
+        {
+            _activeConfirmDialog = null;
+            IsConfirmationOpen = false;
+        }
     }
 }

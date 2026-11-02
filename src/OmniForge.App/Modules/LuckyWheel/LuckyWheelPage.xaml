@@ -12,7 +12,7 @@
             <VisualStateGroup x:Name="ResponsiveStates">
                 <VisualState x:Name="WideState">
                     <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="1020" />
+                        <AdaptiveTrigger MinWindowWidth="900" />
                     </VisualState.StateTriggers>
                 </VisualState>
                 <VisualState x:Name="NarrowState">
@@ -402,40 +402,11 @@
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <!-- Table Column Header -->
-                                    <Grid Padding="12,4" ColumnSpacing="8"
-                                          Visibility="{x:Bind ViewModel.HasOptions, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="22" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="96" />
-                                            <ColumnDefinition Width="56" />
-                                            <ColumnDefinition Width="28" />
-                                            <ColumnDefinition Width="28" />
-                                        </Grid.ColumnDefinitions>
-                                        <FontIcon Grid.Column="0" Glyph="&#xEB9F;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Color]}" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                                            <FontIcon Glyph="&#xE8D2;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Name]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                                            <FontIcon Glyph="&#xE8EC;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Weight]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
-                                            <FontIcon Glyph="&#xE9D9;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Odds]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </StackPanel>
-                                        <FontIcon Grid.Column="4" Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Toggle]}" />
-                                        <FontIcon Grid.Column="5" Glyph="&#xE74D;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Delete]}" />
-                                    </Grid>
-
-                                    <!-- Items List Container -->
+                                    <!-- Stable Height Items List Container with Zero-CLS Alignment -->
                                     <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                             BorderThickness="1"
                                             CornerRadius="6"
-                                            MinHeight="220"
-                                            MaxHeight="360">
+                                            Height="340">
                                         <Grid>
                                             <controls:EmptyStateControl
                                                 IconGlyph="&#xE735;"
@@ -446,16 +417,57 @@
                                             <ListView ItemsSource="{x:Bind ViewModel.FilteredItems, Mode=OneWay}"
                                                       SelectionMode="None"
                                                       Visibility="{x:Bind ViewModel.HasOptions, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <ListView.ItemContainerStyle>
+                                                    <Style TargetType="ListViewItem">
+                                                        <Setter Property="Padding" Value="0" />
+                                                        <Setter Property="Margin" Value="0,0,0,2" />
+                                                        <Setter Property="MinHeight" Value="36" />
+                                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                    </Style>
+                                                </ListView.ItemContainerStyle>
+
+                                                <!-- Synchronized Header inside ListView to prevent Scrollbar Layout Shifts -->
+                                                <ListView.Header>
+                                                    <Grid Padding="10,6,10,4" ColumnSpacing="8"
+                                                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                          BorderThickness="0,0,0,1"
+                                                          Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="24" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="96" />
+                                                            <ColumnDefinition Width="60" />
+                                                            <ColumnDefinition Width="32" />
+                                                            <ColumnDefinition Width="32" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <FontIcon Grid.Column="0" Glyph="&#xEB9F;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Color]}" />
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                                            <FontIcon Glyph="&#xE8D2;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Name]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                                            <FontIcon Glyph="&#xE8EC;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Weight]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                                                            <FontIcon Glyph="&#xE9D9;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                            <TextBlock Text="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Odds]}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                        </StackPanel>
+                                                        <FontIcon Grid.Column="4" Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Toggle]}" />
+                                                        <FontIcon Grid.Column="5" Glyph="&#xE74D;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Delete]}" />
+                                                    </Grid>
+                                                </ListView.Header>
+
                                                 <ListView.ItemTemplate>
                                                     <DataTemplate x:DataType="lucky:WheelItemViewModel">
-                                                        <Grid ColumnSpacing="8" Padding="2,5">
+                                                        <Grid ColumnSpacing="8" Padding="10,3">
                                                             <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="22" />
+                                                                <ColumnDefinition Width="24" />
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="96" />
-                                                                <ColumnDefinition Width="56" />
-                                                                <ColumnDefinition Width="28" />
-                                                                <ColumnDefinition Width="28" />
+                                                                <ColumnDefinition Width="60" />
+                                                                <ColumnDefinition Width="32" />
+                                                                <ColumnDefinition Width="32" />
                                                             </Grid.ColumnDefinitions>
 
                                                             <!-- Color Swatch -->
@@ -465,6 +477,7 @@
                                                                     Background="{x:Bind Brush, Mode=OneWay}"
                                                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                                                     BorderThickness="1"
+                                                                    HorizontalAlignment="Center"
                                                                     VerticalAlignment="Center" />
 
                                                             <!-- Text Editor -->
@@ -559,7 +572,9 @@
                                                                     BorderThickness="0"
                                                                     Click="DeleteItemButton_Click"
                                                                     Tag="{x:Bind}"
-                                                                    ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Delete]}">
+                                                                    ToolTipService.ToolTip="{Binding Source={StaticResource Loc}, Path=[LuckyWheel_Col_Delete]}"
+                                                                    HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center">
                                                                 <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                                                             </Button>
                                                         </Grid>

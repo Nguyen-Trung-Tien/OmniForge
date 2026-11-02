@@ -100,22 +100,12 @@
                         </Button>
                     </Grid>
 
-                    <!-- Up-to-date Confirmation Indicator -->
-                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="6"
-                            Padding="12,10"
-                            Visibility="{x:Bind ViewModel.IsUpToDate, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE73E;"
-                                      FontSize="16"
-                                      Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                            <TextBlock Text="{x:Bind ViewModel.UpdatesUpToDateText, Mode=OneWay}"
-                                       Style="{ThemeResource BodyTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        </StackPanel>
-                    </Border>
+                    <!-- Up-to-date Confirmation Indicator (Auto-dismisses in 5s) -->
+                    <InfoBar IsOpen="{x:Bind ViewModel.IsUpToDate, Mode=TwoWay}"
+                             Severity="Success"
+                             IsClosable="True"
+                             Title="{x:Bind ViewModel.UpdatesUpToDateText, Mode=OneWay}"
+                             Message="{x:Bind ViewModel.LastCheckedText, Mode=OneWay}" />
 
                     <!-- Error Alert InfoBar -->
                     <InfoBar IsOpen="{x:Bind ViewModel.HasUpdateError, Mode=OneWay}"
@@ -329,9 +319,11 @@
                             Command="{x:Bind ViewModel.SaveSettingsCommand}"
                             Style="{ThemeResource AccentButtonStyle}" />
 
-                    <TextBlock Text="{x:Bind ViewModel.StatusNotice, Mode=OneWay}"
-                               Foreground="{ThemeResource SystemFillColorSuccessBrush}"
-                               Visibility="{x:Bind ViewModel.HasStatusNotice, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <!-- Status Notice Banner (Auto-dismisses in 5s) -->
+                    <InfoBar IsOpen="{x:Bind ViewModel.HasStatusNotice, Mode=TwoWay}"
+                             Severity="Success"
+                             IsClosable="True"
+                             Message="{x:Bind ViewModel.StatusNotice, Mode=OneWay}" />
                 </StackPanel>
             </controls:SectionCardControl>
         </StackPanel>

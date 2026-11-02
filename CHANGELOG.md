@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Modal Popup Confirmation Dialog & 5-Second Auto-Dismiss Notifications**:
+  - Replaced inline confirmation warning InfoBar in `ToolHeaderControl` with an official modal popup `ContentDialog` featuring a warning badge, title, styled message card, and theme-synchronized styling (`RequestedTheme = ActualTheme`) optimized for both Dark Mode and Light Mode.
+  - Implemented 5-second auto-dismiss timers on Settings `StatusNotice` and `IsUpToDate` notifications in `SettingsViewModel` with cancellation token protection.
+  - Added UI-thread 5-second auto-dismiss timer for `SuccessMessage` in `ToolHeaderControl`, ensuring all tool operation completion banners automatically disappear cleanly.
+  - Replaced raw border and textblock indicators in `SettingsPage.xaml` with polished Fluent `InfoBar` components for `IsUpToDate` and `StatusNotice`.
+
 ### Security
 - **XML Entity Expansion (XXE / Billion Laughs) & Zip Bomb Defense**:
   - Added `SecurityGuard.CreateSafeXmlReaderSettings` and `SecurityGuard.LoadSafeXmlAsync` enforcing `DtdProcessing = DtdProcessing.Prohibit`, `XmlResolver = null`, `MaxCharactersFromEntities = 1024`, and `MaxCharactersInDocument = 10 MB`.
@@ -19,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added explicit `SecurityGuard.ValidateSafePath` verification on download destination paths and configured a 30-second HTTP timeout in `UpdateService`.
 
 ### Fixed
+- **Shell Theme Synchronization & Mica Contrast Bug**:
+  - Fixed theme calculation in `MainWindow.xaml.cs` (`DetermineIsDark`) where `ActualTheme` evaluated synchronously to Dark during Light theme selection, causing `DwmSetWindowAttribute` to force DWM Immersive Dark Mode on a Light XAML tree (resulting in black-on-black invisible sidebar text and icons).
+  - Explicitly synchronized `RequestedTheme` across `NavView`, `AppTitleBar`, and `ContentFrame`, passing determined theme state to DWM, caption buttons, and `UpdateBackdropAndBackground`.
+  - Added fallback to `ApplicationPageBackgroundThemeBrush` for `RootGrid` when Mica is disabled or unsupported, preventing solid black HWND background bleed-through.
+  - Removed duplicate icon in `AppTitleBar` that stacked awkwardly above the branded SVG logo in `NavigationView.PaneHeader`, setting a clean `Height="32"` title bar.
+  - Added `AppLauncherFlyout?.Hide()` on item click to cleanly dismiss the App Launcher Waffle flyout upon navigation.
 - **Case-Only Batch Rename Collision & Change Detection Bug**:
   - Fixed `BatchRenameEngine.BuildPreview` where `StringComparison.OrdinalIgnoreCase` prevented case-only renames (e.g., `ChangeCaseRule` converting `photo.jpg` to `PHOTO.jpg`) from being recognized as pending changes (`HasChange = true`), and prevented false-positive disk collision errors on case-insensitive NTFS volumes.
 - **Crash Resilience & Forbidden `async void` Elimination**:
@@ -42,12 +55,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced parsing in `WheelItemViewModel` to support comma or period decimals (`5,5` or `5.5`), negative numbers clamped to `0.0`, and percentage suffixes (`10%`).
   - Widened the table column width from 92px to 96px for comfortable numeric editing without truncation.
   - Centered table column header `Weight` and vertically centered number text inside the stepper pill with `Padding="0,4,0,0"`, eliminating text riding the top border.
+- **Lucky Wheel Table Alignment & Zero-CLS Layout Shift Elimination**:
+  - Embedded the column header directly inside `ListView.Header`, locking horizontal alignment and column widths (`24px`, `*`, `96px`, `60px`, `32px`, `32px`) synchronously with row items even when the vertical scrollbar appears.
+  - Added explicit zero-padding `ItemContainerStyle` to `ListViewItem`, eliminating internal indentation offset and hover misalignment against the header.
+  - Replaced elastic `MinHeight="220"` / `MaxHeight="360"` with fixed `Height="340"` container, eliminating vertical layout shifting (CLS) and scrollbar popping when adding, removing, or filtering options.
+  - Lowered `WideState` responsive breakpoint from 1020px to 900px to maintain stable two-column layout on standard desktop windows.
 - **Batch Folder Preview Panel Layout**:
   - Restructured `BatchFolderPage.xaml` PreviewCard header layout. Separated title/view toggles, status metric badges (`Total`, `New`, `Exists`, `Errors`), and search filter into dedicated rows. Resolved severe vertical word-wrap and character squishing ("📁 Xe / Phân / cấp / thư / mục...") caused by competing `Auto` and `*` columns.
 - **Dashboard Quick Launch Card Layout & Category Badge**:
   - Restructured `DashboardPage.xaml` utility cards by elevating the category badge to an eyebrow tag above the tool title. Increased `ItemsWrapGrid` `ItemWidth` from 360px to 370px and tightened layout spacing. Eliminated category tag truncation and clipping (`[D]`, `[Devel]`, `[File Syst]`, `[File S]`, `[Se]`) while granting 100% full width to Vietnamese and English module titles.
 
 ### Added
+- **UI/UX Architecture Standardization & Fluent Design System Overhaul**:
+  - **Standardized Semantic Tokens**: Added spacing scale tokens (`SpaceInsetMicro`, `SpaceInsetSmall`, `SpaceInsetMedium`, `SpaceInsetLarge`) and corner radius tokens (`ControlCornerRadiusSmall`, `ControlCornerRadiusMedium`, `CardCornerRadiusLarge`) in `SharedStyles.xaml` for consistent visual hierarchy and zero-hardcoded styling.
+  - **Waffle Menu App Launcher**: Integrated quick App Launcher (`&#xED35;`) in `MainWindow.xaml` pane header, allowing users to jump directly to any utility module from anywhere in the app with localized descriptions.
+  - **Batch Rename Progressive Disclosure**: Replaced flat delete buttons with The Three Dots (`&#xE712;`) overflow flyout on preview rows (supporting Copy Path, Open in File Explorer, and Remove), and upgraded the primary action to a `SplitButton` with instant execution and undo options.
+  - **Checksum Export & Quick Actions**: Added `DropDownButton` on Checksum cryptographic digest card with options to copy lowercase hex, UPPERCASE HEX, or full formatted verification reports.
+  - **Dashboard Category Filters & Onboarding Tour**: Added interactive category filter buttons (`All Tools`, `File Operations`, `General Utilities`) and a native `TeachingTip` coach-marks tour for quick search discovery and keyboard shortcuts.
 - **Desktop Window Startup Centering & Responsive Layout Overhaul**:
   - Implemented desktop window startup centering in `MainWindow.xaml.cs` using `Microsoft.UI.Windowing.DisplayArea.GetFromWindowId` and `DisplayAreaFallback.Primary`. Accurately aligns the window in the center of the display work area while accounting for multi-monitor arrangements, DPI scaling, and Windows taskbars.
   - Tuned `NavigationView` adaptive threshold widths (`ExpandedModeThresholdWidth="1008"`, `CompactModeThresholdWidth="680"`) in `MainWindow.xaml` for smooth transitions between expanded sidebar, compact rail, and overlay drawer modes.

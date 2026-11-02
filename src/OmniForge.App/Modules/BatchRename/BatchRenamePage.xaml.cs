@@ -42,9 +42,25 @@ public sealed partial class BatchRenamePage : Page
 
     private void RemoveFileButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { Tag: OmniForge.Modules.BatchOps.RenamePreviewItem item })
+        if (sender is MenuFlyoutItem { Tag: OmniForge.Modules.BatchOps.RenamePreviewItem item })
         {
             ViewModel.RemoveFileCommand.Execute(item);
+        }
+    }
+
+    private void CopyPathMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem { Tag: OmniForge.Modules.BatchOps.RenamePreviewItem item })
+        {
+            ViewModel.CopyFilePathCommand.Execute(item);
+        }
+    }
+
+    private void OpenExplorerMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem { Tag: OmniForge.Modules.BatchOps.RenamePreviewItem item })
+        {
+            ViewModel.OpenFileLocationCommand.Execute(item);
         }
     }
 }

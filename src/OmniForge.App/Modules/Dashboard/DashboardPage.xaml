@@ -111,9 +111,9 @@
                 </controls:SectionCardControl>
             </Grid>
 
-            <!-- Quick Filter & Workspace Status Bar -->
+            <!-- Quick Filter & Workspace Status Bar with Category Segments & Tour -->
             <Border Style="{StaticResource FluentCardBorderStyle}" Padding="16,12">
-                <Grid ColumnSpacing="16">
+                <Grid ColumnSpacing="16" RowSpacing="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -139,14 +139,52 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <TextBox x:Name="FilterBox"
-                             Grid.Row="0"
-                             Grid.Column="2"
-                             PlaceholderText="{x:Bind ViewModel.FilterPlaceholder, Mode=OneWay}"
-                             Text="{x:Bind ViewModel.FilterQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             VerticalAlignment="Center" />
+                    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBox x:Name="FilterBox"
+                                 Width="230"
+                                 PlaceholderText="{x:Bind ViewModel.FilterPlaceholder, Mode=OneWay}"
+                                 Text="{x:Bind ViewModel.FilterQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalAlignment="Center" />
+                        <Button ToolTipService.ToolTip="Feature Tour &amp; Shortcuts"
+                                Padding="8"
+                                Command="{x:Bind ViewModel.StartTourCommand}">
+                            <FontIcon Glyph="&#xE897;" FontSize="14" />
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Interactive Category Filter Chips -->
+                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="8">
+                        <Button Content="All Tools"
+                                Padding="12,5"
+                                FontSize="12"
+                                Command="{x:Bind ViewModel.FilterByCategoryCommand}"
+                                CommandParameter="All" />
+                        <Button Content="File Operations"
+                                Padding="12,5"
+                                FontSize="12"
+                                Command="{x:Bind ViewModel.FilterByCategoryCommand}"
+                                CommandParameter="Files" />
+                        <Button Content="General Utilities"
+                                Padding="12,5"
+                                FontSize="12"
+                                Command="{x:Bind ViewModel.FilterByCategoryCommand}"
+                                CommandParameter="General" />
+                    </StackPanel>
                 </Grid>
             </Border>
+
+            <!-- Product Tour / Coach Marks Tip for First-Time Users -->
+            <TeachingTip x:Name="DashboardTutorialTip"
+                         Target="{x:Bind FilterBox}"
+                         Title="Fast Tool Search &amp; Launch"
+                         Subtitle="Quickly filter utilities by typing keywords (e.g. 'rename', 'hash', 'json') or switch categories using the filters above."
+                         IsOpen="{x:Bind ViewModel.IsTourOpen, Mode=TwoWay}"
+                         PreferredPlacement="Bottom"
+                         PlacementMargin="0,8,0,0">
+                <TeachingTip.IconSource>
+                    <FontIconSource Glyph="&#xE71D;" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
 
             <!-- Quick Launch Available Modules Grid -->
             <GridView ItemsSource="{x:Bind ViewModel.AvailableTools, Mode=OneWay}"

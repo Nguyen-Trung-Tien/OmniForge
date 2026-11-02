@@ -152,6 +152,24 @@ public partial class ChecksumViewModel : ToolViewModelBase
     }
 
     [RelayCommand]
+    private void CopyUpperHash()
+    {
+        if (_clipboardService is null || string.IsNullOrEmpty(ComputedHash)) return;
+        var res = _clipboardService.CopyText(ComputedHash.ToUpperInvariant());
+        StatusMessage = res.IsSuccess ? "Uppercase checksum copied to clipboard." : res.Error.Message;
+    }
+
+    [RelayCommand]
+    private void CopyDetailedReport()
+    {
+        if (_clipboardService is null || string.IsNullOrEmpty(ComputedHash)) return;
+        string fileName = Path.GetFileName(TargetFilePath);
+        string report = $"File: {fileName}\nAlgorithm: {SelectedAlgorithm}\nHash: {ComputedHash}\nSize: {FormattedFileSize}";
+        var res = _clipboardService.CopyText(report);
+        StatusMessage = res.IsSuccess ? "Detailed verification report copied." : res.Error.Message;
+    }
+
+    [RelayCommand]
     private async Task PasteExpectedHashAsync()
     {
         if (_clipboardService is null) return;

@@ -113,15 +113,32 @@
                         </StackPanel>
                     </Button>
 
-                    <Button
-                        Style="{ThemeResource AccentButtonStyle}"
+                    <SplitButton
                         Command="{x:Bind ViewModel.RunRenameCommand}"
-                        IsEnabled="{x:Bind ViewModel.CanRun, Mode=OneWay}">
+                        IsEnabled="{x:Bind ViewModel.CanRun, Mode=OneWay}"
+                        ToolTipService.ToolTip="Run the staged rename operation immediately (or choose backup options)">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE768;" FontSize="14" />
                             <TextBlock Text="Run Rename" FontWeight="SemiBold" />
                         </StackPanel>
-                    </Button>
+                        <SplitButton.Flyout>
+                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                <MenuFlyoutItem Text="Execute Rename Immediately"
+                                                Command="{x:Bind ViewModel.RunRenameCommand}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE768;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Undo Previous Rename Batch"
+                                                Command="{x:Bind ViewModel.UndoRenameCommand}"
+                                                IsEnabled="{x:Bind ViewModel.CanUndo, Mode=OneWay}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE7A7;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </SplitButton.Flyout>
+                    </SplitButton>
                 </StackPanel>
             </Grid>
         </Border>
@@ -532,17 +549,42 @@
                                                 TextAlignment="Right"
                                                 VerticalAlignment="Center" />
 
-                                            <!-- Remove Single File Button -->
+                                            <!-- Three Dots (Overflow Menu) Progressive Disclosure -->
                                             <Button
                                                 Grid.Column="6"
                                                 Padding="6,4"
                                                 Background="Transparent"
                                                 BorderThickness="0"
-                                                Tag="{x:Bind}"
-                                                Click="RemoveFileButton_Click"
-                                                ToolTipService.ToolTip="Remove file from list"
+                                                ToolTipService.ToolTip="File Actions Menu"
+                                                AutomationProperties.Name="File Actions"
                                                 VerticalAlignment="Center">
-                                                <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                <FontIcon Glyph="&#xE712;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                <Button.Flyout>
+                                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                        <MenuFlyoutItem Text="Copy Full Path"
+                                                                        Tag="{x:Bind}"
+                                                                        Click="CopyPathMenuItem_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE8C8;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Open in File Explorer"
+                                                                        Tag="{x:Bind}"
+                                                                        Click="OpenExplorerMenuItem_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE8DA;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutSeparator />
+                                                        <MenuFlyoutItem Text="Remove from List"
+                                                                        Tag="{x:Bind}"
+                                                                        Click="RemoveFileButton_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                    </MenuFlyout>
+                                                </Button.Flyout>
                                             </Button>
                                         </Grid>
                                     </DataTemplate>

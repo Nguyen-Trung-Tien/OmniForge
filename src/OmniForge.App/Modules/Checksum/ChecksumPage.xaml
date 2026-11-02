@@ -132,15 +132,38 @@
                              FontFamily="Consolas, Cascadia Code, Courier New"
                              PlaceholderText="Computed hash will appear here..." />
 
-                    <Button Grid.Column="1"
-                            ToolTipService.ToolTip="Copy Checksum"
-                            Command="{x:Bind ViewModel.CopyComputedHashCommand}"
-                            IsEnabled="{x:Bind ViewModel.HasComputedHash, Mode=OneWay}">
+                    <!-- Combo DropDownButton for Copy Variants -->
+                    <DropDownButton Grid.Column="1"
+                                    ToolTipService.ToolTip="Copy or Export Digest"
+                                    IsEnabled="{x:Bind ViewModel.HasComputedHash, Mode=OneWay}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE8C8;" FontSize="14" />
                             <TextBlock Text="Copy" />
                         </StackPanel>
-                    </Button>
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                <MenuFlyoutItem Text="Copy Hex (lowercase)"
+                                                Command="{x:Bind ViewModel.CopyComputedHashCommand}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8C8;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Copy Hex (UPPERCASE)"
+                                                Command="{x:Bind ViewModel.CopyUpperHashCommand}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8C8;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Copy Full Verification Summary"
+                                                Command="{x:Bind ViewModel.CopyDetailedReportCommand}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE9F9;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
                 </Grid>
             </controls:SectionCardControl>
 
