@@ -75,8 +75,9 @@ public sealed partial class MainWindow : Window
         _localizationService.LanguageChanged += (_, _) => DispatcherQueue?.TryEnqueue(UpdateLocalizedChrome);
         NavView.Loaded += (_, _) => UpdateLocalizedChrome();
 
-        // Trigger initial item binding and default navigation
+        // Trigger initial item binding and restore last module navigation
         ViewModel.RefreshNavigationItems();
+        _ = ViewModel.RestoreInitialSelectionAsync();
     }
 
     private void OnRootElementActualThemeChanged(FrameworkElement sender, object args)

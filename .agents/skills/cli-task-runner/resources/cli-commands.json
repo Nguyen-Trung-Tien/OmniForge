@@ -34,6 +34,10 @@
       "summary": "Generates a deterministic xUnit test class"
     },
     {
+      "name": "new-skill",
+      "summary": "Scaffolds standard 4-part AI Agent Skill (SKILL.md, scripts/, examples/, resources/)"
+    },
+    {
       "name": "learn",
       "summary": "Appends a learned pattern or fix to .agents/MEMORY.md"
     },

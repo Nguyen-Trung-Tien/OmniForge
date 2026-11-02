@@ -17,13 +17,14 @@
 #>
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("build", "run", "test", "verify", "arch", "new-module", "new-test", "learn", "logs", "doctor", "clean", "publish", "package", "help")]
+    [ValidateSet("build", "run", "test", "verify", "arch", "new-module", "new-test", "new-skill", "learn", "logs", "doctor", "clean", "publish", "package", "help")]
     [string]$Command = "help",
 
     [Parameter(Position = 1)]
     [string]$Name = "",
 
     [string]$DisplayName = "",
+    [string]$Description = "",
     [string]$Category = "Developer Tools",
     [string]$IconGlyph = "\uE8B7",
     [string]$SubFolder = "Modules",
@@ -114,6 +115,68 @@ switch ($Command) {
             -TargetName $Name `
             -SubFolder $SubFolder
         exit $LASTEXITCODE
+    }
+
+    "new-skill" {
+        if ([string]::IsNullOrWhiteSpace($Name)) {
+            Write-Host "[ERROR] Specify skill name: .\forge.ps1 new-skill <SkillName> [-Description '...']" -ForegroundColor Red
+            exit 1
+        }
+        $SkillSlug = $Name.ToLower().Replace(" ", "-").Replace("_", "-")
+        $SkillDir = Join-Path $Root ".agents\skills\$SkillSlug"
+
+        Write-Header "Scaffold Agent Skill: $SkillSlug"
+        Write-Host "Documentation Reference: https://antigravity.google/docs/skills/" -ForegroundColor DarkGray
+        Write-Host "Note: Antigravity defaults to .agents/skills, maintaining backward compatibility for .agent/skills.`n" -ForegroundColor DarkGray
+
+        if (Test-Path $SkillDir) {
+            Write-Host "[ERROR] Skill directory already exists: $SkillDir" -ForegroundColor Red
+            exit 1
+        }
+
+        # Create standard 4-part directory structure
+        New-Item -ItemType Directory -Path (Join-Path $SkillDir "scripts") -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $SkillDir "examples") -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $SkillDir "resources") -Force | Out-Null
+
+        $DescText = if ([string]::IsNullOrWhiteSpace($Description)) {
+            "Provides specialized workflow and instructions for $SkillSlug."
+        } else {
+            $Description
+        }
+
+        $SkillMdContent = @"
+---
+name: $SkillSlug
+description: $DescText
+---
+
+# $SkillSlug Skill
+
+## Overview
+$DescText
+
+## Directory Structure
+- scripts/: Executable scripts and automation helpers
+- examples/: Reference implementations and code samples
+- resources/: Templates, schemas, or data files
+
+## Procedures & Guidelines
+1. Step 1...
+2. Step 2...
+
+## Documentation Reference
+See https://antigravity.google/docs/skills/ for official Antigravity skill architecture guidelines.
+"@
+
+        Set-Content -Path (Join-Path $SkillDir "SKILL.md") -Value $SkillMdContent -Encoding UTF8
+        Write-Host "[SUCCESS] Scaffolding complete for skill: $SkillSlug" -ForegroundColor Green
+        Write-Host "  Location : $SkillDir" -ForegroundColor Cyan
+        Write-Host "  Structure: SKILL.md, scripts/, examples/, resources/" -ForegroundColor Cyan
+        Write-Host "`n[MANDATORY NEXT STEPS]" -ForegroundColor Yellow
+        Write-Host "  1. Review instructions at https://antigravity.google/docs/skills/" -ForegroundColor Yellow
+        Write-Host "  2. Update .agents/AGENTS.md and relevant usage locations" -ForegroundColor Yellow
+        exit 0
     }
 
     "learn" {
@@ -253,6 +316,7 @@ switch ($Command) {
         Write-Host "  .\forge arch                 Fast (<1s) static architecture guardrail scan"
         Write-Host "  .\forge new-module <Name>    Scaffold Module + ViewModel + XAML + Service + Test"
         Write-Host "  .\forge new-test <Name>      Scaffold deterministic xUnit test class"
+        Write-Host "  .\forge new-skill <Name>     Scaffold standard 4-part AI Agent Skill (.agents/skills)"
         Write-Host "  .\forge learn `"<Insight>`"    Persist learned architectural/debugging insight to .agents/MEMORY.md"
         Write-Host "  .\forge logs [-Tail 30]      Inspect or -Clear latest structured JSONL runtime logs"
         Write-Host "  .\forge doctor               Verify .NET SDK, skills inventory, and static architecture"

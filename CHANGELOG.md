@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Agent Skill Creation Protocol & Automation Tooling**:
+  - Established Section 7 in `.agents/AGENTS.md` and `.agents/rules/agent-skills-rules.md` requiring agents to read official Antigravity skill instructions (`https://antigravity.google/docs/skills/`) before creating skills.
+  - Standardized the 4-part skill directory structure (`SKILL.md`, `scripts/`, `examples/`, `resources/`) under `.agents/skills/`.
+  - Added CLI task `.\forge new-skill <Name> [-Description "..."]` in `forge.ps1` for rapid, compliant skill scaffolding.
 - **Modal Confirmation Dialog & Auto-Dismiss Notifications**:
   - Replaced inline warning infobars in `ToolHeaderControl` with an official modal popup `ContentDialog` featuring warning badges, message cards, and theme-synchronized styling.
   - Implemented 5-second auto-dismiss timers on Settings status notices, update notifications, and tool success messages.
@@ -37,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Re-architected `LuckyWheelPage.xaml` layout to eliminate text clipping, layout shift, and viewport overflow.
 
 ### Fixed
+- **Startup Module Activation Error Banner Race Condition**:
+  - Fixed startup race condition where `MainWindowViewModel` attempted to restore and navigate to the initial module inside its constructor before `NavigationService` was initialized with the host WinUI 3 `Frame`.
+  - Moved initial module selection restoration to an explicit `RestoreInitialSelectionAsync` invocation in `MainWindow.xaml.cs` after `navService.Initialize(ContentFrame)` is complete.
+  - Wrapped UI property updates and navigation execution in `IDispatcherService.TryEnqueue` to prevent cross-thread COM exceptions, and injected structured logging for diagnosis.
 - **WinUI 3 Unpackaged Publish XAML Resources & PRI Missing Bug**:
   - Fixed startup crash (`0xc000027b`, `XamlParseException: Cannot locate resource from 'ms-appx:///Views/MainWindow.xaml'`) in installed Inno Setup builds.
   - Added MSBuild target `CopyWinUIResourcesToPublishDir` in `OmniForge.App.csproj` to automatically bundle compiled `.xbf` binaries and `resources.pri` / `OmniForge.App.pri` into the publish directory.

@@ -21,6 +21,7 @@ Always use the root `.\forge.ps1` (or `.\forge`) script from `d:\Tools\OmniForge
 | **Run Filtered Test** | `.\forge test -Filter "ResultTests"` | Runs a specific test class or method for rapid TDD |
 | **Scaffold Module** | `.\forge new-module <Name> -DisplayName "..."` | Generates `Service`, `ViewModel`, `Page.xaml`, `Module`, and `Tests` |
 | **Scaffold Test** | `.\forge new-test <Name> -SubFolder "Services"` | Generates a deterministic xUnit test class |
+| **Scaffold Skill** | `.\forge new-skill <Name> [-Description "..."]` | Generates standard 4-part AI Skill (`SKILL.md`, `scripts/`, `examples/`, `resources/`) |
 | **Learn & Persist** | `.\forge learn "<Insight>" -Category "WinUI3"` | Appends a learned pattern or fix to `.agents/MEMORY.md` |
 | **Read Runtime Logs** | `.\forge logs -Tail 30` | Prints the latest structured JSONL log lines from `%LocalAppData%` |
 | **Environment Check** | `.\forge doctor` | Verifies `.NET SDK`, skills inventory, rules, and static guardrails |

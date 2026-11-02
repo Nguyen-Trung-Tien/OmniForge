@@ -123,4 +123,53 @@ release/
    - Successful packaging automatically mirrors output binaries into `release/installer/` and appends/updates the SHA-256 signature in `release/checksums.txt`.
    - The `release/` directory is ignored by Git (`.gitignore`) to preserve repository cleanliness while serving as the standardized deployment directory.
 
+---
+
+## 7. Agent Skill Creation & Extension Protocol
+
+This protocol defines the non-negotiable standards for creating, structuring, and registering AI Agent Skills within OmniForge.
+
+### 7.1 Mandatory Reading Before Creation
+- **Mandatory Prerequisite**: Prior to authoring, scaffolding, or implementing any new agent skill, the agent **MUST** read the official Antigravity skill documentation:
+  - Official Antigravity Documentation: [https://antigravity.google/docs/skills/](https://antigravity.google/docs/skills/)
+  - Local Built-in Customization Reference: `~/.gemini/antigravity/builtin/skills/agy-customizations/docs/skills.md`
+
+### 7.2 Standard Skill Directory Architecture
+Every skill in OmniForge must adhere strictly to the modular 4-part directory structure:
+
+```
+my-skill/
+├── SKILL.md       # Required: Main skill instructions and YAML frontmatter metadata
+├── scripts/       # Optional: Executable automation scripts and helper tools
+├── examples/      # Optional: Reference implementations and code samples
+└── resources/     # Optional: Templates, schemas, or data files
+```
+
+> [!NOTE]
+> Antigravity defaults to `.agents/skills`, but still maintains backward compatibility for `.agent/skills`.
+> Within the OmniForge repository, all skills must be placed under `.agents/skills/`.
+
+### 7.3 `SKILL.md` Specification
+1. **YAML Frontmatter (Required)**:
+   ```yaml
+   ---
+   name: <skill-name>
+   description: <Clear, third-person description of WHAT the skill does and WHEN to activate it>
+   ---
+   ```
+   - `name`: Lowercase, hyphenated (kebab-case).
+   - `description`: Informative and concise, explaining exact trigger conditions so the agent knows when to activate it.
+2. **Progressive Disclosure**:
+   - Keep `SKILL.md` compact and focused on procedure and orchestration.
+   - Offload large templates, code files, and JSON schemas into `resources/`, `examples/`, or `scripts/` to conserve LLM token budget.
+
+### 7.4 Skill Registration & Documentation Law
+Whenever a new skill is created:
+1. **Update `AGENTS.md`**: Ensure any new architectural or operational guidelines introduced by the skill are reflected in this master protocol.
+2. **Update Applicable Usage Locations**:
+   - Register the skill in `.agents/skills/cli-task-runner/SKILL.md` and `forge.ps1` if it introduces CLI commands or tasks.
+   - Record the operational pattern in `.agents/MEMORY.md`.
+   - Update `CHANGELOG.md` under `[Unreleased] -> ### Added`.
+   - Verify inventory via `.\forge doctor`.
+
 

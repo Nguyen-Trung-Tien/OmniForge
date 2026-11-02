@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OmniForge.Core.Common;
 using OmniForge.Core.Contracts;
 
@@ -16,6 +18,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _localizationService;
     private readonly IDispatcherService _dispatcherService;
+    private readonly ILogger<MainWindowViewModel> _logger;
     private bool _hasRestoredInitialSelection;
     private string? _activeModuleId;
 
@@ -52,13 +55,15 @@ public partial class MainWindowViewModel : ObservableObject
         IToolRegistryService toolRegistry,
         ISettingsService settingsService,
         ILocalizationService localizationService,
-        IDispatcherService dispatcherService)
+        IDispatcherService dispatcherService,
+        ILogger<MainWindowViewModel>? logger = null)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
         _dispatcherService = dispatcherService ?? throw new ArgumentNullException(nameof(dispatcherService));
+        _logger = logger ?? NullLogger<MainWindowViewModel>.Instance;
 
         _toolRegistry.ModulesChanged += OnModulesChanged;
         _navigationService.Navigated += OnNavigated;
@@ -195,17 +200,17 @@ public partial class MainWindowViewModel : ObservableObject
                 SelectedItem = currentMatch;
             }
         }
-
-        // Navigate to the restored module or first available module only once on startup
-        if (!_hasRestoredInitialSelection && NavigationItems.Count > 0)
-        {
-            _hasRestoredInitialSelection = true;
-            _ = RestoreInitialSelectionAsync();
-        }
     }
 
-    private async Task RestoreInitialSelectionAsync()
+    /// <summary>
+    /// Restores the last opened module or defaults to the first available module on startup.
+    /// Must be invoked after the host navigation Frame has been initialized.
+    /// </summary>
+    public async Task RestoreInitialSelectionAsync()
     {
+        if (_hasRestoredInitialSelection) return;
+        _hasRestoredInitialSelection = true;
+
         try
         {
             var lastModuleId = await _settingsService.GetLastOpenedModuleAsync();
@@ -221,13 +226,20 @@ public partial class MainWindowViewModel : ObservableObject
 
             if (targetItem is not null)
             {
-                SelectedItem = targetItem;
-                TryNavigateToType(targetItem.ViewType, targetItem.Title);
+                _dispatcherService.TryEnqueue(() =>
+                {
+                    SelectedItem = targetItem;
+                    TryNavigateToType(targetItem.ViewType, targetItem.Title);
+                });
             }
         }
         catch (Exception ex)
         {
-            ShellErrorMessage = $"Failed to restore last module selection: {ex.Message}";
+            _logger.LogError(ex, "Failed to restore last module selection.");
+            _dispatcherService.TryEnqueue(() =>
+            {
+                ShellErrorMessage = $"Failed to restore last module selection: {ex.Message}";
+            });
         }
     }
 
@@ -240,6 +252,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Module '{ModuleTitle}' ({ViewType}) failed to activate.", moduleTitle, viewType.FullName);
             ShellErrorMessage = $"Module '{moduleTitle}' failed to activate: {ex.Message}";
         }
     }
