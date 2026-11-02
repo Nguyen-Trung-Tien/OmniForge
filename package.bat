@@ -1,24 +1,43 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 chcp 65001 >nul
-title OmniForge Production Installer Packager
+title OmniForge Production Installer Packaging Pipeline
 
-echo =====================================================================
-echo    OmniForge Utility Suite - Production Installer Builder (.EXE)
-echo =====================================================================
+:: Initialize ANSI color formatting
+for /F "delims=#" %%E in ('"prompt #$E# & for %%e in (1) do rem"') do set "ESC=%%E"
+set "RESET=%ESC%[0m"
+set "BOLD=%ESC%[1m"
+set "RED=%ESC%[91m"
+set "GREEN=%ESC%[92m"
+set "YELLOW=%ESC%[93m"
+set "CYAN=%ESC%[96m"
+set "WHITE=%ESC%[97m"
+set "GRAY=%ESC%[90m"
+
+echo.
+echo %CYAN%%BOLD%========================================================================%RESET%
+echo %CYAN%%BOLD%   OmniForge Utility Suite :: Production Installer Packaging Pipeline   %RESET%
+echo %CYAN%%BOLD%========================================================================%RESET%
 echo.
 
-:: 1. Kiem tra .NET SDK
+:: 1. Check for .NET SDK
+echo %GRAY%[1/5]%RESET% Verifying .NET 9.0 SDK installation...
 where dotnet >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [LOI] Khong tim thay .NET SDK tren may cua ban.
-    echo Vui long cai dat .NET 9.0 SDK tai https://dotnet.microsoft.com/download
+    echo.
+    echo %RED%%BOLD%[ERROR] .NET SDK was not found in your system PATH.%RESET%
+    echo %YELLOW%Please download and install .NET 9.0 SDK from:%RESET%
+    echo https://dotnet.microsoft.com/download
     echo.
     pause
     exit /b 1
 )
 
-:: 2. Tu dong tim kiem trinh bien dich Inno Setup (ISCC.exe)
+for /f "delims=" %%V in ('dotnet --version 2^>nul') do set "DOTNET_VERSION=%%V"
+echo   %GREEN%[  OK  ]%RESET% .NET SDK Version: %WHITE%!DOTNET_VERSION!%RESET%
+
+:: 2. Locate Inno Setup Compiler (ISCC.exe)
+echo %GRAY%[2/5]%RESET% Locating Inno Setup 6 compiler (ISCC.exe)...
 set "ISCC="
 
 if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" (
@@ -51,29 +70,34 @@ if %errorlevel% equ 0 (
 
 :FoundISCC
 if "%ISCC%"=="" (
-    echo [LOI] Khong tim thay trinh bien dich Inno Setup: ISCC.exe
-    echo Vui long cai dat Inno Setup 6 tu https://jrsoftware.org/isdl.php
+    echo.
+    echo %RED%%BOLD%[ERROR] Inno Setup 6 Compiler [ISCC.exe] was not found.%RESET%
+    echo %YELLOW%Please download and install Inno Setup 6 from:%RESET%
+    echo https://jrsoftware.org/isdl.php
     echo.
     pause
     exit /b 1
 )
 
-echo [OK] Trinh bien dich Inno Setup : "%ISCC%"
-echo.
+echo   %GREEN%[  OK  ]%RESET% Inno Setup Compiler: %WHITE%"!ISCC!"%RESET%
 
-:: 3. Dong cac tien trinh OmniForge.App dang chay neu co
+:: 3. Terminate running OmniForge processes & prepare directory
+echo %GRAY%[3/5]%RESET% Cleaning workspace and preparing artifact directories...
 taskkill /F /IM OmniForge.App.exe >nul 2>&1
 
-:: 4. Chuyen ve thu muc goc va chuan bi thu muc artifacts
 set "SCRIPT_DIR=%~dp0"
 cd /d "%SCRIPT_DIR%"
 
-echo [1/3] Dang don dep va chuan bi thu muc artifacts...
 if exist "artifacts\publish\win-x64" rmdir /s /q "artifacts\publish\win-x64" 2>nul
 if not exist "artifacts\installer" mkdir "artifacts\installer" 2>nul
+echo   %GREEN%[  OK  ]%RESET% Artifact directories ready.
 
-:: 5. Bien dich Release Self-Contained WinUI 3 App
-echo [2/3] Dang bien dich dotnet publish (Release, win-x64, Self-Contained)...
+:: 4. Publish Self-Contained WinUI 3 App
+echo.
+echo %CYAN%%BOLD%------------------------------------------------------------------------%RESET%
+echo %GRAY%[4/5]%RESET% Publishing Self-Contained Release (win-x64)...
+echo %CYAN%%BOLD%------------------------------------------------------------------------%RESET%
+
 dotnet publish src\OmniForge.App\OmniForge.App.csproj ^
     -c Release ^
     -r win-x64 ^
@@ -84,48 +108,81 @@ dotnet publish src\OmniForge.App\OmniForge.App.csproj ^
 
 if %errorlevel% neq 0 (
     echo.
-    echo [LOI] Qua trinh dotnet publish that bai. Vui long kiem tra thong bao tren.
+    echo %RED%%BOLD%[ERROR] dotnet publish failed. Please inspect build errors above.%RESET%
     echo.
     pause
     exit /b 1
 )
 
-:: Kiem tra su ton tai cua icon va executable
+:: Validate essential publish artifacts
 if not exist "artifacts\publish\win-x64\OmniForge.App.exe" (
-    echo [LOI] Khong tim thay OmniForge.App.exe trong thu muc publish.
+    echo.
+    echo %RED%%BOLD%[ERROR] OmniForge.App.exe was not found in publish output.%RESET%
     pause
     exit /b 1
 )
 
+if not exist "artifacts\publish\win-x64\resources.pri" (
+    if not exist "artifacts\publish\win-x64\OmniForge.App.pri" (
+        echo.
+        echo %RED%%BOLD%[ERROR] Package Resource Index [PRI] file missing from publish directory.%RESET%
+        pause
+        exit /b 1
+    )
+)
+
 if not exist "artifacts\publish\win-x64\Assets\app.ico" (
-    echo [CANH BAO] Dang bo sung Assets\app.ico vao goi publish de tranh loi icon...
+    echo   %YELLOW%[ WARN ]%RESET% Supplementing Assets\app.ico in publish directory...
     if not exist "artifacts\publish\win-x64\Assets" mkdir "artifacts\publish\win-x64\Assets"
     copy /y "src\OmniForge.App\Assets\app.ico" "artifacts\publish\win-x64\Assets\app.ico" >nul
 )
+echo   %GREEN%[  OK  ]%RESET% Release binaries and XAML assets verified.
 
-:: 6. Dong goi Inno Setup thanh tap tin cai dat .exe
-echo [3/3] Dang dong goi bo cai dat Inno Setup .EXE chuan Production...
+:: 5. Compile Inno Setup Installer
+echo.
+echo %CYAN%%BOLD%------------------------------------------------------------------------%RESET%
+echo %GRAY%[5/5]%RESET% Compiling Inno Setup Production Installer (.EXE)...
+echo %CYAN%%BOLD%------------------------------------------------------------------------%RESET%
+
 "%ISCC%" /Qp installer\OmniForge.iss
 
 if %errorlevel% neq 0 (
     echo.
-    echo [LOI] Qua trinh dong goi Inno Setup that bai.
+    echo %RED%%BOLD%[ERROR] Inno Setup packaging failed. Please check the log output above.%RESET%
     echo.
     pause
     exit /b 1
 )
 
+:: Find the generated installer and calculate size
+set "INSTALLER_NAME="
+set "INSTALLER_BYTES=0"
+for %%F in ("artifacts\installer\*.exe") do (
+    set "INSTALLER_NAME=%%~nxF"
+    set "INSTALLER_PATH=%%~fF"
+    set "INSTALLER_BYTES=%%~zF"
+)
+
+set /a "INSTALLER_MB=INSTALLER_BYTES / 1048576"
+
+:: Mirror installer to the distribution release directory
+if not exist "%SCRIPT_DIR%release\installer" mkdir "%SCRIPT_DIR%release\installer" 2>nul
+copy /y "artifacts\installer\*.exe" "%SCRIPT_DIR%release\installer\" >nul
+
 echo.
-echo =====================================================================
-echo  [THANH CONG] Dong goi Setup .EXE hoan tat xuat sac.
-echo  Thu muc dau ra: %SCRIPT_DIR%artifacts\installer
-echo =====================================================================
+echo %GREEN%%BOLD%========================================================================%RESET%
+echo %GREEN%%BOLD%  [SUCCESS] Production Installer Created Successfully!                  %RESET%
+echo %GREEN%%BOLD%========================================================================%RESET%
+echo   %WHITE%%BOLD%Package  :%RESET% %CYAN%!INSTALLER_NAME!%RESET%
+echo   %WHITE%%BOLD%Size     :%RESET% ~!INSTALLER_MB! MB
+echo   %WHITE%%BOLD%Artifacts:%RESET% %SCRIPT_DIR%artifacts\installer
+echo   %WHITE%%BOLD%Release  :%RESET% %SCRIPT_DIR%release\installer
+echo %GREEN%%BOLD%========================================================================%RESET%
 echo.
 
-:: 7. Dem nguoc 5 giay roi tu dong dong cua so
-echo Cua so se tu dong dong sau:
+echo Window will close automatically in:
 for /L %%I in (5,-1,1) do (
-    echo    ... %%I giay
+    echo    ... %%I seconds
     ping 127.0.0.1 -n 2 >nul
 )
 

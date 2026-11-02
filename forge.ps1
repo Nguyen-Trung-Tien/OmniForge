@@ -17,7 +17,7 @@
 #>
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("build", "run", "test", "verify", "arch", "new-module", "new-test", "learn", "logs", "doctor", "clean", "publish", "help")]
+    [ValidateSet("build", "run", "test", "verify", "arch", "new-module", "new-test", "learn", "logs", "doctor", "clean", "publish", "package", "help")]
     [string]$Command = "help",
 
     [Parameter(Position = 1)]
@@ -184,7 +184,63 @@ switch ($Command) {
     "publish" {
         Write-Header "Publish Self-Contained Release (win-$Platform)"
         $rid = "win-$($Platform.ToLowerInvariant())"
-        dotnet publish $AppProj -c Release -r $rid -p:Platform=$Platform --self-contained true --nologo
+        $outputDir = Join-Path $Root "artifacts\publish\$rid"
+        dotnet publish $AppProj -c Release -r $rid -p:Platform=$Platform --self-contained true -o $outputDir --nologo
+        exit $LASTEXITCODE
+    }
+
+    "package" {
+        Write-Header "Package Application via Inno Setup (win-$Platform)"
+        $rid = "win-$($Platform.ToLowerInvariant())"
+        $outputDir = Join-Path $Root "artifacts\publish\$rid"
+        Write-Host "[1/2] Publishing self-contained release to $outputDir..." -ForegroundColor Cyan
+        dotnet publish $AppProj -c Release -r $rid -p:Platform=$Platform --self-contained true -o $outputDir --nologo
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[ERROR] dotnet publish failed." -ForegroundColor Red
+            exit $LASTEXITCODE
+        }
+
+        Write-Host "[2/2] Compiling Inno Setup installer..." -ForegroundColor Cyan
+        $issPath = Join-Path $Root "installer\OmniForge.iss"
+        if (-not (Test-Path $issPath)) {
+            Write-Host "[ERROR] Installer script not found: $issPath" -ForegroundColor Red
+            exit 1
+        }
+
+        $isccCmd = Get-Command iscc -ErrorAction SilentlyContinue
+        $isccFromPath = if ($isccCmd) { $isccCmd.Source } else { $null }
+        $isccCandidates = @(
+            $isccFromPath,
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\iscc.exe",
+            "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe",
+            "$env:ProgramFiles\Inno Setup 6\iscc.exe"
+        ) | Where-Object { $_ -and (Test-Path $_) }
+
+        $isccPath = $isccCandidates | Select-Object -First 1
+        if (-not $isccPath) {
+            Write-Host "[ERROR] Inno Setup compiler (iscc.exe) not found on system." -ForegroundColor Red
+            exit 1
+        }
+
+        & $isccPath $issPath
+        if ($LASTEXITCODE -eq 0) {
+            $releaseInstallerDir = Join-Path $Root "release\installer"
+            if (-not (Test-Path $releaseInstallerDir)) {
+                New-Item -Path $releaseInstallerDir -ItemType Directory -Force | Out-Null
+            }
+            Copy-Item (Join-Path $Root "artifacts\installer\*.exe") $releaseInstallerDir -Force
+
+            # Generate SHA-256 Checksums in release directory
+            $checksumFile = Join-Path $Root "release\checksums.txt"
+            $generatedExe = Get-ChildItem -Path $releaseInstallerDir -Filter "*.exe" | Select-Object -First 1
+            if ($generatedExe) {
+                $hash = (Get-FileHash -Path $generatedExe.FullName -Algorithm SHA256).Hash
+                "$hash  $($generatedExe.Name)" | Out-File -FilePath $checksumFile -Encoding utf8
+            }
+
+            Write-Host "[SUCCESS] Installer generated in artifacts\installer\ and deployed to release\installer\" -ForegroundColor Green
+            Write-Host "[SUCCESS] SHA-256 Checksum recorded in release\checksums.txt" -ForegroundColor Green
+        }
         exit $LASTEXITCODE
     }
 
@@ -202,6 +258,7 @@ switch ($Command) {
         Write-Host "  .\forge doctor               Verify .NET SDK, skills inventory, and static architecture"
         Write-Host "  .\forge clean                Purge all bin/ and obj/ artifacts"
         Write-Host "  .\forge publish              Publish self-contained Release build"
+        Write-Host "  .\forge package              Build, package, and deploy installer to release\installer"
         exit 0
     }
 }

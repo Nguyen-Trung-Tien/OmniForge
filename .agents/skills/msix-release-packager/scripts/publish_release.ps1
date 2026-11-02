@@ -18,7 +18,6 @@ try {
         -r $Rid `
         -p:Platform=$Platform `
         -p:WindowsPackageType=None `
-        -p:WindowsAppSDKSelfContained=true `
         --self-contained true `
         -o $OutputDir
 

@@ -88,3 +88,35 @@ OmniForge is structured into strictly decoupled layers with unidirectional depen
    - OmniForge follows `MAJOR.MINOR.PATCH` versioning (`v0.1.0-alpha` for Phase 1).
    - Every pull request, subagent task, or architectural feature addition must include a corresponding update to `CHANGELOG.md` under `[Unreleased]` or the targeted milestone version.
 
+---
+
+## 6. Release & Deployment Protocol (`release/` Directory Governance)
+
+This protocol governs the staging, packaging, and distribution of production deliverables for the OmniForge Utility Suite.
+
+### 6.1 Distribution Root (`release/`) Architecture
+The top-level `release/` directory is the authoritative distribution repository for end-user packages, strictly segregated from intermediate build output (`bin/`, `obj/`, `artifacts/publish/`):
+
+```
+release/
+├── installer/             # Production Windows Setup Executables (Inno Setup)
+│   └── OmniForge-Setup-v{Version}.exe
+├── portable/              # Self-contained portable ZIP distributions
+│   └── OmniForge-v{Version}-{platform}.zip
+└── checksums.txt          # Cryptographic SHA-256 integrity verification hashes
+```
+
+### 6.2 Packaging & Deployment Pipeline
+1. **Packaging Automation**:
+   - Primary CLI command: `.\forge package -Platform x64`
+   - Standalone Batch packager: `.\package.bat`
+   - Dedicated PowerShell script: `pwsh -File .agents/skills/msix-release-packager/scripts/publish_release.ps1`
+2. **Release Artifact Integrity Law**:
+   - Every release package must include compiled XAML binaries (`.xbf`) in their respective directories (`Controls`, `Modules`, `Styles`, `Views`) and the Package Resource Index (`resources.pri` & `OmniForge.App.pri`).
+   - Binaries must be published with `<PublishTrimmed>False</PublishTrimmed>` and `<PublishReadyToRun>True</PublishReadyToRun>`.
+   - Packaging must always be preceded by a successful `.\forge verify` run (100% pass on all `NetArchTest` and `xUnit` test suites with zero compiler warnings).
+3. **Automated Deployment & Checksums**:
+   - Successful packaging automatically mirrors output binaries into `release/installer/` and appends/updates the SHA-256 signature in `release/checksums.txt`.
+   - The `release/` directory is ignored by Git (`.gitignore`) to preserve repository cleanliness while serving as the standardized deployment directory.
+
+

@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added UI-thread 5-second auto-dismiss timer for `SuccessMessage` in `ToolHeaderControl`, ensuring all tool operation completion banners automatically disappear cleanly.
   - Replaced raw border and textblock indicators in `SettingsPage.xaml` with polished Fluent `InfoBar` components for `IsUpToDate` and `StatusNotice`.
 
+### Changed
+- **Modernized `package.bat` Visual CLI & English Localization**:
+  - Upgraded [package.bat](file:///d:/Tools/OmniForge/package.bat) with native ANSI terminal color formatting (Cyan/Green/Red/Yellow/Gray), clean step banners, and comprehensive English messaging.
+  - Added real-time .NET SDK and Inno Setup 6 compiler version verification with structured `[  OK  ]` badges.
+  - Added post-build validation for critical assets (`OmniForge.App.exe`, `resources.pri` / `OmniForge.App.pri`, `app.ico`) and automatic output installer file size reporting.
+
 ### Security
 - **XML Entity Expansion (XXE / Billion Laughs) & Zip Bomb Defense**:
   - Added `SecurityGuard.CreateSafeXmlReaderSettings` and `SecurityGuard.LoadSafeXmlAsync` enforcing `DtdProcessing = DtdProcessing.Prohibit`, `XmlResolver = null`, `MaxCharactersFromEntities = 1024`, and `MaxCharactersInDocument = 10 MB`.
@@ -26,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added explicit `SecurityGuard.ValidateSafePath` verification on download destination paths and configured a 30-second HTTP timeout in `UpdateService`.
 
 ### Fixed
+- **WinUI 3 Unpackaged Publish XAML Resources & PRI Missing Bug**:
+  - Fixed application startup crash (`0xc000027b`, `XamlParseException: Cannot locate resource from 'ms-appx:///Views/MainWindow.xaml'`) when launching the installed application packaged via Inno Setup.
+  - Added MSBuild target `CopyWinUIResourcesToPublishDir` in [OmniForge.App.csproj](file:///d:/Tools/OmniForge/src/OmniForge.App/OmniForge.App.csproj) to automatically bundle compiled XAML binaries (`.xbf`) and Package Resource Index (`OmniForge.App.pri` & `resources.pri`) into the self-contained publish directory.
+  - Enhanced [forge.ps1](file:///d:/Tools/OmniForge/forge.ps1) with a unified `package` command that builds, publishes self-contained release binaries to `artifacts\publish\win-x64`, and compiles the Inno Setup installer via `iscc.exe`.
+  - Removed global CLI `-p:WindowsAppSDKSelfContained=true` override in [publish_release.ps1](file:///d:/Tools/OmniForge/.agents/skills/msix-release-packager/scripts/publish_release.ps1) to prevent MSBuild leaking into class libraries.
 - **Confirmation Dialog Message Blank Box Bug**:
   - Fixed property synchronization order in `ToolHeaderControl.xaml.cs` where `IsConfirmationOpen = true` was assigned before `ConfirmationTitle` and `ConfirmationMessage`, triggering `ShowConfirmationDialogAsync` before the message text was populated and rendering an empty box.
   - Added direct fallback to `_subscribedVm.ConfirmationMessage` and `_subscribedVm.ConfirmationTitle`, and guarded `messageBorder` rendering so empty placeholder boxes are never displayed.

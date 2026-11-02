@@ -25,7 +25,8 @@ Always use the root `.\forge.ps1` (or `.\forge`) script from `d:\Tools\OmniForge
 | **Read Runtime Logs** | `.\forge logs -Tail 30` | Prints the latest structured JSONL log lines from `%LocalAppData%` |
 | **Environment Check** | `.\forge doctor` | Verifies `.NET SDK`, skills inventory, rules, and static guardrails |
 | **Clean Artifacts** | `.\forge clean` | Purges all `bin/` and `obj/` directories across the solution |
-| **Publish Release** | `.\forge publish -Platform x64` | Publishes a self-contained `Release` build |
+| **Publish Release** | `.\forge publish -Platform x64` | Publishes a self-contained `Release` build to `artifacts/publish/` |
+| **Package Installer** | `.\forge package -Platform x64` | Compiles installer, generates SHA-256, and deploys to `release/installer/` |
 
 ---
 
