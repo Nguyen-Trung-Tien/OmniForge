@@ -99,10 +99,11 @@ OmniForge is structured into strictly decoupled layers with unidirectional depen
 This protocol governs the staging, packaging, and distribution of production deliverables for the OmniForge Utility Suite.
 
 ### 6.1 Distribution Root (`release/`) Architecture
-The top-level `release/` directory is the authoritative distribution repository for end-user packages, strictly segregated from intermediate build output (`bin/`, `obj/`, `artifacts/publish/`):
+The top-level `release/` directory is the authoritative distribution repository for end-user packages, consolidating publish outputs, installers, and archives into a single unified directory tree:
 
 ```
 release/
+├── publish/               # Published self-contained binaries (win-x64, win-arm64)
 ├── installer/             # Production Windows Setup Executables (Inno Setup)
 │   └── OmniForge-Setup-v{Version}.exe
 ├── portable/              # Self-contained portable ZIP distributions

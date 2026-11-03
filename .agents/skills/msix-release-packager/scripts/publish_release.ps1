@@ -11,7 +11,7 @@ try {
     Write-Host "[Release Packager] Publishing self-contained portable $Configuration build for $Platform..." -ForegroundColor Cyan
     $AppProj = "src\OmniForge.App\OmniForge.App.csproj"
     $Rid = "win-$Platform"
-    $OutputDir = "artifacts\publish\$Rid"
+    $OutputDir = "release\publish\$Rid"
 
     dotnet publish $AppProj `
         -c $Configuration `

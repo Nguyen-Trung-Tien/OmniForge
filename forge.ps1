@@ -265,7 +265,7 @@ See https://antigravity.google/docs/skills/ for official Antigravity skill archi
     "publish" {
         Write-Header "Publish Self-Contained Release (win-$Platform)"
         $rid = "win-$($Platform.ToLowerInvariant())"
-        $outputDir = Join-Path $Root "artifacts\publish\$rid"
+        $outputDir = Join-Path $Root "release\publish\$rid"
         dotnet publish $AppProj -c Release -r $rid -p:Platform=$Platform --self-contained true -o $outputDir --nologo
         exit $LASTEXITCODE
     }
@@ -273,7 +273,7 @@ See https://antigravity.google/docs/skills/ for official Antigravity skill archi
     "package" {
         Write-Header "Package Application via Inno Setup (win-$Platform)"
         $rid = "win-$($Platform.ToLowerInvariant())"
-        $outputDir = Join-Path $Root "artifacts\publish\$rid"
+        $outputDir = Join-Path $Root "release\publish\$rid"
         Write-Host "[1/2] Publishing self-contained release to $outputDir..." -ForegroundColor Cyan
         dotnet publish $AppProj -c Release -r $rid -p:Platform=$Platform --self-contained true -o $outputDir --nologo
         if ($LASTEXITCODE -ne 0) {

@@ -43,9 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Batch Folder & Lucky Wheel Layout Refactoring**:
   - Streamlined `BatchFolderPage.xaml` card hierarchy and grouped categorized actions.
   - Re-architected `LuckyWheelPage.xaml` layout to eliminate text clipping, layout shift, and viewport overflow.
-- **Packaging Directory Governance & Direct Release Output**:
-  - Configured Inno Setup compiler (`OmniForge.iss`) and packaging pipelines (`package.bat`, `forge.ps1`) to compile and deploy production installers directly to `release/installer/`.
-  - Eliminated intermediate duplication of 74MB installer binaries between `artifacts/installer` and `release/installer`.
+- **Unified Build Output & Release Deliverable Architecture**:
+  - Consolidated all published application binaries (`release/publish/win-x64`) and packaging distribution artifacts (`release/installer/`, `release/checksums.txt`) into a unified `release/` root directory.
+  - Eliminated the redundant root `artifacts/` directory and updated `forge.ps1`, `package.bat`, `installer/OmniForge.iss`, and deployment automation scripts to target `release/publish/`.
+  - Comprehensively updated and modernized `README.md` to showcase all 7 utility modules, 17 AI agent skills, the consolidated `release/` distribution pipeline, and 143 passing test suites.
 
 ### Removed
 - **Redundant Global Usings & Bridge Classes**:

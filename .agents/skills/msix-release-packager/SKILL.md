@@ -15,6 +15,7 @@ All distribution deliverables are produced into the top-level `release/` directo
 
 ```
 release/
+├── publish/               # Published self-contained binaries (win-x64, win-arm64)
 ├── installer/             # Production Windows Setup Executables (Inno Setup)
 │   └── OmniForge-Setup-v{Version}.exe
 ├── portable/              # Self-contained portable ZIP distributions
@@ -41,7 +42,7 @@ release/
      ```powershell
      .\forge package -Platform x64
      ```
-     Builds, publishes to `artifacts/publish/win-x64`, compiles the Inno Setup installer, deploys it to `release/installer/`, and generates `release/checksums.txt`.
+     Builds, publishes to `release/publish/win-x64`, compiles the Inno Setup installer, deploys it to `release/installer/`, and generates `release/checksums.txt`.
    - **Visual Batch Packager**:
      ```cmd
      .\package.bat

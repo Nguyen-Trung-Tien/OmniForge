@@ -88,7 +88,7 @@ taskkill /F /IM OmniForge.App.exe >nul 2>&1
 set "SCRIPT_DIR=%~dp0"
 cd /d "%SCRIPT_DIR%"
 
-if exist "artifacts\publish\win-x64" rmdir /s /q "artifacts\publish\win-x64" 2>nul
+if exist "release\publish\win-x64" rmdir /s /q "release\publish\win-x64" 2>nul
 if not exist "release\installer" mkdir "release\installer" 2>nul
 echo   %GREEN%[  OK  ]%RESET% Build and release directories ready.
 
@@ -103,7 +103,7 @@ dotnet publish src\OmniForge.App\OmniForge.App.csproj ^
     -r win-x64 ^
     -p:Platform=x64 ^
     --self-contained true ^
-    -o artifacts\publish\win-x64 ^
+    -o release\publish\win-x64 ^
     --nologo
 
 if %errorlevel% neq 0 (
@@ -115,15 +115,15 @@ if %errorlevel% neq 0 (
 )
 
 :: Validate essential publish artifacts
-if not exist "artifacts\publish\win-x64\OmniForge.App.exe" (
+if not exist "release\publish\win-x64\OmniForge.App.exe" (
     echo.
     echo %RED%%BOLD%[ERROR] OmniForge.App.exe was not found in publish output.%RESET%
     pause
     exit /b 1
 )
 
-if not exist "artifacts\publish\win-x64\resources.pri" (
-    if not exist "artifacts\publish\win-x64\OmniForge.App.pri" (
+if not exist "release\publish\win-x64\resources.pri" (
+    if not exist "release\publish\win-x64\OmniForge.App.pri" (
         echo.
         echo %RED%%BOLD%[ERROR] Package Resource Index [PRI] file missing from publish directory.%RESET%
         pause
@@ -131,10 +131,10 @@ if not exist "artifacts\publish\win-x64\resources.pri" (
     )
 )
 
-if not exist "artifacts\publish\win-x64\Assets\app.ico" (
+if not exist "release\publish\win-x64\Assets\app.ico" (
     echo   %YELLOW%[ WARN ]%RESET% Supplementing Assets\app.ico in publish directory...
-    if not exist "artifacts\publish\win-x64\Assets" mkdir "artifacts\publish\win-x64\Assets"
-    copy /y "src\OmniForge.App\Assets\app.ico" "artifacts\publish\win-x64\Assets\app.ico" >nul
+    if not exist "release\publish\win-x64\Assets" mkdir "release\publish\win-x64\Assets"
+    copy /y "src\OmniForge.App\Assets\app.ico" "release\publish\win-x64\Assets\app.ico" >nul
 )
 echo   %GREEN%[  OK  ]%RESET% Release binaries and XAML assets verified.
 
