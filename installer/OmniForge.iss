@@ -33,7 +33,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 
 ; Output configuration
-OutputDir=..\artifacts\installer
+OutputDir=..\release\installer
 OutputBaseFilename=OmniForge-Setup-v{#MyAppVersion}
 
 ; High-DPI Multi-Layer Application Icon

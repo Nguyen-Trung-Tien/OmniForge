@@ -43,6 +43,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Batch Folder & Lucky Wheel Layout Refactoring**:
   - Streamlined `BatchFolderPage.xaml` card hierarchy and grouped categorized actions.
   - Re-architected `LuckyWheelPage.xaml` layout to eliminate text clipping, layout shift, and viewport overflow.
+- **Packaging Directory Governance & Direct Release Output**:
+  - Configured Inno Setup compiler (`OmniForge.iss`) and packaging pipelines (`package.bat`, `forge.ps1`) to compile and deploy production installers directly to `release/installer/`.
+  - Eliminated intermediate duplication of 74MB installer binaries between `artifacts/installer` and `release/installer`.
+
+### Removed
+- **Redundant Global Usings & Bridge Classes**:
+  - Removed redundant alias files `src/OmniForge.App/Modules/BatchFolder/FolderParser.cs` and `TokenEvaluator.cs`, using canonical `OmniForge.Core.Modules.FolderCreator` directly.
+  - Removed obsolete `src/OmniForge.Core/Modules/BatchOps/NamespaceForwarding.cs` as contracts are already imported across all batch operations.
+  - Removed unused wrapper `src/OmniForge.Services/AppSettingsService.cs` and its redundant registration in DI, unifying under `ISettingsService`.
+  - Removed legacy root `OmniForge.csproj` and `Launcher.cs` shim artifacts superseded by unified root CLI (`.\forge`).
 
 ### Fixed
 - **Startup Module Activation Error Banner Race Condition**:

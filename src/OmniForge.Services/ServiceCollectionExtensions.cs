@@ -28,7 +28,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SettingsService>();
         services.AddSingleton<ISettingsService>(sp => sp.GetRequiredService<SettingsService>());
         services.AddSingleton<IAppSettingsService>(sp => sp.GetRequiredService<SettingsService>());
-        services.AddSingleton<AppSettingsService>();
 
         services.AddSingleton<LocalizationService>();
         services.AddSingleton<ILocalizationService>(sp => sp.GetRequiredService<LocalizationService>());

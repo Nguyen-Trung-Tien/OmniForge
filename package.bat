@@ -89,8 +89,8 @@ set "SCRIPT_DIR=%~dp0"
 cd /d "%SCRIPT_DIR%"
 
 if exist "artifacts\publish\win-x64" rmdir /s /q "artifacts\publish\win-x64" 2>nul
-if not exist "artifacts\installer" mkdir "artifacts\installer" 2>nul
-echo   %GREEN%[  OK  ]%RESET% Artifact directories ready.
+if not exist "release\installer" mkdir "release\installer" 2>nul
+echo   %GREEN%[  OK  ]%RESET% Build and release directories ready.
 
 :: 4. Publish Self-Contained WinUI 3 App
 echo.
@@ -157,7 +157,7 @@ if %errorlevel% neq 0 (
 :: Find the generated installer and calculate size
 set "INSTALLER_NAME="
 set "INSTALLER_BYTES=0"
-for %%F in ("artifacts\installer\*.exe") do (
+for %%F in ("release\installer\*.exe") do (
     set "INSTALLER_NAME=%%~nxF"
     set "INSTALLER_PATH=%%~fF"
     set "INSTALLER_BYTES=%%~zF"
@@ -165,17 +165,12 @@ for %%F in ("artifacts\installer\*.exe") do (
 
 set /a "INSTALLER_MB=INSTALLER_BYTES / 1048576"
 
-:: Mirror installer to the distribution release directory
-if not exist "%SCRIPT_DIR%release\installer" mkdir "%SCRIPT_DIR%release\installer" 2>nul
-copy /y "artifacts\installer\*.exe" "%SCRIPT_DIR%release\installer\" >nul
-
 echo.
 echo %GREEN%%BOLD%========================================================================%RESET%
 echo %GREEN%%BOLD%  [SUCCESS] Production Installer Created Successfully!                  %RESET%
 echo %GREEN%%BOLD%========================================================================%RESET%
 echo   %WHITE%%BOLD%Package  :%RESET% %CYAN%!INSTALLER_NAME!%RESET%
 echo   %WHITE%%BOLD%Size     :%RESET% ~!INSTALLER_MB! MB
-echo   %WHITE%%BOLD%Artifacts:%RESET% %SCRIPT_DIR%artifacts\installer
 echo   %WHITE%%BOLD%Release  :%RESET% %SCRIPT_DIR%release\installer
 echo %GREEN%%BOLD%========================================================================%RESET%
 echo.

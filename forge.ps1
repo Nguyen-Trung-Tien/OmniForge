@@ -309,7 +309,6 @@ See https://antigravity.google/docs/skills/ for official Antigravity skill archi
             if (-not (Test-Path $releaseInstallerDir)) {
                 New-Item -Path $releaseInstallerDir -ItemType Directory -Force | Out-Null
             }
-            Copy-Item (Join-Path $Root "artifacts\installer\*.exe") $releaseInstallerDir -Force
 
             # Generate SHA-256 Checksums in release directory
             $checksumFile = Join-Path $Root "release\checksums.txt"
@@ -319,7 +318,7 @@ See https://antigravity.google/docs/skills/ for official Antigravity skill archi
                 "$hash  $($generatedExe.Name)" | Out-File -FilePath $checksumFile -Encoding utf8
             }
 
-            Write-Host "[SUCCESS] Installer generated in artifacts\installer\ and deployed to release\installer\" -ForegroundColor Green
+            Write-Host "[SUCCESS] Production Installer deployed directly to release\installer\" -ForegroundColor Green
             Write-Host "[SUCCESS] SHA-256 Checksum recorded in release\checksums.txt" -ForegroundColor Green
         }
         exit $LASTEXITCODE
