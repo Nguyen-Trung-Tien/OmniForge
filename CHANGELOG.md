@@ -52,7 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed redundant alias files `src/OmniForge.App/Modules/BatchFolder/FolderParser.cs` and `TokenEvaluator.cs`, using canonical `OmniForge.Core.Modules.FolderCreator` directly.
   - Removed obsolete `src/OmniForge.Core/Modules/BatchOps/NamespaceForwarding.cs` as contracts are already imported across all batch operations.
   - Removed unused wrapper `src/OmniForge.Services/AppSettingsService.cs` and its redundant registration in DI, unifying under `ISettingsService`.
-  - Removed legacy root `OmniForge.csproj` and `Launcher.cs` shim artifacts superseded by unified root CLI (`.\forge`).
 
 ### Fixed
 - **Startup Module Activation Error Banner Race Condition**:
